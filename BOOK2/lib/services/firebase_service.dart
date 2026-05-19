@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/account.dart';
 import '../models/receipt.dart';
 import 'api_service.dart';
@@ -8,6 +9,7 @@ import 'app_state.dart';
 
 class FirebaseService {
   FirebaseService._();
+
   static final db = FirebaseFirestore.instance;
   static final auth = FirebaseAuth.instance;
 
@@ -34,6 +36,32 @@ class FirebaseService {
     return double.tryParse(cleaned) ?? 0.0;
   }
 
+  static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(
+    String identifier,
+  ) async {
+    final key = _digits(identifier);
+    if (key.isEmpty) return null;
+
+    final directRef = db.collection('accounts').doc(key);
+    final directSnap = await directRef.get();
+    if (directSnap.exists) return directRef;
+
+    final queries = [
+      db.collection('accounts').where('accountNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('referenceNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('identifier', isEqualTo: key).limit(1),
+      db.collection('accounts').where('رقم الحساب', isEqualTo: key).limit(1),
+      db.collection('accounts').where('الرقم المرجعي', isEqualTo: key).limit(1),
+    ];
+
+    for (final q in queries) {
+      final r = await q.get();
+      if (r.docs.isNotEmpty) return r.docs.first.reference;
+    }
+
+    return null;
+  }
+
   static Future<Map<String, dynamic>?> _findNotifyReceiver(
     String identifier,
   ) async {
@@ -45,71 +73,20 @@ class FirebaseService {
       return {...direct.data()!, 'docId': direct.id};
     }
 
-    final byAccountNo = await db
-        .collection('notify_transfer_data')
-        .where('accountNo', isEqualTo: key)
-        .limit(1)
-        .get();
-    if (byAccountNo.docs.isNotEmpty) {
-      final d = byAccountNo.docs.first;
-      return {...d.data(), 'docId': d.id};
+    final queries = [
+      db.collection('notify_transfer_data').where('accountNo', isEqualTo: key).limit(1),
+      db.collection('notify_transfer_data').where('referenceNo', isEqualTo: key).limit(1),
+      db.collection('notify_transfer_data').where('رقم الحساب', isEqualTo: key).limit(1),
+      db.collection('notify_transfer_data').where('الرقم المرجعي', isEqualTo: key).limit(1),
+    ];
+
+    for (final q in queries) {
+      final r = await q.get();
+      if (r.docs.isNotEmpty) {
+        final d = r.docs.first;
+        return {...d.data(), 'docId': d.id};
+      }
     }
-
-    final byReferenceNo = await db
-        .collection('notify_transfer_data')
-        .where('referenceNo', isEqualTo: key)
-        .limit(1)
-        .get();
-    if (byReferenceNo.docs.isNotEmpty) {
-      final d = byReferenceNo.docs.first;
-      return {...d.data(), 'docId': d.id};
-    }
-
-    return null;
-  }
-
-  static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(String identifier) async {
-    final key = _digits(identifier);
-    if (key.isEmpty) return null;
-
-    final directRef = db.collection('accounts').doc(key);
-    final directSnap = await directRef.get();
-    if (directSnap.exists) return directRef;
-
-    final byAccountNo = await db
-        .collection('accounts')
-        .where('accountNo', isEqualTo: key)
-        .limit(1)
-        .get();
-    if (byAccountNo.docs.isNotEmpty) return byAccountNo.docs.first.reference;
-
-    final byReferenceNo = await db
-        .collection('accounts')
-        .where('referenceNo', isEqualTo: key)
-        .limit(1)
-        .get();
-    if (byReferenceNo.docs.isNotEmpty) return byReferenceNo.docs.first.reference;
-
-    final byArabicAccountNo = await db
-        .collection('accounts')
-        .where('رقم الحساب', isEqualTo: key)
-        .limit(1)
-        .get();
-    if (byArabicAccountNo.docs.isNotEmpty) return byArabicAccountNo.docs.first.reference;
-
-    final byArabicReferenceNo = await db
-        .collection('accounts')
-        .where('الرقم المرجعي', isEqualTo: key)
-        .limit(1)
-        .get();
-    if (byArabicReferenceNo.docs.isNotEmpty) return byArabicReferenceNo.docs.first.reference;
-
-    final byIdentifier = await db
-        .collection('accounts')
-        .where('identifier', isEqualTo: key)
-        .limit(1)
-        .get();
-    if (byIdentifier.docs.isNotEmpty) return byIdentifier.docs.first.reference;
 
     return null;
   }
@@ -120,9 +97,9 @@ class FirebaseService {
 
     const demoAccountNo = '2777277';
     const demoReferenceNo = '0123002777277001';
+
     final ref = db.collection('accounts').doc(demoAccountNo);
     final snap = await ref.get();
-    if (snap.exists) return;
 
     await ref.set({
       'accountNo': demoAccountNo,
@@ -135,19 +112,21 @@ class FirebaseService {
       'accountName': 'حساب تجريبي',
       'accountType': 'حساب توفير',
       'phone': '249000000000',
-      'balance': 50000.0,
+      'balance': snap.exists ? FieldValue.increment(0) : 50000.0,
+      'الرصيد': snap.exists ? FieldValue.increment(0) : 50000.0,
       'password': '1234',
       'status': 'active',
       'currency': 'SDG',
       'source': 'demo_seed',
-      'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
+      if (!snap.exists) 'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
 
   static Future<Map<String, dynamic>> getAppConfig() async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
+
     final doc = await db.collection('app_settings').doc('config').get();
     if (!doc.exists) {
       return {'isAppDisabled': false, 'disabledMessage': ''};
@@ -159,9 +138,10 @@ class FirebaseService {
     try {
       final config = await getAppConfig();
       AppState.appDisabled = config['isAppDisabled'] == true;
-      AppState.appDisabledMessage = '${config['disabledMessage'] ?? ''}'.trim().isEmpty
-          ? 'التطبيق متوقف مؤقتًا، يرجى المحاولة لاحقًا'
-          : '${config['disabledMessage']}';
+      AppState.appDisabledMessage =
+          '${config['disabledMessage'] ?? ''}'.trim().isEmpty
+              ? 'التطبيق متوقف مؤقتًا، يرجى المحاولة لاحقًا'
+              : '${config['disabledMessage']}';
       return AppState.appDisabled;
     } catch (_) {
       return false;
@@ -180,11 +160,13 @@ class FirebaseService {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
 
+    final cleanAccountNo = _digits(accountNo);
+    final cleanReferenceNo = _digits(referenceNo);
     final now = FieldValue.serverTimestamp();
 
     final payload = {
-      'accountNo': _digits(accountNo),
-      'referenceNo': _digits(referenceNo),
+      'accountNo': cleanAccountNo,
+      'referenceNo': cleanReferenceNo,
       'fullName': fullName,
       'accountName': fullName,
       'accountType': accountType,
@@ -201,102 +183,35 @@ class FirebaseService {
 
     await db
         .collection('notify_transfer_data')
-        .doc(_digits(accountNo))
+        .doc(cleanAccountNo)
         .set(payload, SetOptions(merge: true));
-  }) async {
-    final now = FieldValue.serverTimestamp();
-
-    final payload = {
-      'accountNo': accountNo,
-      'referenceNo': referenceNo,
-      'fullName': fullName,
-      'accountName': fullName,
-      'accountType': accountType,
-      'branch': branch,
-      'password': password,
-      'currency': 'SDG',
-      'status': 'active',
-      'source': 'notify_page',
-      'transferOnly': true,
-      'canLogin': false,
-      'createdAt': now,
-      'updatedAt': now,
-    };
-
-    // مهم:
-    // notify_transfer_data تستخدم كبيانات مستلمين للتحويل فقط.
-    // لا يتم إنشاء أو تحديث accounts من صفحة notify.
-    // الشحن وتعديل الرصيد يتم من لوحة الأدمن فقط.
-    await db
-        .collection('notify_transfer_data')
-        .doc(accountNo)
-        .set(payload, SetOptions(merge: true));
-  }) async {
-    _ensureFirebase();
-    if (!await NetworkService.isOnline) throw Exception('offline');
-    final payload = {
-      'accountNo': accountNo,
-      'referenceNo': referenceNo,
-      'fullName': fullName,
-      'accountName': fullName,
-      'accountType': accountType,
-      'branch': branch,
-      'balance': balance,
-      'currency': 'SDG',
-      'status': 'active',
-      'source': 'notify_page',
-      'password': password,
-      'updatedAt': FieldValue.serverTimestamp(),
-      'createdAt': FieldValue.serverTimestamp(),
-    };
-    await db.collection('notify_transfer_data').doc(accountNo).set(payload, SetOptions(merge: true));
-
-    final accountRef = db.collection('accounts').doc(accountNo);
-    final existing = await accountRef.get();
-
-    final accountPayload = {
-      'id': 'acc_$accountNo',
-      'identifier': accountNo,
-      'iban': 'SD$referenceNo',
-      'accountNo': accountNo,
-      'referenceNo': referenceNo,
-      'fullName': fullName,
-      'accountName': fullName,
-      'accountType': accountType,
-      'branch': branch,
-      'currency': 'SDG',
-      'status': 'active',
-      'source': 'notify_page',
-      'password': password,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (existing.exists) {
-      await accountRef.set(accountPayload, SetOptions(merge: true));
-    } else {
-      await accountRef.set({
-        ...accountPayload,
-        'balance': 0.0,
-        'الرصيد': 0.0,
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    }
   }
 
   static Future<BankAccount?> login(String identifier, String password) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
+
     if (ApiService.enabled) {
-      final api = await ApiService.postJson('/login', {'identifier': identifier, 'password': password});
+      final api = await ApiService.postJson('/login', {
+        'identifier': identifier,
+        'password': password,
+      });
+
       if (api != null && api['ok'] == true && api['account'] is Map) {
-        return BankAccount.fromMap(Map<String, dynamic>.from(api['account'] as Map));
+        return BankAccount.fromMap(
+          Map<String, dynamic>.from(api['account'] as Map),
+        );
       }
+
       if (api != null && api['ok'] == false) return null;
     }
+
     final ref = await _findAccountRef(identifier);
     if (ref == null) return null;
+
     final doc = await ref.get();
     if (!doc.exists) return null;
+
     final acc = BankAccount.fromMap({...doc.data()!, 'docId': doc.id});
     if (acc.password != password || acc.status != 'active') return null;
     return acc;
@@ -305,26 +220,46 @@ class FirebaseService {
   static Future<BankAccount?> getAccount(String accountNo) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
+
     if (ApiService.enabled) {
       final api = await ApiService.getJson('/accounts/$accountNo');
       if (api != null && api['account'] is Map) {
-        return BankAccount.fromMap(Map<String, dynamic>.from(api['account'] as Map));
+        return BankAccount.fromMap(
+          Map<String, dynamic>.from(api['account'] as Map),
+        );
       }
     }
+
     final ref = await _findAccountRef(accountNo);
-    if (ref == null) return null;
-    final doc = await ref.get();
-    if (!doc.exists) return null;
-    return BankAccount.fromMap({...doc.data()!, 'docId': doc.id});
+    if (ref != null) {
+      final doc = await ref.get();
+      if (doc.exists) {
+        return BankAccount.fromMap({...doc.data()!, 'docId': doc.id});
+      }
+    }
+
+    final notify = await _findNotifyReceiver(accountNo);
+    if (notify != null) {
+      return BankAccount.fromMap({
+        ...notify,
+        'balance': 0.0,
+        'الرصيد': 0.0,
+        'status': 'active',
+      });
+    }
+
+    return null;
   }
 
   static Future<void> saveAccount(BankAccount account) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
+
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/accounts/save', account.toMap());
       if (api != null && api['ok'] == true) return;
     }
+
     await db.collection('accounts').doc(account.accountNo).set({
       ...account.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -343,196 +278,6 @@ class FirebaseService {
 
     if (amount <= 0) throw Exception('invalid_amount');
 
-    final fromRef = await _findAccountRef(fromAccount);
-    if (fromRef == null) throw Exception('sender_not_found');
-
-    final toRef = await _findAccountRef(toAccount);
-    final notifyReceiver =
-        toRef == null ? await _findNotifyReceiver(toAccount) : null;
-
-    if (toRef == null && notifyReceiver == null) {
-      throw Exception('receiver_not_found');
-    }
-
-    final txId = DateTime.now().millisecondsSinceEpoch.toString();
-    late ReceiptData receipt;
-
-    await db.runTransaction((transaction) async {
-      final fromSnap = await transaction.get(fromRef);
-      if (!fromSnap.exists) throw Exception('sender_not_found');
-
-      final fromData = fromSnap.data()!;
-      final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
-
-      if (current < amount) {
-        throw Exception('insufficient_balance');
-      }
-
-      Map<String, dynamic> receiverData;
-
-      if (toRef != null) {
-        final toSnap = await transaction.get(toRef);
-        if (!toSnap.exists) throw Exception('receiver_not_found');
-
-        receiverData = toSnap.data()!;
-        final receiverBalance =
-            _toDouble(receiverData['balance'] ?? receiverData['الرصيد']);
-
-        transaction.update(toRef, {
-          'balance': receiverBalance + amount,
-          'الرصيد': receiverBalance + amount,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        receiverData = notifyReceiver!;
-      }
-
-      final newSenderBalance = current - amount;
-
-      transaction.update(fromRef, {
-        'balance': newSenderBalance,
-        'الرصيد': newSenderBalance,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      final receiverAccount =
-          '${receiverData['referenceNo'] ?? receiverData['accountNo'] ?? toAccount}';
-
-      final receiverName =
-          '${receiverData['fullName'] ?? receiverData['accountName'] ?? receiverData['name'] ?? ''}';
-
-      receipt = ReceiptData(
-        operationNumber: txId,
-        date: _fmt(DateTime.now()),
-        fromAccount:
-            '${fromData['referenceNo'] ?? fromData['accountNo'] ?? fromAccount}',
-        toAccount: receiverAccount,
-        receiverName: receiverName,
-        phone: phone,
-        note: note,
-        amount: amount,
-      );
-
-      transaction.set(db.collection('transactions').doc(txId), {
-        'id': txId,
-        'operationNumber': txId,
-        'date': receipt.date,
-        'fromAccount': receipt.fromAccount,
-        'toAccount': receipt.toAccount,
-        'receiverName': receipt.receiverName,
-        'phone': phone,
-        'note': note,
-        'amount': amount,
-        'status': 'success',
-        'receiverSource': toRef == null ? 'notify_transfer_data' : 'accounts',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    });
-
-    return receipt;
-  }) async {
-    _ensureFirebase();
-    if (!await NetworkService.isOnline) throw Exception('offline');
-
-    if (amount <= 0) throw Exception('invalid_amount');
-
-    final fromRef = await _findAccountRef(fromAccount);
-    if (fromRef == null) throw Exception('sender_not_found');
-
-    // المستلم قد يكون حسابًا حقيقيًا داخل accounts
-    // أو حسابًا مضافًا من notify_transfer_data للتحويل فقط
-    final toRef = await _findAccountRef(toAccount);
-    final notifyReceiver =
-        toRef == null ? await _findNotifyReceiver(toAccount) : null;
-
-    if (toRef == null && notifyReceiver == null) {
-      throw Exception('receiver_not_found');
-    }
-
-    final txId = DateTime.now().millisecondsSinceEpoch.toString();
-    late ReceiptData receipt;
-
-    await db.runTransaction((transaction) async {
-      final fromSnap = await transaction.get(fromRef);
-      if (!fromSnap.exists) throw Exception('sender_not_found');
-
-      final fromData = fromSnap.data()!;
-      final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
-
-      if (current < amount) {
-        throw Exception('insufficient_balance');
-      }
-
-      Map<String, dynamic> receiverData;
-
-      if (toRef != null) {
-        final toSnap = await transaction.get(toRef);
-        if (!toSnap.exists) throw Exception('receiver_not_found');
-
-        receiverData = toSnap.data()!;
-
-        final receiverBalance =
-            _toDouble(receiverData['balance'] ?? receiverData['الرصيد']);
-
-        transaction.update(toRef, {
-          'balance': receiverBalance + amount,
-          'الرصيد': receiverBalance + amount,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        // مستلم notify فقط:
-        // لا يتم إنشاء حساب داخل accounts
-        // ولا يتم شحن رصيده
-        // فقط نستخدم بياناته لإظهار success وإصدار الإيصال
-        receiverData = notifyReceiver!;
-      }
-
-      final newSenderBalance = current - amount;
-
-      transaction.update(fromRef, {
-        'balance': newSenderBalance,
-        'الرصيد': newSenderBalance,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      final receiverAccount =
-          '${receiverData['referenceNo'] ?? receiverData['accountNo'] ?? toAccount}';
-
-      final receiverName =
-          '${receiverData['fullName'] ?? receiverData['accountName'] ?? receiverData['name'] ?? ''}';
-
-      receipt = ReceiptData(
-        operationNumber: txId,
-        date: _fmt(DateTime.now()),
-        fromAccount:
-            '${fromData['referenceNo'] ?? fromData['accountNo'] ?? fromAccount}',
-        toAccount: receiverAccount,
-        receiverName: receiverName,
-        phone: phone,
-        note: note,
-        amount: amount,
-      );
-
-      transaction.set(db.collection('transactions').doc(txId), {
-        'id': txId,
-        'operationNumber': txId,
-        'date': receipt.date,
-        'fromAccount': receipt.fromAccount,
-        'toAccount': receipt.toAccount,
-        'receiverName': receipt.receiverName,
-        'phone': phone,
-        'note': note,
-        'amount': amount,
-        'status': 'success',
-        'receiverSource': toRef == null ? 'notify_transfer_data' : 'accounts',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    });
-
-    return receipt;
-  }) async {
-    _ensureFirebase();
-    if (!await NetworkService.isOnline) throw Exception('offline');
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/transfer', {
         'fromAccount': fromAccount,
@@ -541,50 +286,95 @@ class FirebaseService {
         'note': note,
         'phone': phone,
       });
+
       if (api != null && api['receipt'] is Map) {
         final r = Map<String, dynamic>.from(api['receipt'] as Map);
         return ReceiptData(
-          operationNumber: '${r['operationNumber'] ?? r['id'] ?? DateTime.now().millisecondsSinceEpoch}',
+          operationNumber:
+              '${r['operationNumber'] ?? r['id'] ?? DateTime.now().millisecondsSinceEpoch}',
           date: '${r['date'] ?? _fmt(DateTime.now())}',
           fromAccount: '${r['fromAccount'] ?? fromAccount}',
           toAccount: '${r['toAccount'] ?? toAccount}',
           receiverName: '${r['receiverName'] ?? ''}',
           phone: '${r['phone'] ?? phone}',
           note: '${r['note'] ?? note}',
-          amount: (r['amount'] is num) ? (r['amount'] as num).toDouble() : amount,
+          amount: (r['amount'] is num)
+              ? (r['amount'] as num).toDouble()
+              : amount,
         );
       }
     }
+
     final fromRef = await _findAccountRef(fromAccount);
-    final toRef = await _findAccountRef(toAccount);
     if (fromRef == null) throw Exception('sender_not_found');
-    if (toRef == null) throw Exception('receiver_not_found');
+
+    final toRef = await _findAccountRef(toAccount);
+    final notifyReceiver =
+        toRef == null ? await _findNotifyReceiver(toAccount) : null;
+
+    if (toRef == null && notifyReceiver == null) {
+      throw Exception('receiver_not_found');
+    }
 
     final txId = DateTime.now().millisecondsSinceEpoch.toString();
     late ReceiptData receipt;
+
     await db.runTransaction((transaction) async {
       final fromSnap = await transaction.get(fromRef);
-      final toSnap = await transaction.get(toRef);
       if (!fromSnap.exists) throw Exception('sender_not_found');
-      if (!toSnap.exists) throw Exception('receiver_not_found');
+
       final fromData = fromSnap.data()!;
-      final toData = toSnap.data()!;
       final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
-      if (current < amount) throw Exception('insufficient_balance');
-      final receiverBal = _toDouble(toData['balance'] ?? toData['الرصيد']);
-      transaction.update(fromRef, {'balance': current - amount, 'الرصيد': current - amount, 'updatedAt': FieldValue.serverTimestamp()});
-      transaction.update(toRef, {'balance': receiverBal + amount, 'الرصيد': receiverBal + amount, 'updatedAt': FieldValue.serverTimestamp()});
-      final now = DateTime.now();
+
+      if (current < amount) {
+        throw Exception('insufficient_balance');
+      }
+
+      Map<String, dynamic> receiverData;
+
+      if (toRef != null) {
+        final toSnap = await transaction.get(toRef);
+        if (!toSnap.exists) throw Exception('receiver_not_found');
+
+        receiverData = toSnap.data()!;
+        final receiverBalance =
+            _toDouble(receiverData['balance'] ?? receiverData['الرصيد']);
+
+        transaction.update(toRef, {
+          'balance': receiverBalance + amount,
+          'الرصيد': receiverBalance + amount,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        receiverData = notifyReceiver!;
+      }
+
+      final newSenderBalance = current - amount;
+
+      transaction.update(fromRef, {
+        'balance': newSenderBalance,
+        'الرصيد': newSenderBalance,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      final receiverAccount =
+          '${receiverData['referenceNo'] ?? receiverData['accountNo'] ?? toAccount}';
+
+      final receiverName =
+          '${receiverData['fullName'] ?? receiverData['accountName'] ?? receiverData['name'] ?? ''}';
+
       receipt = ReceiptData(
         operationNumber: txId,
-        date: _fmt(now),
-        fromAccount: '${fromData['referenceNo'] ?? fromAccount}',
-        toAccount: '${toData['referenceNo'] ?? toAccount}',
-        receiverName: '${toData['fullName'] ?? ''}',
+        date: _fmt(DateTime.now()),
+        fromAccount:
+            '${fromData['referenceNo'] ?? fromData['accountNo'] ?? fromAccount}',
+        toAccount: receiverAccount,
+        receiverName: receiverName,
         phone: phone,
         note: note,
         amount: amount,
       );
+
       transaction.set(db.collection('transactions').doc(txId), {
         'id': txId,
         'operationNumber': txId,
@@ -596,18 +386,39 @@ class FirebaseService {
         'note': note,
         'amount': amount,
         'status': 'success',
+        'receiverSource': toRef == null ? 'notify_transfer_data' : 'accounts',
         'createdAt': FieldValue.serverTimestamp(),
       });
     });
+
     return receipt;
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> transactions() =>
-      db.collection('transactions').orderBy('createdAt', descending: true).snapshots();
+  static Stream<QuerySnapshot<Map<String, dynamic>>> transactions() {
+    return db
+        .collection('transactions')
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
 
   static String _fmt(DateTime d) {
-    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    String p(int n)=>n.toString().padLeft(2,'0');
-    return '${p(d.day)}-${m[d.month-1]}-${d.year} ${p(d.hour)}:${p(d.minute)}:${p(d.second)}';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    String p(int n) => n.toString().padLeft(2, '0');
+
+    return '${p(d.day)}-${months[d.month - 1]}-${d.year} ${p(d.hour)}:${p(d.minute)}:${p(d.second)}';
   }
 }
