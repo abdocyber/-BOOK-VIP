@@ -53,7 +53,6 @@ class _SendToPageState extends State<SendToPage> {
 
       if (!mounted) return;
 
-      // نجاح العملية: افتح صفحة النجاح
       Navigator.pushReplacementNamed(
         context,
         '/success',
@@ -66,7 +65,6 @@ class _SendToPageState extends State<SendToPage> {
       final err = e.toString();
 
       String message = 'تعذر تنفيذ العملية';
-
       if (err.contains('insufficient_balance')) {
         message = 'لايوجد رصيد كافي لإجراء المعاملة';
       } else if (err.contains('sender_not_found')) {
@@ -77,7 +75,6 @@ class _SendToPageState extends State<SendToPage> {
         message = 'تأكد من الاتصال بالإنترنت';
       }
 
-      // فشل العملية أو عدم توفر رصيد: افتح صفحة الخطأ
       Navigator.pushReplacementNamed(
         context,
         '/error',

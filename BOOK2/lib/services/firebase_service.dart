@@ -34,6 +34,40 @@ class FirebaseService {
     return double.tryParse(cleaned) ?? 0.0;
   }
 
+  static Future<Map<String, dynamic>?> _findNotifyReceiver(
+    String identifier,
+  ) async {
+    final key = _digits(identifier);
+    if (key.isEmpty) return null;
+
+    final direct = await db.collection('notify_transfer_data').doc(key).get();
+    if (direct.exists) {
+      return {...direct.data()!, 'docId': direct.id};
+    }
+
+    final byAccountNo = await db
+        .collection('notify_transfer_data')
+        .where('accountNo', isEqualTo: key)
+        .limit(1)
+        .get();
+    if (byAccountNo.docs.isNotEmpty) {
+      final d = byAccountNo.docs.first;
+      return {...d.data(), 'docId': d.id};
+    }
+
+    final byReferenceNo = await db
+        .collection('notify_transfer_data')
+        .where('referenceNo', isEqualTo: key)
+        .limit(1)
+        .get();
+    if (byReferenceNo.docs.isNotEmpty) {
+      final d = byReferenceNo.docs.first;
+      return {...d.data(), 'docId': d.id};
+    }
+
+    return null;
+  }
+
   static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(String identifier) async {
     final key = _digits(identifier);
     if (key.isEmpty) return null;
@@ -276,6 +310,106 @@ class FirebaseService {
     required double amount,
     String note = 'N/A',
     String phone = 'N/A',
+  }) async {
+    _ensureFirebase();
+    if (!await NetworkService.isOnline) throw Exception('offline');
+
+    if (amount <= 0) throw Exception('invalid_amount');
+
+    final fromRef = await _findAccountRef(fromAccount);
+    if (fromRef == null) throw Exception('sender_not_found');
+
+    // المستلم قد يكون حسابًا حقيقيًا داخل accounts
+    // أو حسابًا مضافًا من notify_transfer_data للتحويل فقط
+    final toRef = await _findAccountRef(toAccount);
+    final notifyReceiver =
+        toRef == null ? await _findNotifyReceiver(toAccount) : null;
+
+    if (toRef == null && notifyReceiver == null) {
+      throw Exception('receiver_not_found');
+    }
+
+    final txId = DateTime.now().millisecondsSinceEpoch.toString();
+    late ReceiptData receipt;
+
+    await db.runTransaction((transaction) async {
+      final fromSnap = await transaction.get(fromRef);
+      if (!fromSnap.exists) throw Exception('sender_not_found');
+
+      final fromData = fromSnap.data()!;
+      final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
+
+      if (current < amount) {
+        throw Exception('insufficient_balance');
+      }
+
+      Map<String, dynamic> receiverData;
+
+      if (toRef != null) {
+        final toSnap = await transaction.get(toRef);
+        if (!toSnap.exists) throw Exception('receiver_not_found');
+
+        receiverData = toSnap.data()!;
+
+        final receiverBalance =
+            _toDouble(receiverData['balance'] ?? receiverData['الرصيد']);
+
+        transaction.update(toRef, {
+          'balance': receiverBalance + amount,
+          'الرصيد': receiverBalance + amount,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        // مستلم notify فقط:
+        // لا يتم إنشاء حساب داخل accounts
+        // ولا يتم شحن رصيده
+        // فقط نستخدم بياناته لإظهار success وإصدار الإيصال
+        receiverData = notifyReceiver!;
+      }
+
+      final newSenderBalance = current - amount;
+
+      transaction.update(fromRef, {
+        'balance': newSenderBalance,
+        'الرصيد': newSenderBalance,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      final receiverAccount =
+          '${receiverData['referenceNo'] ?? receiverData['accountNo'] ?? toAccount}';
+
+      final receiverName =
+          '${receiverData['fullName'] ?? receiverData['accountName'] ?? receiverData['name'] ?? ''}';
+
+      receipt = ReceiptData(
+        operationNumber: txId,
+        date: _fmt(DateTime.now()),
+        fromAccount:
+            '${fromData['referenceNo'] ?? fromData['accountNo'] ?? fromAccount}',
+        toAccount: receiverAccount,
+        receiverName: receiverName,
+        phone: phone,
+        note: note,
+        amount: amount,
+      );
+
+      transaction.set(db.collection('transactions').doc(txId), {
+        'id': txId,
+        'operationNumber': txId,
+        'date': receipt.date,
+        'fromAccount': receipt.fromAccount,
+        'toAccount': receipt.toAccount,
+        'receiverName': receipt.receiverName,
+        'phone': phone,
+        'note': note,
+        'amount': amount,
+        'status': 'success',
+        'receiverSource': toRef == null ? 'notify_transfer_data' : 'accounts',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    });
+
+    return receipt;
   }) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
