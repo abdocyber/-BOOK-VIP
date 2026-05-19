@@ -18,7 +18,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   }
 
   String _fmtDate(dynamic v) {
-    if (v == null) return '15-May-2026 08:09:23';
+    if (v == null) return '15-May-2026 08:09:23'; //
 
     final text = '$v';
     final parsed = DateTime.tryParse(text);
@@ -33,19 +33,19 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     String p(int n) => n.toString().padLeft(2, '0');
 
     return '${p(parsed.day)}-${months[parsed.month - 1]}-${parsed.year} '
-        '${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
+        '${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}'; //
   }
 
   String _fmtMoney(dynamic v) {
     final n = v is num
         ? v.toDouble()
-        : double.tryParse('$v'.replaceAll(',', '')) ?? 40000.00;
+        : double.tryParse('$v'.replaceAll(',', '')) ?? 40000.00; //
 
     return n.toStringAsFixed(2);
   }
 
   String _statusAr(dynamic v) {
-    return '$v' == 'success' || '$v'.isEmpty ? 'نجاح' : '$v';
+    return '$v' == 'success' || '$v'.isEmpty ? 'نجاح' : '$v'; //
   }
 
   void _showSoon() {
@@ -59,11 +59,11 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   }
 
   void _shareTx(Map<String, dynamic> d) {
-    final id = '${d['operationNumber'] ?? d['id'] ?? '20019502790'}';
-    final amount = _fmtMoney(d['amount'] ?? 40000.00);
-    final to = '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0033 0443 6676 0001'}';
+    final id = '${d['operationNumber'] ?? d['id'] ?? '20019502790'}'; //
+    final amount = _fmtMoney(d['amount'] ?? 40000.00); //
+    final to = '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0033 0443 6676 0001'}'; //
 
-    final text = 'تفاصيل المعاملة\nرقم العملية: $id\nالمبلغ: $amount\nإلى: $to';
+    final text = 'تفاصيل المعاملة\nرقم العملية: $id\nالمبلغ: $amount\nإلى: $to'; //
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -76,67 +76,63 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   Widget build(BuildContext context) {
     final d = _data(context);
 
-    // الـ 9 صفوف المطابقة للصورة تماماً بدون زيادة أو نقصان
+    // الـ 9 صفوف المطابقة للصورة المرجعية تماماً
     final rows = <_ReceiptRow>[
       _ReceiptRow(
         'رقم العملية',
-        '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? '20019502790'}',
+        '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? '20019502790'}', //
       ),
       _ReceiptRow(
         'التاريخ والوقت',
-        _fmtDate(d['createdAt'] ?? d['date'] ?? '2026-05-15T08:09:23'),
+        _fmtDate(d['createdAt'] ?? d['date'] ?? '2026-05-15T08:09:23'), //
       ),
       _ReceiptRow(
         'نوع العملية',
-        '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب آخر'}',
-        arabicValue: true,
+        '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب آخر'}', //
       ),
       _ReceiptRow(
         'المبلغ',
-        _fmtMoney(d['amount'] ?? 40000.00),
+        _fmtMoney(d['amount'] ?? 40000.00), //
       ),
       _ReceiptRow(
         'من',
-        '${d['from'] ?? d['accountFrom'] ?? d['fromAccount'] ?? '0123 0302 4821 0001'}',
+        '${d['from'] ?? d['accountFrom'] ?? d['fromAccount'] ?? '0123 0302 4821 0001'}', //
       ),
       _ReceiptRow(
         'إلى',
-        '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0033 0443 6676 0001'}',
+        '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0033 0443 6676 0001'}', //
       ),
       _ReceiptRow(
         'الحالة',
-        _statusAr(d['status'] ?? 'success'),
-        arabicValue: true,
+        _statusAr(d['status'] ?? 'success'), //
       ),
       _ReceiptRow(
         'إسم المرسل اليه',
-        '${d['accountName'] ?? d['receiverName'] ?? 'نازك عبدالقادر الطيب عبدالقادر'}',
-        arabicValue: true,
+        '${d['accountName'] ?? d['receiverName'] ?? 'نازك عبدالقادر الطيب عبدالقادر'}', //
       ),
       _ReceiptRow(
         'التعليق',
-        '${d['comment'] ?? d['note'] ?? 'N/A'}',
-        arabicValue: true,
+        '${d['comment'] ?? d['note'] ?? 'N/A'}', //
       ),
     ];
 
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: TextDirection.rtl, // توجيه الواجهة بالكامل من اليمين لليسار
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.white, //
         body: Column(
           children: [
-            // 1. شريط التطبيق الأحمر العلوي (AppBar)
+            // 1. شريط التطبيق الأحمر العلوي (AppBar) - مطابقة تامة لمواضع وترتيب الأيقونات والشعار
             Container(
-              height: 65,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              height: 68,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xffff0000),
-                    Color(0xffca1e24),
+                    Color(0xffe31e24),
+                    Color(0xffb80006),
                   ],
                 ),
               ),
@@ -145,27 +141,29 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const SizedBox(width: 30), // موازن أبعاد الهيدر
-                    Image.asset(
-                      'assets/img/white_logo_n.png',
-                      width: 90,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Image.asset('assets/img/bankak_logo_big.png', width: 90),
-                    ),
+                    // زر القائمة الجانبية (Hamburger Menu) في أقصى اليمين في وضع الـ RTL
                     Image.asset(
                       'assets/img/dehaze_24.png',
-                      width: 30,
-                      height: 30,
+                      width: 26,
+                      height: 26,
                       fit: BoxFit.contain,
                     ),
+                    // الشعار متمركز تماماً بالوسط
+                    Image.asset(
+                      'assets/img/bankak_logo_big.png',
+                      width: 95,
+                      fit: BoxFit.contain,
+                    ),
+                    // فراغ موازن أبعاد هندسي في اليسار ليحافظ على توسيط الشعار
+                    const SizedBox(width: 26),
                   ],
                 ),
               ),
             ),
 
-            // 2. شريط تفاصيل المعاملة الفرعي الأبيض مع زر العودة back.png في أقصى اليمين المتموضع بدقة كالصورة
+            // 2. شريط تفاصيل المعاملة الفرعي الأبيض مع زر العودة المتموضع بدقة باليمين
             Container(
-              height: 61,
+              height: 56,
               color: const Color(0xfff8f8f8),
               child: Stack(
                 children: [
@@ -174,15 +172,15 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                       'تفاصيل المعاملة',
                       style: TextStyle(
                         color: Color(0xff2b2b2b),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.bold,
                         fontFamily: 'Rubik',
                       ),
                     ),
                   ),
                   Positioned(
                     right: 14,
-                    top: 11,
+                    top: 8,
                     child: InkWell(
                       onTap: () {
                         if (Navigator.canPop(context)) {
@@ -201,7 +199,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
             ),
 
-            // 3. مساحة حقول المعاملة مدمج بها صورة الخلفية الزخرفية bg.png
+            // 3. مساحة حقول المعاملة المحدثة بالمحاذاة اليسارية المطلقة للقيم (اليمين تسميات، اليسار قيم)
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -211,12 +209,12 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   ),
                 ),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xff9f9d99), width: 1.5),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xffbcbcbc), width: 1.2),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: Column(
@@ -225,44 +223,41 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                         final r = entry.value;
 
                         return Container(
-                          constraints: const BoxConstraints(minHeight: 39.5),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          constraints: const BoxConstraints(minHeight: 42),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                           decoration: BoxDecoration(
                             border: Border(
                               bottom: isLast
                                   ? BorderSide.none
-                                  : const BorderSide(color: Color(0xff9f9d99), width: 1.2),
+                                  : const BorderSide(color: Color(0xffdcdcdc), width: 1.0),
                             ),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // اليمين: التسميات بالرمادي الداكن العريض
+                              // جهة اليمين: التسميات ثابتة عريضة باللون الرمادي الداكن
                               Text(
                                 r.label,
                                 style: const TextStyle(
-                                  color: Color(0xff656565),
+                                  color: Color(0xff555555),
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 15.0,
+                                  fontSize: 14.5,
                                   fontFamily: 'Rubik',
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              // اليسار: القيم المتغيرة محاذاة لليسار بالكامل كالتصميم تماماً
+                              const SizedBox(width: 16),
+                              // جهة اليسار: محاذاة كل القيم (نصوص أو أرقام) لليسار تماماً كالتطبيق الأصلي
                               Expanded(
-                                child: Directionality(
-                                  textDirection: r.arabicValue ? TextDirection.rtl : TextDirection.ltr,
-                                  child: Text(
-                                    r.value.isEmpty ? 'N/A' : r.value,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: r.arabicValue ? TextAlign.right : TextAlign.left,
-                                    style: const TextStyle(
-                                      color: Color(0xff626262),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 13.5,
-                                      fontFamily: 'Rubik',
-                                    ),
+                                child: Text(
+                                  r.value.isEmpty ? 'N/A' : r.value,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.left, // محاذاة يسارية مطلقة
+                                  style: const TextStyle(
+                                    color: Color(0xff333333),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14.0,
+                                    fontFamily: 'Rubik',
                                   ),
                                 ),
                               ),
@@ -276,12 +271,12 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
             ),
 
-            // 4. أزرار الأكشن التفاعلية الثنائية (تذكير على اليمين وتحويل خاطئ على اليسار كالصورة)
+            // 4. أزرار الأكشن التفاعلية الثنائية - ترتيب هندسي صحيح (تذكير يمين، تحويل خاطئ يسار)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  // زر تحويل خاطئ (اليسار)
+                  // زر تحويل خاطئ (يظهر في اليسار في وضع الـ RTL)
                   Expanded(
                     child: _ActionButton(
                       title: 'تحويل خاطئ',
@@ -290,7 +285,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  // زر تذكير (اليمين)
+                  // زر تذكير (يظهر في اليمين في وضع الـ RTL)
                   Expanded(
                     child: _ActionButton(
                       title: 'تذكير',
@@ -302,13 +297,13 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
             ),
 
-            // 5. شريط الخيارات السفلي الثلاثي (مشاركة، طباعة، تحميل) المنظم بالأيقونات الرمادية المرفوعة
+            // 5. شريط الخيارات السفلي الثلاثي المنتظم (مشاركة، طباعة، تحميل) بالتوالي المباشر
             Container(
-              height: 33,
+              height: 36,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(
-                  top: BorderSide(color: Color(0xffbcbcbc), width: 1),
+                  top: BorderSide(color: Color(0xffdcdcdc), width: 1),
                 ),
               ),
               child: Row(
@@ -318,13 +313,13 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     icon: 'sharegray.png',
                     onTap: () => _shareTx(d),
                   ),
-                  const Text('|', style: TextStyle(color: Color(0xffdddddd))),
+                  const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
                   _OptionItem(
                     title: 'طباعة',
                     icon: 'printgray.png',
                     onTap: _showSoon,
                   ),
-                  const Text('|', style: TextStyle(color: Color(0xffdddddd))),
+                  const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
                   _OptionItem(
                     title: 'تحميل',
                     icon: 'downloadgray.png',
@@ -334,17 +329,17 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
             ),
 
-            // 6. شريط حقوق بنك الخرطوم ذو التدرج الرمادي الملاصق تماماً للقاع السفلي
+            // 6. شريط حقوق بنك الخرطوم ذو التدرج الرمادي الملاصق تماماً للقاع السفلي للشاشة
             Container(
-              height: 28,
+              height: 30,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xffd9dcde),
-                    Color(0xffbfc3c6),
+                    Color(0xffe0e3e5),
+                    Color(0xffc5c9cc),
                     Color(0xffe4e5e6),
                   ],
                 ),
@@ -355,46 +350,11 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   color: Color(0xff222222),
                   fontSize: 12,
                   fontFamily: 'Rubik',
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-
-            // إشعار التنبيه العائم "قريباً..."
-            if (showToast) _buildFloatingToast(),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingToast() {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 86,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: const Color(0xffdddddd)),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(.2),
-                blurRadius: 15,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset('assets/img/notification_white.png', width: 18, height: 18, color: Colors.grey),
-              const SizedBox(width: 8),
-              const Text('قريباً...', style: TextStyle(color: Color(0xff444444), fontSize: 14, fontFamily: 'Rubik')),
-            ],
-          ),
         ),
       ),
     );
@@ -404,13 +364,11 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
 class _ReceiptRow {
   final String label;
   final String value;
-  final bool arabicValue;
 
   const _ReceiptRow(
     this.label,
-    this.value, {
-    this.arabicValue = false,
-  });
+    this.value,
+  );
 }
 
 // بناء الأزرار البيضاء ذات الإطار الأحمر مع تموضع الأيقونة على يسار النص تماماً كالصورة الأصلية
@@ -429,16 +387,16 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         height: 42,
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
             color: const Color(0xffd33234),
-            width: 2.2,
+            width: 2.0,
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -447,8 +405,8 @@ class _ActionButton extends StatelessWidget {
               title,
               style: const TextStyle(
                 color: Color(0xffd33234),
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+                fontSize: 14.5,
+                fontWeight: FontWeight.bold,
                 fontFamily: 'Rubik',
               ),
             ),
@@ -458,6 +416,7 @@ class _ActionButton extends StatelessWidget {
               width: 18,
               height: 18,
               fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(Icons.circle, size: 10, color: Color(0xffd33234)),
             ),
           ],
         ),
@@ -488,17 +447,18 @@ class _OptionItem extends StatelessWidget {
           children: [
             Image.asset(
               'assets/img/$icon',
-              width: 18,
-              height: 18,
+              width: 16,
+              height: 16,
               fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(Icons.share, size: 14, color: Colors.grey),
             ),
             const SizedBox(width: 6),
             Text(
               title,
               style: const TextStyle(
-                color: Color(0xff666666),
-                fontSize: 13.5,
-                fontWeight: FontWeight.w400,
+                color: Color(0xff555555),
+                fontSize: 13.0,
+                fontWeight: FontWeight.w500,
                 fontFamily: 'Rubik',
               ),
             ),

@@ -36,13 +36,13 @@ class _AccountPageState extends State<AccountPage> {
 
   String _buildAccountNo(String identifier) {
     final base = identifier.replaceAll(RegExp(r'\D'), '');
-    final clean = base.isEmpty ? '2777277' : base;
+    final clean = base.isEmpty ? '3024821' : base;
     return '0123${clean.padLeft(8, '0')}0001';
   }
 
   String _buildIban(String identifier) {
     final base = identifier.replaceAll(RegExp(r'\D'), '');
-    final clean = base.isEmpty ? '2777277' : base;
+    final clean = base.isEmpty ? '3024821' : base;
     return 'SD6804030${clean.padLeft(8, '0')}0001';
   }
 
@@ -63,7 +63,7 @@ class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
     final a = SessionService.current;
-    final identifier = a?.accountNo ?? '2777277';
+    final identifier = a?.accountNo ?? '3024821';
 
     final ref = (a?.referenceNo ?? '').isNotEmpty
         ? a!.referenceNo
