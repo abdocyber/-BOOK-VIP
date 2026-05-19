@@ -325,19 +325,19 @@ class _SuccessPageState extends State<SuccessPage> {
                             _buildFooterItem(
                               title: 'مشاركة',
                               img: 'share.png',
-                              fontSize: footerItemSize,
+                              fontSize: 12,
                               onTap: () => _shareReceipt(r),
                             ),
                             _buildFooterItem(
                               title: 'طباعة',
                               img: 'print.png',
-                              fontSize: footerItemSize,
+                              fontSize: 12,
                               onTap: _printSoon,
                             ),
                             _buildFooterItem(
                               title: 'تحميل',
                               img: 'download.png',
-                              fontSize: footerItemSize,
+                              fontSize: 12,
                               onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
