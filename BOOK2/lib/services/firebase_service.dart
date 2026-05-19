@@ -101,6 +101,18 @@ class FirebaseService {
     final ref = db.collection('accounts').doc(demoAccountNo);
     final snap = await ref.get();
 
+    if (snap.exists) {
+      await ref.set({
+        'accountNo': demoAccountNo,
+        'identifier': demoAccountNo,
+        'referenceNo': demoReferenceNo,
+        'password': '1234',
+        'status': 'active',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return;
+    }
+
     await ref.set({
       'accountNo': demoAccountNo,
       'id': demoAccountNo,
@@ -112,13 +124,14 @@ class FirebaseService {
       'accountName': 'حساب تجريبي',
       'accountType': 'حساب توفير',
       'phone': '249000000000',
-      'balance': snap.exists ? FieldValue.increment(0) : 50000.0,
-      'الرصيد': snap.exists ? FieldValue.increment(0) : 50000.0,
-'status': 'active',
+      'balance': 50000.0,
+      'الرصيد': 50000.0,
+      'password': '1234',
+      'status': 'active',
       'currency': 'SDG',
       'source': 'demo_seed',
+      'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-      if (!snap.exists) 'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
 
@@ -153,6 +166,7 @@ class FirebaseService {
     required String fullName,
     required String accountType,
     required String branch,
+    String? password,
     double balance = 0,
   }) async {
     _ensureFirebase();
@@ -163,6 +177,9 @@ class FirebaseService {
     final cleanAccountNo = _digits(accountNo);
     final cleanReferenceNo = _digits(referenceNo);
     final now = FieldValue.serverTimestamp();
+
+    if (cleanAccountNo.isEmpty) throw Exception('invalid_account_no');
+    if (cleanReferenceNo.isEmpty) throw Exception('invalid_reference_no');
 
     final payload = {
       'accountNo': cleanAccountNo,
@@ -181,37 +198,9 @@ class FirebaseService {
       'createdAt': now,
     };
 
-    // notify_transfer_data فقط للمستلمين.
-    // لا يتم إنشاء حساب دخول داخل accounts من صفحة notify.
+    // بيانات notify تستخدم كمستلمين للتحويل فقط.
+    // لا يتم إنشاء حساب دخول داخل accounts.
     // لا يتم حفظ كلمة مرور من notify.
-    await db
-        .collection('notify_transfer_data')
-        .doc(cleanAccountNo)
-        .set(payload, SetOptions(merge: true));
-  }) async {
-    _ensureFirebase();
-    if (!await NetworkService.isOnline) throw Exception('offline');
-
-    final cleanAccountNo = _digits(accountNo);
-    final cleanReferenceNo = _digits(referenceNo);
-    final now = FieldValue.serverTimestamp();
-
-    final payload = {
-      'accountNo': cleanAccountNo,
-      'referenceNo': cleanReferenceNo,
-      'fullName': fullName,
-      'accountName': fullName,
-      'accountType': accountType,
-      'branch': branch,
-'currency': 'SDG',
-      'status': 'active',
-      'source': 'notify_page',
-      'transferOnly': true,
-      'canLogin': false,
-      'createdAt': now,
-      'updatedAt': now,
-    };
-
     await db
         .collection('notify_transfer_data')
         .doc(cleanAccountNo)
@@ -225,7 +214,8 @@ class FirebaseService {
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/login', {
         'identifier': identifier,
-});
+        'password': password,
+      });
 
       if (api != null && api['ok'] == true && api['account'] is Map) {
         return BankAccount.fromMap(
@@ -307,99 +297,6 @@ class FirebaseService {
     if (!await NetworkService.isOnline) throw Exception('offline');
 
     await ensureSignedInAnonymously();
-
-    if (amount <= 0) throw Exception('invalid_amount');
-
-    final fromRef = await _findAccountRef(fromAccount);
-    if (fromRef == null) throw Exception('sender_not_found');
-
-    final toRef = await _findAccountRef(toAccount);
-    final notifyReceiver =
-        toRef == null ? await _findNotifyReceiver(toAccount) : null;
-
-    if (toRef == null && notifyReceiver == null) {
-      throw Exception('receiver_not_found');
-    }
-
-    final txId = DateTime.now().millisecondsSinceEpoch.toString();
-    late ReceiptData receipt;
-
-    await db.runTransaction((transaction) async {
-      final fromSnap = await transaction.get(fromRef);
-      if (!fromSnap.exists) throw Exception('sender_not_found');
-
-      final fromData = fromSnap.data()!;
-      final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
-
-      if (current < amount) {
-        throw Exception('insufficient_balance');
-      }
-
-      Map<String, dynamic> receiverData;
-
-      if (toRef != null) {
-        final toSnap = await transaction.get(toRef);
-        if (!toSnap.exists) throw Exception('receiver_not_found');
-
-        receiverData = toSnap.data()!;
-        final receiverBalance =
-            _toDouble(receiverData['balance'] ?? receiverData['الرصيد']);
-
-        transaction.update(toRef, {
-          'balance': receiverBalance + amount,
-          'الرصيد': receiverBalance + amount,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        receiverData = notifyReceiver!;
-      }
-
-      final newSenderBalance = current - amount;
-
-      transaction.update(fromRef, {
-        'balance': newSenderBalance,
-        'الرصيد': newSenderBalance,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      final receiverAccount =
-          '${receiverData['referenceNo'] ?? receiverData['accountNo'] ?? toAccount}';
-
-      final receiverName =
-          '${receiverData['fullName'] ?? receiverData['accountName'] ?? receiverData['name'] ?? ''}';
-
-      receipt = ReceiptData(
-        operationNumber: txId,
-        date: _fmt(DateTime.now()),
-        fromAccount:
-            '${fromData['referenceNo'] ?? fromData['accountNo'] ?? fromAccount}',
-        toAccount: receiverAccount,
-        receiverName: receiverName,
-        phone: phone,
-        note: note,
-        amount: amount,
-      );
-
-      transaction.set(db.collection('transactions').doc(txId), {
-        'id': txId,
-        'operationNumber': txId,
-        'date': receipt.date,
-        'fromAccount': receipt.fromAccount,
-        'toAccount': receipt.toAccount,
-        'receiverName': receipt.receiverName,
-        'phone': phone,
-        'note': note,
-        'amount': amount,
-        'status': 'success',
-        'receiverSource': toRef == null ? 'notify_transfer_data' : 'accounts',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    });
-
-    return receipt;
-  }) async {
-    _ensureFirebase();
-    if (!await NetworkService.isOnline) throw Exception('offline');
 
     if (amount <= 0) throw Exception('invalid_amount');
 
