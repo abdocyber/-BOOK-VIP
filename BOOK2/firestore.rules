@@ -1,0 +1,62 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'active';
+    }
+
+    function accountBalanceOnlyUpdate() {
+      return signedIn()
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['balance', 'updatedAt'])
+        && request.resource.data.balance is number;
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == adminId);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /app_settings/{settingId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /accounts/{accountId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow delete: if isAdmin();
+      allow update: if isAdmin() || accountBalanceOnlyUpdate();
+    }
+
+    match /notify_transfer_data/{itemId} {
+      allow read: if isAdmin();
+      allow create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasAll(['id', 'operationNumber', 'fromAccount', 'toAccount', 'amount', 'status'])
+        && request.resource.data.amount is number;
+      allow update, delete: if isAdmin();
+    }
+
+    match /admin_logs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

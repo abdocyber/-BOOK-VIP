@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "843891799065",
+    "project_id": "book-vip-3e6b8",
+    "storage_bucket": "book-vip-3e6b8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:843891799065:android:d787d260db8c2a1bdf6688",
+        "android_client_info": {
+          "package_name": "com.bookvip.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWrOZvz3gEFrthzQy8G_7TWa7FF5o5pSs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

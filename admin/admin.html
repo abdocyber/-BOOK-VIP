@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>لوحة إدارة التطبيق</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Tahoma,Arial,sans-serif}
+    body{background:#ececec;color:#222;min-height:100vh}
+    .wrap{max-width:1080px;margin:0 auto;padding:16px}
+    .top{background:linear-gradient(#ef1017,#bc0d12);color:#fff;border-radius:14px;padding:18px;text-align:center;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+    .top h1{font-size:24px;margin-bottom:6px}.top p{font-size:13px;opacity:.9}
+    .card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .hidden{display:none!important}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    label{display:block;font-size:13px;font-weight:bold;margin:9px 0 5px;color:#333}
+    input,select,textarea{width:100%;border:1px solid #ccc;border-radius:9px;padding:0 10px;font-size:15px;outline:none;background:#fff}input,select{height:42px}textarea{min-height:76px;padding-top:10px;resize:vertical}
+    input:focus,select:focus,textarea:focus{border-color:#ef1017}
+    button{height:42px;border:0;border-radius:9px;background:#ef1017;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;padding:0 14px}
+    button.secondary{background:#333}button.gray{background:#777}button.green{background:#149044}button.danger{background:#b00020}button:active{transform:scale(.99)}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+    .msg{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:12px;display:none;z-index:20;max-width:90vw;text-align:center}.msg.show{display:block}
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}th,td{border-bottom:1px solid #eee;padding:9px;text-align:right;vertical-align:top}th{background:#f6f6f6}.ltr{direction:ltr;text-align:left}.active{color:#149044;font-weight:bold}.disabled{color:#b00020;font-weight:bold}
+    .small{font-size:12px;color:#777;line-height:1.7;margin-top:7px}.section-title{font-size:18px;margin-bottom:6px;color:#111}.badge{display:inline-block;padding:3px 8px;border-radius:20px;background:#f3f3f3;font-size:12px}
+    @media(max-width:680px){.grid,.grid3{grid-template-columns:1fr}.wrap{padding:10px}.top h1{font-size:20px}table{font-size:12px}th,td{padding:7px}.row>*{flex-basis:100%}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>لوحة إدارة التطبيق</h1><p>لوحة خارج التطبيق لإدارة الحسابات، حالة التشغيل، وبيانات صفحة notify</p></div>
+
+  <section id="loginCard" class="card">
+    <h2 class="section-title">تسجيل دخول الأدمن</h2>
+    <div class="grid">
+      <div><label>البريد الإلكتروني</label><input id="adminEmail" type="email" placeholder="admin@example.com"></div>
+      <div><label>كلمة المرور</label><input id="adminPassword" type="password" placeholder="••••••••"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button onclick="loginAdmin()">دخول</button></div>
+    <div class="small">أنشئ الأدمن من Firebase Authentication ثم أضف UID الخاص به داخل collection باسم admins والحقل status = active.</div>
+  </section>
+
+  <section id="panel" class="hidden">
+    <div class="card">
+      <div class="row"><h2 class="section-title">الأدمن الحالي: <span id="adminName">...</span></h2><button class="secondary" onclick="logoutAdmin()">خروج</button></div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">حالة تشغيل التطبيق</h2>
+      <div class="grid">
+        <div><label>حالة التطبيق</label><select id="appDisabled"><option value="false">التطبيق يعمل</option><option value="true">إيقاف التطبيق مؤقتًا</option></select></div>
+        <div><label>رسالة الإيقاف التي تظهر للمستخدم</label><input id="disabledMessage" placeholder="التطبيق متوقف مؤقتًا، يرجى المحاولة لاحقًا"></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="danger" onclick="saveAppSettings()">حفظ حالة التطبيق</button><button class="gray" onclick="loadAppSettings()">تحديث الحالة</button></div>
+      <div class="small">عند تفعيل الإيقاف سيقرأ التطبيق document: app_settings/config ويمنع الدخول حتى تعيده إلى وضع التشغيل.</div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">فتح حساب جديد</h2>
+      <div class="grid3">
+        <div><label>رقم الحساب 7 أرقام</label><input id="newAccountNo" inputmode="numeric" maxlength="7" placeholder="3014021"></div>
+        <div><label>رقم الحساب الكامل 16 رقم</label><input id="newReferenceNo" inputmode="numeric" maxlength="16" placeholder="يولد تلقائياً إذا تركته"></div>
+        <div><label>اسم صاحب الحساب</label><input id="newFullName" placeholder="اسم المستخدم"></div>
+        <div><label>رقم الهاتف</label><input id="newPhone" inputmode="numeric" placeholder="249912345678"></div>
+        <div><label>الرصيد الابتدائي</label><input id="newBalance" type="number" min="0" step="0.01" value="0"></div>
+        <div><label>كلمة مرور التطبيق</label><input id="newPassword" value="1234"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="green" onclick="saveAccount()">فتح الحساب</button>
+        <button class="secondary" onclick="createDemoAccount()">إضافة الحساب التجريبي</button>
+      </div>
+      <div class="small">بيانات الحساب التجريبي: رقم الحساب 3024821 — الرقم المرجعي 0123003024821001 — كلمة المرور 1234 — الرصيد الابتدائي 50,000.</div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">بحث / حذف حساب / شحن وخصم رصيد</h2>
+      <div class="row">
+        <input id="searchAccount" inputmode="numeric" placeholder="رقم الحساب 7 أرقام أو 16 رقم">
+        <button onclick="loadAccount()">بحث</button>
+        <button class="gray" onclick="loadAccounts()">عرض الحسابات</button>
+      </div>
+      <div id="accountDetails" class="small"></div>
+      <div class="grid" style="margin-top:10px">
+        <div><label>المبلغ</label><input id="balanceAmount" type="number" min="0" step="0.01" placeholder="1000"></div>
+        <div><label>ملاحظة العملية</label><input id="balanceNote" placeholder="عملية من لوحة الأدمن"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="green" onclick="changeBalance('topup')">شحن رصيد</button>
+        <button class="danger" onclick="changeBalance('deduct')">خصم رصيد</button>
+        <button class="danger" onclick="deleteAccount()">حذف الحساب</button>
+      </div>
+      <table id="accountsTable"></table>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">بيانات صفحة notify المحفوظة</h2>
+      <div class="row"><button class="gray" onclick="loadNotifyData()">تحديث القائمة</button></div>
+      <table id="notifyTable"></table>
+    </div>
+  </section>
+</div>
+<div id="toast" class="msg"></div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp, increment, addDoc, orderBy, query, limit } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyBWrOZvz3gEFrthzQy8G_7TWa7FF5o5pSs',
+    authDomain: 'book-vip-3e6b8.firebaseapp.com',
+    projectId: 'book-vip-3e6b8',
+    storageBucket: 'book-vip-3e6b8.firebasestorage.app',
+    messagingSenderId: '843891799065',
+    appId: '1:843891799065:web:d787d260db8c2a1bdf6688'
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let selectedAccountId = null;
+  let currentAdmin = null;
+
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove('show'),2500)}
+  function digits(v){return String(v||'').replace(/\D/g,'')}
+  function makeReferenceNo(acc){return ('0123'+String(acc).padStart(8,'0')+'0001').slice(0,16)}
+  async function assertAdmin(uid){const s=await getDoc(doc(db,'admins',uid));if(!s.exists())return null;const d=s.data();return d.status==='active'?d:null}
+  function money(v){return Number(v||0).toLocaleString('en-US')}
+
+  window.loginAdmin = async function(){
+    try{
+      const email=document.getElementById('adminEmail').value.trim();
+      const pass=document.getElementById('adminPassword').value;
+      const res=await signInWithEmailAndPassword(auth,email,pass);
+      const admin=await assertAdmin(res.user.uid);
+      if(!admin){await signOut(auth);toast('هذا الحساب ليس أدمن أو تم تعطيله');return}
+      toast('تم تسجيل الدخول');
+    }catch(e){toast('فشل الدخول: '+e.message)}
+  }
+
+  window.logoutAdmin=async()=>{await signOut(auth)};
+
+  onAuthStateChanged(auth, async user=>{
+    if(!user){document.getElementById('loginCard').classList.remove('hidden');document.getElementById('panel').classList.add('hidden');return}
+    const admin=await assertAdmin(user.uid);
+    if(!admin){await signOut(auth);return}
+    currentAdmin={uid:user.uid,email:user.email,...admin};
+    document.getElementById('adminName').textContent=admin.name||user.email||user.uid;
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    await loadAppSettings();
+    await loadAccounts();
+    await loadNotifyData();
+  });
+
+  window.loadAppSettings = async function(){
+    const s = await getDoc(doc(db,'app_settings','config'));
+    const d = s.exists() ? s.data() : {};
+    document.getElementById('appDisabled').value = d.isAppDisabled === true ? 'true' : 'false';
+    document.getElementById('disabledMessage').value = d.disabledMessage || 'التطبيق متوقف مؤقتًا، يرجى المحاولة لاحقًا';
+  }
+
+  window.saveAppSettings = async function(){
+    try{
+      await setDoc(doc(db,'app_settings','config'),{
+        isAppDisabled: document.getElementById('appDisabled').value === 'true',
+        disabledMessage: document.getElementById('disabledMessage').value.trim() || 'التطبيق متوقف مؤقتًا، يرجى المحاولة لاحقًا',
+        updatedBy: currentAdmin.uid,
+        updatedAt: serverTimestamp()
+      },{merge:true});
+      await addDoc(collection(db,'admin_logs'),{type:'app_settings',adminUid:currentAdmin.uid,createdAt:serverTimestamp()});
+      toast('تم حفظ حالة التطبيق');
+    }catch(e){toast('خطأ: '+e.message)}
+  }
+
+  window.saveAccount = async function(){
+    try{
+      const accountNo=digits(document.getElementById('newAccountNo').value);
+      if(accountNo.length!==7){toast('رقم الحساب يجب أن يكون 7 أرقام');return}
+      const referenceNo=digits(document.getElementById('newReferenceNo').value)||makeReferenceNo(accountNo);
+      if(referenceNo.length!==16){toast('رقم الحساب الكامل يجب أن يكون 16 رقم');return}
+      const fullName=document.getElementById('newFullName').value.trim();
+      if(!fullName){toast('أدخل اسم صاحب الحساب');return}
+      const account={
+        accountNo, id:accountNo, identifier:accountNo, referenceNo,
+        fullName, name:fullName, accountName:fullName,
+        phone:digits(document.getElementById('newPhone').value),
+        balance:Number(document.getElementById('newBalance').value||0),
+        password:document.getElementById('newPassword').value||'1234',
+        status:'active', currency:'SDG', source:'admin_panel',
+        createdBy:currentAdmin.uid, updatedBy:currentAdmin.uid,
+        createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+      };
+      await setDoc(doc(db,'accounts',accountNo),account,{merge:true});
+      await addDoc(collection(db,'admin_logs'),{type:'create_account',accountId:accountNo,adminUid:currentAdmin.uid,createdAt:serverTimestamp()});
+      toast('تم فتح الحساب بنجاح');
+      loadAccounts();
+    }catch(e){toast('خطأ: '+e.message)}
+  }
+
+
+  window.createDemoAccount = async function(){
+    try{
+      const account={
+        accountNo:'3024821', id:'3024821', identifier:'3024821', referenceNo:'0123003024821001',
+        iban:'SD6804030003024821001',
+        fullName:'حساب تجريبي', name:'حساب تجريبي', accountName:'حساب تجريبي',
+        phone:'249000000000', balance:50000, password:'1234', status:'active',
+        accountType:'حساب توفير', currency:'SDG', source:'admin_demo_seed',
+        createdBy:currentAdmin.uid, updatedBy:currentAdmin.uid,
+        createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+      };
+      await setDoc(doc(db,'accounts','3024821'),account,{merge:true});
+      await setDoc(doc(db,'notify_transfer_data','3024821'),{
+        accountNo:'3024821', referenceNo:'0123003024821001', fullName:'حساب تجريبي',
+        accountName:'حساب تجريبي', accountType:'حساب توفير', branch:'الخرطوم',
+        balance:50000, currency:'SDG', status:'active', source:'admin_demo_seed',
+        password:'1234', updatedAt:serverTimestamp(), createdAt:serverTimestamp()
+      },{merge:true});
+      await addDoc(collection(db,'admin_logs'),{type:'create_demo_account',accountId:'3024821',amount:50000,adminUid:currentAdmin.uid,createdAt:serverTimestamp()});
+      document.getElementById('searchAccount').value='3024821';
+      toast('تم إنشاء/تحديث الحساب التجريبي');
+      await loadAccount();
+      await loadAccounts();
+      await loadNotifyData();
+    }catch(e){toast('خطأ: '+e.message)}
+  }
+
+  window.loadAccount = async function(){
+    const key=digits(document.getElementById('searchAccount').value);
+    if(!key){toast('أدخل رقم الحساب');return}
+    let snap=await getDoc(doc(db,'accounts',key));
+    if(!snap.exists()){
+      const all=await getDocs(collection(db,'accounts'));
+      const found=all.docs.find(d=>String(d.data().referenceNo)===key);
+      if(found) snap=found;
+    }
+    if(!snap.exists()){selectedAccountId=null;document.getElementById('accountDetails').textContent='لا يوجد حساب';toast('الحساب غير موجود');return}
+    selectedAccountId=snap.id; const a=snap.data();
+    document.getElementById('accountDetails').innerHTML=`الحساب المحدد: <b>${a.fullName||a.name||''}</b> — <span class="ltr">${a.referenceNo||a.accountNo}</span> — الرصيد: <b>${money(a.balance)}</b> — الحالة: <b>${a.status}</b>`;
+  }
+
+  window.loadAccounts = async function(){
+    const snaps=await getDocs(collection(db,'accounts'));
+    let html='<tr><th>الاسم</th><th>7 أرقام</th><th>16 رقم</th><th>الرصيد</th><th>الحالة</th></tr>';
+    snaps.forEach(s=>{const a=s.data();html+=`<tr onclick="document.getElementById('searchAccount').value='${a.accountNo||s.id}';loadAccount()"><td>${a.fullName||a.name||''}</td><td class="ltr">${a.accountNo||s.id}</td><td class="ltr">${a.referenceNo||''}</td><td class="ltr">${money(a.balance)}</td><td class="${a.status==='active'?'active':'disabled'}">${a.status||''}</td></tr>`});
+    document.getElementById('accountsTable').innerHTML=html;
+  }
+
+  window.changeBalance = async function(type){
+    try{
+      if(!selectedAccountId){await loadAccount(); if(!selectedAccountId)return}
+      const amount=Number(document.getElementById('balanceAmount').value||0);
+      if(amount<=0){toast('أدخل مبلغ صحيح');return}
+      const note=document.getElementById('balanceNote').value.trim()||'عملية من لوحة الأدمن';
+      if(type === 'deduct') {
+        const currentSnap = await getDoc(doc(db,'accounts',selectedAccountId));
+        const currentBalance = currentSnap.exists() ? Number(currentSnap.data().balance || 0) : 0;
+        if(currentBalance < amount){toast('لا يمكن الخصم: الرصيد غير كافٍ');return}
+      }
+      const delta = type === 'deduct' ? -amount : amount;
+      await updateDoc(doc(db,'accounts',selectedAccountId),{balance:increment(delta),updatedAt:serverTimestamp(),updatedBy:currentAdmin.uid});
+      await addDoc(collection(db,'admin_logs'),{type,accountId:selectedAccountId,amount,note,adminUid:currentAdmin.uid,createdAt:serverTimestamp()});
+      toast(type === 'deduct' ? 'تم خصم الرصيد' : 'تم شحن الرصيد');
+      await loadAccount(); loadAccounts();
+    }catch(e){toast('خطأ: '+e.message)}
+  }
+
+  window.deleteAccount = async function(){
+    try{
+      if(!selectedAccountId){await loadAccount(); if(!selectedAccountId)return}
+      if(!confirm('هل تريد حذف الحساب نهائياً؟'))return;
+      await deleteDoc(doc(db,'accounts',selectedAccountId));
+      await addDoc(collection(db,'admin_logs'),{type:'delete',accountId:selectedAccountId,adminUid:currentAdmin.uid,createdAt:serverTimestamp()});
+      selectedAccountId=null;
+      document.getElementById('accountDetails').textContent='';
+      toast('تم حذف الحساب');
+      loadAccounts();
+    }catch(e){toast('خطأ: '+e.message)}
+  }
+
+  window.loadNotifyData = async function(){
+    const q = query(collection(db,'notify_transfer_data'), orderBy('createdAt','desc'), limit(50));
+    let snaps;
+    try{snaps=await getDocs(q)}catch(e){snaps=await getDocs(collection(db,'notify_transfer_data'))}
+    let html='<tr><th>الاسم</th><th>رقم الحساب</th><th>الرقم المرجعي</th><th>النوع</th><th>الرصيد</th><th>المصدر</th></tr>';
+    snaps.forEach(s=>{const a=s.data();html+=`<tr><td>${a.fullName||''}</td><td class="ltr">${a.accountNo||s.id}</td><td class="ltr">${a.referenceNo||''}</td><td>${a.accountType||''}</td><td class="ltr">${money(a.balance)}</td><td><span class="badge">${a.source||'notify_page'}</span></td></tr>`});
+    document.getElementById('notifyTable').innerHTML=html;
+  }
+</script>
+</body>
+</html>

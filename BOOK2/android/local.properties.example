@@ -1,0 +1,6 @@
+# انسخ هذا الملف إلى local.properties عند البناء محلياً فقط، وعدل مسار Flutter حسب جهازك.
+# flutter.sdk=/path/to/flutter
+sdk.dir=/opt/android-sdk
+flutter.buildMode=release
+flutter.versionName=1.0.0
+flutter.versionCode=1
