@@ -37,7 +37,7 @@ class _TransferBankPageState extends State<TransferBankPage> {
         return;
       }
 
-      Navigator.pushNamed(context, '/sendto', arguments: target.accountNo);
+      Navigator.pushNamed(context, '/sendto', arguments: acc);
     } catch (_) {
       if (mounted) toast('تعذر الاتصال بقاعدة البيانات');
     } finally {

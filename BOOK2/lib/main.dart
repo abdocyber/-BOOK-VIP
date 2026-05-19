@@ -78,6 +78,9 @@ class BankakApp extends StatelessWidget {
         ),
       ),
       initialRoute: '/',
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(builder: (_) => const ComingSoonPage());
+      },
       routes: {
         '/': (_) => const AppBootstrap(),
         '/login': (_) => const LoginPage(),
@@ -203,6 +206,36 @@ class AppDisabledPage extends StatelessWidget {
               AppState.appDisabledMessage,
               style: const TextStyle(fontSize: 18, color: Colors.black),
               textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+class ComingSoonPage extends StatelessWidget {
+  const ComingSoonPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xfff4f5f7),
+        appBar: AppBar(
+          backgroundColor: const Color(0xffe31e24),
+          title: const Text('تنبيه'),
+          centerTitle: true,
+        ),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'هذه الصفحة غير مفعلة حاليًا',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20, color: Colors.black),
             ),
           ),
         ),

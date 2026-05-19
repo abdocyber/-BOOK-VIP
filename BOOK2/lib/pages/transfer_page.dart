@@ -26,7 +26,18 @@ class TransferPage extends StatelessWidget {
                 ...opts.map((o) => Padding(
                       padding: const EdgeInsets.fromLTRB(17, 0, 17, 16),
                       child: InkWell(
-                        onTap: o[2].isEmpty ? null : () => Navigator.pushNamed(context, o[2]),
+                        onTap: () {
+  if (o[2].isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('هذه الخدمة غير مفعلة حاليًا', textAlign: TextAlign.center),
+        duration: Duration(milliseconds: 1200),
+      ),
+    );
+    return;
+  }
+  Navigator.pushNamed(context, o[2]);
+},
                         child: Container(
                           height: 67,
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2), border: Border.all(color: const Color(0xffdddddd)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(.13), blurRadius: 4, offset: const Offset(0, 2))]),

@@ -1,0 +1,15 @@
+
+# Backup files
+*.bak
+*.bak.*
+*.backup
+*.old
+*_bak*
+backup_final_pages/
+admin_backup_final/
+# Flutter/Android build files
+BOOK2/build/
+BOOK2/.dart_tool/
+BOOK2/android/.gradle/
+BOOK2/android/app/build/
+BOOK2/android/build/
