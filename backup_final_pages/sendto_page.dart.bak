@@ -63,8 +63,8 @@ class _SendToPageState extends State<SendToPage> {
       if (!mounted) return;
 
       final err = e.toString();
-      String message = 'تعذر تنفيذ العملية';
 
+      String message = 'تعذر تنفيذ العملية';
       if (err.contains('insufficient_balance')) {
         message = 'لايوجد رصيد كافي لإجراء المعاملة';
       } else if (err.contains('sender_not_found')) {
