@@ -114,8 +114,7 @@ class FirebaseService {
       'phone': '249000000000',
       'balance': snap.exists ? FieldValue.increment(0) : 50000.0,
       'الرصيد': snap.exists ? FieldValue.increment(0) : 50000.0,
-      'password': '1234',
-      'status': 'active',
+'status': 'active',
       'currency': 'SDG',
       'source': 'demo_seed',
       'updatedAt': FieldValue.serverTimestamp(),
@@ -154,8 +153,41 @@ class FirebaseService {
     required String fullName,
     required String accountType,
     required String branch,
-    required String password,
     double balance = 0,
+  }) async {
+    _ensureFirebase();
+    if (!await NetworkService.isOnline) throw Exception('offline');
+
+    await ensureSignedInAnonymously();
+
+    final cleanAccountNo = _digits(accountNo);
+    final cleanReferenceNo = _digits(referenceNo);
+    final now = FieldValue.serverTimestamp();
+
+    final payload = {
+      'accountNo': cleanAccountNo,
+      'referenceNo': cleanReferenceNo,
+      'fullName': fullName.trim(),
+      'accountName': fullName.trim(),
+      'name': fullName.trim(),
+      'accountType': accountType.trim(),
+      'branch': branch.trim(),
+      'currency': 'SDG',
+      'status': 'active',
+      'source': 'notify_page',
+      'transferOnly': true,
+      'canLogin': false,
+      'updatedAt': now,
+      'createdAt': now,
+    };
+
+    // notify_transfer_data فقط للمستلمين.
+    // لا يتم إنشاء حساب دخول داخل accounts من صفحة notify.
+    // لا يتم حفظ كلمة مرور من notify.
+    await db
+        .collection('notify_transfer_data')
+        .doc(cleanAccountNo)
+        .set(payload, SetOptions(merge: true));
   }) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
@@ -171,8 +203,7 @@ class FirebaseService {
       'accountName': fullName,
       'accountType': accountType,
       'branch': branch,
-      'password': password,
-      'currency': 'SDG',
+'currency': 'SDG',
       'status': 'active',
       'source': 'notify_page',
       'transferOnly': true,
@@ -194,8 +225,7 @@ class FirebaseService {
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/login', {
         'identifier': identifier,
-        'password': password,
-      });
+});
 
       if (api != null && api['ok'] == true && api['account'] is Map) {
         return BankAccount.fromMap(

@@ -28,8 +28,7 @@ class _NotifyPageState extends State<NotifyPage> {
     fullName.dispose();
     branch.dispose();
     balance.dispose();
-    password.dispose();
-    super.dispose();
+super.dispose();
   }
 
   String buildReferenceNo(String acc) {
@@ -63,8 +62,7 @@ class _NotifyPageState extends State<NotifyPage> {
         fullName: name,
         accountType: accountType,
         branch: branch.text.trim().isEmpty ? 'الخرطوم' : branch.text.trim(),
-        balance: 0,
-        password: password.text.trim().isEmpty ? '1234' : password.text.trim(),
+        balance: 0.isEmpty ? '1234' : password.text.trim(),
       );
 
       if (!mounted) return;
@@ -75,9 +73,7 @@ class _NotifyPageState extends State<NotifyPage> {
       referenceNo.clear();
       fullName.clear();
       branch.text = 'الخرطوم';
-      password.text = '1234';
-
-      setState(() {
+setState(() {
         accountType = 'حساب توفير';
       });
     } catch (_) {
@@ -307,15 +303,7 @@ class _NotifyPageState extends State<NotifyPage> {
                                   hint: 'الخرطوم',
                                   keyboardType: TextInputType.text,
                                 ),
-
-                                _label('كلمة المرور'),
-                                _input(
-                                  controller: password,
-                                  hint: '1234',
-                                  keyboardType: TextInputType.visiblePassword,
-                                ),
-
-                                const SizedBox(height: 16),
+const SizedBox(height: 16),
 
                                 InkWell(
                                   onTap: saving ? null : submitForm,
@@ -350,7 +338,7 @@ class _NotifyPageState extends State<NotifyPage> {
                                 const SizedBox(height: 8),
 
                                 const Text(
-                                  'بعد الحفظ يتم تخزين بيانات التحويل فقط. الحسابات المضافة هنا تستخدم للتحويل فقط ولا يتم تسجيلها كحسابات دخول داخل التطبيق.',
+                                  'بعد الحفظ يتم تخزين بيانات التحويل فقط. الحسابات المضافة هنا تستخدم كمستلمين للتحويل فقط ولا يتم تسجيلها كحسابات دخول داخل التطبيق.',
                                   style: TextStyle(
                                     color: Color(0xff777777),
                                     fontSize: 12,
