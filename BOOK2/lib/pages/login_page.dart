@@ -73,9 +73,9 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl, // التوجيه الصحيح
+      textDirection: TextDirection.rtl, // التوجيه العربي
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F5F7), // لون الخلفية الرمادي الفاتح
+        backgroundColor: const Color(0xFFF4F5F7), // لون الخلفية الرمادي الفاتح للنصف السفلي
         body: LayoutBuilder(
           builder: (context, constraints) {
             final appW = constraints.maxWidth.clamp(0.0, 430.0);
@@ -89,75 +89,82 @@ class _LoginPageState extends State<LoginPage> {
                 height: appH,
                 child: Stack(
                   children: [
-                    // المساحة الحمراء العلوية (نفس لون الصورة المرجعية)
+                    // المساحة الحمراء العلوية (تمتد لتغطي الحقول وتقف فوق زر الدخول)
                     Positioned(
                       top: 0,
                       left: 0,
                       right: 0,
-                      height: appH * 0.42,
+                      height: appH * 0.46, // تم تمديدها للأسفل كالصورة الأصلية
                       child: Container(
                         color: const Color(0xFFE31E24),
                       ),
                     ),
 
-                    // محتوى الواجهة
+                    // محتوى الواجهة (قابل للتمرير)
                     SafeArea(
                       bottom: false,
                       child: SingleChildScrollView(
                         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: EdgeInsets.symmetric(horizontal: s(24)),
+                        padding: EdgeInsets.symmetric(horizontal: s(22)),
                         child: Column(
                           children: [
-                            // أيقونة تغيير اللغة أعلى اليمين
+                            // أيقونة تغيير اللغة
                             Align(
                               alignment: Alignment.topRight,
                               child: Padding(
-                                padding: EdgeInsets.only(top: s(10)),
+                                padding: EdgeInsets.only(top: s(12)),
                                 child: Image.asset(
                                   'assets/img/arab_lang_icon.png',
-                                  width: s(32),
-                                  height: s(32),
+                                  width: s(30),
+                                  height: s(30),
                                   fit: BoxFit.contain,
                                 ),
                               ),
                             ),
                             
-                            SizedBox(height: appH * 0.015),
+                            // دفع الشعار للأسفل قليلاً
+                            SizedBox(height: appH * 0.02),
 
-                            // الشعار الرئيسي المرفق
+                            // الشعار الرئيسي
                             Image.asset(
                               'assets/img/bankak_logo_big.png',
-                              width: s(180),
-                              height: s(80),
+                              width: s(170),
+                              height: s(75),
                               fit: BoxFit.contain,
                             ),
 
-                            SizedBox(height: appH * 0.04),
+                            // دفع حقول الإدخال للأسفل لتتمركز بشكل صحيح كالصورة
+                            SizedBox(height: appH * 0.065),
 
-                            // حقل إدخال رقم المعرف
+                            // 1. حقل إدخال رقم المعرف (يحتوي على سطرين ليكون أطول كالصورة)
                             _buildNativeInputBox(
-                              label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
+                              label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم\nالموبايل)', // استخدام \n لكسر السطر ومطابقة الحجم
                               iconAsset: 'assets/img/loginmanicon.png',
                               scale: scale,
                               child: TextField(
                                 controller: id,
                                 keyboardType: TextInputType.number,
                                 textInputAction: TextInputAction.next,
-                                textAlign: TextAlign.right, // الإدخال لليمين
-                                style: TextStyle(fontSize: s(16), color: const Color(0xFF888888), fontWeight: FontWeight.bold),
-                                decoration: const InputDecoration(
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  fontSize: s(17), 
+                                  color: const Color(0xFF777777), // لون رمادي غامق كالصورة
+                                  fontWeight: FontWeight.w600, // خط سميك للأرقام
+                                  letterSpacing: 1.2,
+                                ),
+                                decoration: InputDecoration(
                                   border: InputBorder.none,
                                   isDense: true,
                                   contentPadding: EdgeInsets.zero,
                                   hintText: '2777277',
-                                  hintStyle: TextStyle(color: Colors.black26),
+                                  hintStyle: TextStyle(color: Colors.black.withOpacity(0.15)),
                                 ),
                               ),
                             ),
 
-                            SizedBox(height: s(14)),
+                            SizedBox(height: s(12)),
 
-                            // حقل إدخال كلمة المرور
+                            // 2. حقل إدخال كلمة المرور (سطر واحد ليكون أقصر)
                             _buildNativeInputBox(
                               label: 'ادخل كلمة المرور',
                               iconAsset: _obscurePassword ? 'assets/img/loginpinicon.png' : 'assets/img/loginpiniconold.png',
@@ -175,7 +182,12 @@ class _LoginPageState extends State<LoginPage> {
                                 obscureText: _obscurePassword,
                                 obscuringCharacter: '*',
                                 textAlign: TextAlign.right,
-                                style: TextStyle(fontSize: s(18), color: const Color(0xFF888888), letterSpacing: 4.0),
+                                style: TextStyle(
+                                  fontSize: s(20), 
+                                  color: const Color(0xFF777777), 
+                                  fontWeight: FontWeight.w600, 
+                                  letterSpacing: 4.0,
+                                ),
                                 decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   isDense: true,
@@ -184,42 +196,45 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
 
-                            SizedBox(height: s(24)),
+                            SizedBox(height: s(22)),
 
-                            // زر تسجيل الدخول باستخدام صورتك button.9.png الأصلية
+                            // زر تسجيل الدخول بحواف معدلة
                             GestureDetector(
                               onTap: loading ? null : login,
-                              child: Container(
-                                width: double.infinity,
-                                height: s(50),
-                                decoration: const BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage('assets/img/button.9.png'),
-                                    fit: BoxFit.fill,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(s(6)), // تقليل الانحناء ليكون شبه مستطيل كالصورة
+                                child: Container(
+                                  width: double.infinity,
+                                  height: s(50),
+                                  decoration: const BoxDecoration(
+                                    image: DecorationImage(
+                                      image: AssetImage('assets/img/button.9.png'),
+                                      fit: BoxFit.fill,
+                                    ),
                                   ),
-                                ),
-                                child: Center(
-                                  child: loading
-                                      ? SizedBox(
-                                          height: s(20),
-                                          width: s(20),
-                                          child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                                        )
-                                      : Text(
-                                          'تسجيل الدخول',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: s(18),
-                                            fontWeight: FontWeight.bold,
+                                  child: Center(
+                                    child: loading
+                                        ? SizedBox(
+                                            height: s(20),
+                                            width: s(20),
+                                            child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                          )
+                                        : Text(
+                                            'تسجيل الدخول',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: s(18),
+                                              fontWeight: FontWeight.w600, // سمك خط الزر
+                                            ),
                                           ),
-                                        ),
+                                  ),
                                 ),
                               ),
                             ),
 
-                            SizedBox(height: s(22)),
+                            SizedBox(height: s(20)),
 
-                            // الروابط بترتيب الصورة الجديدة
+                            // الروابط بألوان وسمك مطابق تماماً
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -227,20 +242,28 @@ class _LoginPageState extends State<LoginPage> {
                                   onTap: () {},
                                   child: Text(
                                     'لا تستطيع تسجيل الدخول؟',
-                                    style: TextStyle(color: const Color(0xFF666666), fontSize: s(13.5), fontWeight: FontWeight.w500),
+                                    style: TextStyle(
+                                      color: const Color(0xFF666666), 
+                                      fontSize: s(13.5), 
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                                 GestureDetector(
                                   onTap: () {},
                                   child: Text(
                                     'تسجيل جديد؟',
-                                    style: TextStyle(color: const Color(0xFF666666), fontSize: s(13.5), fontWeight: FontWeight.w500),
+                                    style: TextStyle(
+                                      color: const Color(0xFF666666), 
+                                      fontSize: s(13.5), 
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
 
-                            SizedBox(height: s(20)),
+                            SizedBox(height: s(16)),
 
                             // أيقونة شارك رمز
                             Align(
@@ -257,15 +280,19 @@ class _LoginPageState extends State<LoginPage> {
                                   SizedBox(height: s(4)),
                                   Text(
                                     'شارك رمز',
-                                    style: TextStyle(color: const Color(0xFF666666), fontSize: s(12)),
+                                    style: TextStyle(
+                                      color: const Color(0xFF666666), 
+                                      fontSize: s(12),
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   )
                                 ],
                               ),
                             ),
 
-                            SizedBox(height: appH * 0.05),
+                            SizedBox(height: appH * 0.04),
 
-                            // أزرار شريط التواصل السفلي بنفس الترتيب في الصورة الجديدة
+                            // أزرار التواصل السفلية
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
@@ -290,7 +317,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // الحقول البيضاء، الأيقونة يساراً والنصوص يميناً بدقة
+  // دالة بناء حقول الإدخال لتطابق المحاذاة بدقة
   Widget _buildNativeInputBox({
     required String label,
     required String iconAsset,
@@ -301,14 +328,15 @@ class _LoginPageState extends State<LoginPage> {
     double s(double value) => value * scale;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: s(14), vertical: s(8)),
+      padding: EdgeInsets.only(right: s(14), left: s(12), top: s(10), bottom: s(8)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(s(8)),
+        borderRadius: BorderRadius.circular(s(6)), // حواف ناعمة للكرت
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // القسم الأيمن: النصوص
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,24 +344,35 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 Text(
                   label,
-                  style: TextStyle(color: const Color(0xFF999999), fontSize: s(11.5), fontWeight: FontWeight.w400),
+                  style: TextStyle(
+                    color: const Color(0xFF959595), // لون رمادي باهت للعنوان
+                    fontSize: s(12.5), 
+                    fontWeight: FontWeight.w400,
+                    height: 1.3, // تباعد الأسطر عند النزول لسطرين
+                  ),
                 ),
-                SizedBox(height: s(2)),
-                child,
+                SizedBox(height: s(4)),
+                child, // حقل الإدخال
               ],
             ),
           ),
           SizedBox(width: s(12)),
+          // القسم الأيسر: الأيقونة
           GestureDetector(
             onTap: onIconTap,
-            child: Image.asset(iconAsset, width: s(28), height: s(28), fit: BoxFit.contain),
+            child: Image.asset(
+              iconAsset, 
+              width: s(26), 
+              height: s(26), 
+              fit: BoxFit.contain,
+            ),
           ),
         ],
       ),
     );
   }
 
-  // الأزرار السفلية
+  // الأزرار الدائرية بالأسفل
   Widget _buildFooterCircleButton({required String label, required String assetPath, required double scale}) {
     double s(double value) => value * scale;
     return Column(
@@ -358,7 +397,11 @@ class _LoginPageState extends State<LoginPage> {
         SizedBox(height: s(6)),
         Text(
           label,
-          style: TextStyle(color: const Color(0xFF666666), fontSize: s(12.5), fontWeight: FontWeight.w500),
+          style: TextStyle(
+            color: const Color(0xFF666666), 
+            fontSize: s(12.5), 
+            fontWeight: FontWeight.w500,
+          ),
         )
       ],
     );
