@@ -63,7 +63,7 @@ class _NotifyPageState extends State<NotifyPage> {
         fullName: name,
         accountType: accountType,
         branch: branch.text.trim().isEmpty ? 'الخرطوم' : branch.text.trim(),
-        balance: double.tryParse(balance.text.replaceAll(',', '')) ?? 0,
+        balance: 0,
         password: password.text.trim().isEmpty ? '1234' : password.text.trim(),
       );
 
@@ -75,7 +75,6 @@ class _NotifyPageState extends State<NotifyPage> {
       referenceNo.clear();
       fullName.clear();
       branch.text = 'الخرطوم';
-      balance.text = '0';
       password.text = '1234';
 
       setState(() {
@@ -309,13 +308,6 @@ class _NotifyPageState extends State<NotifyPage> {
                                   keyboardType: TextInputType.text,
                                 ),
 
-                                _label('الرصيد'),
-                                _input(
-                                  controller: balance,
-                                  hint: '0',
-                                  keyboardType: TextInputType.number,
-                                ),
-
                                 _label('كلمة المرور'),
                                 _input(
                                   controller: password,
@@ -358,7 +350,7 @@ class _NotifyPageState extends State<NotifyPage> {
                                 const SizedBox(height: 8),
 
                                 const Text(
-                                  'بعد الحفظ يتم تخزين بيانات التحويل في قاعدة البيانات، ويمكن استخدامها في صفحة التحويل ولوحة الإدارة الخارجية.',
+                                  'بعد الحفظ يتم تخزين بيانات التحويل فقط. شحن الرصيد وخصمه يتم من لوحة الأدمن الخارجية فقط.',
                                   style: TextStyle(
                                     color: Color(0xff777777),
                                     fontSize: 12,

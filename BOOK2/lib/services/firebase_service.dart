@@ -56,6 +56,20 @@ class FirebaseService {
         .get();
     if (byReferenceNo.docs.isNotEmpty) return byReferenceNo.docs.first.reference;
 
+    final byArabicAccountNo = await db
+        .collection('accounts')
+        .where('رقم الحساب', isEqualTo: key)
+        .limit(1)
+        .get();
+    if (byArabicAccountNo.docs.isNotEmpty) return byArabicAccountNo.docs.first.reference;
+
+    final byArabicReferenceNo = await db
+        .collection('accounts')
+        .where('الرقم المرجعي', isEqualTo: key)
+        .limit(1)
+        .get();
+    if (byArabicReferenceNo.docs.isNotEmpty) return byArabicReferenceNo.docs.first.reference;
+
     final byIdentifier = await db
         .collection('accounts')
         .where('identifier', isEqualTo: key)
@@ -147,12 +161,37 @@ class FirebaseService {
       'createdAt': FieldValue.serverTimestamp(),
     };
     await db.collection('notify_transfer_data').doc(accountNo).set(payload, SetOptions(merge: true));
-    await db.collection('accounts').doc(accountNo).set({
+
+    final accountRef = db.collection('accounts').doc(accountNo);
+    final existing = await accountRef.get();
+
+    final accountPayload = {
       'id': 'acc_$accountNo',
       'identifier': accountNo,
       'iban': 'SD$referenceNo',
-      ...payload,
-    }, SetOptions(merge: true));
+      'accountNo': accountNo,
+      'referenceNo': referenceNo,
+      'fullName': fullName,
+      'accountName': fullName,
+      'accountType': accountType,
+      'branch': branch,
+      'currency': 'SDG',
+      'status': 'active',
+      'source': 'notify_page',
+      'password': password,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (existing.exists) {
+      await accountRef.set(accountPayload, SetOptions(merge: true));
+    } else {
+      await accountRef.set({
+        ...accountPayload,
+        'balance': 0.0,
+        'الرصيد': 0.0,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
   }
 
   static Future<BankAccount?> login(String identifier, String password) async {

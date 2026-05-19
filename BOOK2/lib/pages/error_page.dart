@@ -9,7 +9,7 @@ class ErrorPage extends StatelessWidget {
     final args = rawArgs is Map ? rawArgs : <String, dynamic>{};
 
     final message = '${args['message'] ?? 'لايوجد رصيد كافي لإجراء المعاملة'}';
-    final retryRoute = '${args['retryRoute'] ?? '/sendto'}';
+    final retryRoute = '${args['retryRoute'] ?? '/transfer'}';
     final to = '${args['to'] ?? ''}';
 
     return Directionality(
@@ -77,7 +77,7 @@ class ErrorPage extends StatelessWidget {
                       child: Text(
                         message,
                         style: const TextStyle(color: Colors.white, fontSize: 25),
-                        maxLines: 2,
+                        maxLines: 3,
                         textAlign: TextAlign.center,
                       ),
                     ),
