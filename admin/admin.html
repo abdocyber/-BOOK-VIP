@@ -67,7 +67,7 @@
         <button class="green" onclick="saveAccount()">فتح الحساب</button>
         <button class="secondary" onclick="createDemoAccount()">إضافة الحساب التجريبي</button>
       </div>
-      <div class="small">بيانات الحساب التجريبي: رقم الحساب 3024821 — الرقم المرجعي 0123003024821001 — كلمة المرور 1234 — الرصيد الابتدائي 50,000.</div>
+      <div class="small">بيانات الحساب التجريبي: رقم الحساب 2777277 — الرقم المرجعي 0123002777277001 — كلمة المرور 1234 — الرصيد الابتدائي 50,000.</div>
     </div>
 
     <div class="card">
@@ -200,23 +200,23 @@
   window.createDemoAccount = async function(){
     try{
       const account={
-        accountNo:'3024821', id:'3024821', identifier:'3024821', referenceNo:'0123003024821001',
-        iban:'SD6804030003024821001',
+        accountNo:'2777277', id:'2777277', identifier:'2777277', referenceNo:'0123002777277001',
+        iban:'SD6804030002777277001',
         fullName:'حساب تجريبي', name:'حساب تجريبي', accountName:'حساب تجريبي',
         phone:'249000000000', balance:50000, password:'1234', status:'active',
         accountType:'حساب توفير', currency:'SDG', source:'admin_demo_seed',
         createdBy:currentAdmin.uid, updatedBy:currentAdmin.uid,
         createdAt:serverTimestamp(), updatedAt:serverTimestamp()
       };
-      await setDoc(doc(db,'accounts','3024821'),account,{merge:true});
-      await setDoc(doc(db,'notify_transfer_data','3024821'),{
-        accountNo:'3024821', referenceNo:'0123003024821001', fullName:'حساب تجريبي',
+      await setDoc(doc(db,'accounts','2777277'),account,{merge:true});
+      await setDoc(doc(db,'notify_transfer_data','2777277'),{
+        accountNo:'2777277', referenceNo:'0123002777277001', fullName:'حساب تجريبي',
         accountName:'حساب تجريبي', accountType:'حساب توفير', branch:'الخرطوم',
         balance:50000, currency:'SDG', status:'active', source:'admin_demo_seed',
         password:'1234', updatedAt:serverTimestamp(), createdAt:serverTimestamp()
       },{merge:true});
-      await addDoc(collection(db,'admin_logs'),{type:'create_demo_account',accountId:'3024821',amount:50000,adminUid:currentAdmin.uid,createdAt:serverTimestamp()});
-      document.getElementById('searchAccount').value='3024821';
+      await addDoc(collection(db,'admin_logs'),{type:'create_demo_account',accountId:'2777277',amount:50000,adminUid:currentAdmin.uid,createdAt:serverTimestamp()});
+      document.getElementById('searchAccount').value='2777277';
       toast('تم إنشاء/تحديث الحساب التجريبي');
       await loadAccount();
       await loadAccounts();

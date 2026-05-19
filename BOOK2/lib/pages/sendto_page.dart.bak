@@ -25,39 +25,14 @@ class _SendToPageState extends State<SendToPage> {
   Future<void> submit() async {
     final a = double.tryParse(amount.text.replaceAll(',', '')) ?? 0;
     if (a <= 0) return toast('يرجى إدخال المبلغ');
-
-    final from = SessionService.current?.accountNo ?? '';
-    if (from.isEmpty) {
-      return Navigator.pushReplacementNamed(
-        context,
-        '/error',
-        arguments: {'message': 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى', 'retryRoute': '/login'},
-      );
-    }
-
     try {
-      final ReceiptData r = await FirebaseService.transfer(
-        fromAccount: from,
-        toAccount: to,
-        amount: a,
-        note: note.text.trim().isEmpty ? 'N/A' : note.text.trim(),
-        phone: phone.text.trim().isEmpty ? 'N/A' : phone.text.trim(),
-      );
+      final from = SessionService.current?.accountNo ?? '';
+      final ReceiptData r = await FirebaseService.transfer(fromAccount: from, toAccount: to, amount: a, note: note.text.trim().isEmpty ? 'N/A' : note.text.trim(), phone: phone.text.trim().isEmpty ? 'N/A' : phone.text.trim());
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/success', arguments: r);
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      final err = e.toString();
-      String msg = 'تعذر تنفيذ العملية';
-      if (err.contains('insufficient_balance')) msg = 'لايوجد رصيد كافي لإجراء المعاملة';
-      if (err.contains('sender_not_found')) msg = 'حساب المرسل غير موجود';
-      if (err.contains('receiver_not_found')) msg = 'حساب المستلم غير موجود';
-      if (err.contains('offline')) msg = 'تأكد من الاتصال بالإنترنت';
-      Navigator.pushReplacementNamed(
-        context,
-        '/error',
-        arguments: {'message': msg, 'to': to, 'retryRoute': '/sendto'},
-      );
+      Navigator.pushReplacementNamed(context, '/error');
     }
   }
   void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s, textAlign: TextAlign.center)));
@@ -85,7 +60,7 @@ class _SendToPageState extends State<SendToPage> {
                 ])),
                 const SizedBox(height: 22),
                 Container(decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(0xff999999)), borderRadius: BorderRadius.circular(5)), child: Column(children: [
-                  _inputRow('dropdownarr.png', null, initial: '0123027772770001', label: 'اختر الحساب'), _line(),
+                  _inputRow('dropdownarr.png', null, initial: '0123030248210001', label: 'اختر الحساب'), _line(),
                   _inputRow('newmobile.png', phone, label: '249 - رقم الهاتف للرسالة النصية'), _line(),
                   _inputRow('money.png', amount, hint: 'أدخل المبلغ', keyboard: TextInputType.number), _line(),
                   _inputRow('comment.png', note, hint: 'ملاحظات'),
