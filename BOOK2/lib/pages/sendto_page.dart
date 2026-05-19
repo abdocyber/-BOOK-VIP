@@ -71,8 +71,12 @@ class _SendToPageState extends State<SendToPage> {
         message = 'حساب المرسل غير موجود';
       } else if (err.contains('receiver_not_found')) {
         message = 'حساب المستلم غير موجود';
+      } else if (err.contains('permission-denied')) {
+        message = 'صلاحيات قاعدة البيانات تمنع تنفيذ التحويل';
       } else if (err.contains('offline')) {
         message = 'تأكد من الاتصال بالإنترنت';
+      } else {
+        message = 'تعذر تنفيذ العملية: $err';
       }
 
       Navigator.pushReplacementNamed(
