@@ -25,14 +25,39 @@ class _SendToPageState extends State<SendToPage> {
   Future<void> submit() async {
     final a = double.tryParse(amount.text.replaceAll(',', '')) ?? 0;
     if (a <= 0) return toast('يرجى إدخال المبلغ');
+
+    final from = SessionService.current?.accountNo ?? '';
+    if (from.isEmpty) {
+      return Navigator.pushReplacementNamed(
+        context,
+        '/error',
+        arguments: {'message': 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى', 'retryRoute': '/login'},
+      );
+    }
+
     try {
-      final from = SessionService.current?.accountNo ?? '';
-      final ReceiptData r = await FirebaseService.transfer(fromAccount: from, toAccount: to, amount: a, note: note.text.trim().isEmpty ? 'N/A' : note.text.trim(), phone: phone.text.trim().isEmpty ? 'N/A' : phone.text.trim());
+      final ReceiptData r = await FirebaseService.transfer(
+        fromAccount: from,
+        toAccount: to,
+        amount: a,
+        note: note.text.trim().isEmpty ? 'N/A' : note.text.trim(),
+        phone: phone.text.trim().isEmpty ? 'N/A' : phone.text.trim(),
+      );
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/success', arguments: r);
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/error');
+      final err = e.toString();
+      String msg = 'تعذر تنفيذ العملية';
+      if (err.contains('insufficient_balance')) msg = 'لايوجد رصيد كافي لإجراء المعاملة';
+      if (err.contains('sender_not_found')) msg = 'حساب المرسل غير موجود';
+      if (err.contains('receiver_not_found')) msg = 'حساب المستلم غير موجود';
+      if (err.contains('offline')) msg = 'تأكد من الاتصال بالإنترنت';
+      Navigator.pushReplacementNamed(
+        context,
+        '/error',
+        arguments: {'message': msg, 'to': to, 'retryRoute': '/sendto'},
+      );
     }
   }
   void toast(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s, textAlign: TextAlign.center)));

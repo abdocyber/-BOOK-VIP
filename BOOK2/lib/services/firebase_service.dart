@@ -24,6 +24,16 @@ class FirebaseService {
 
   static String _digits(String value) => value.replaceAll(RegExp(r'\D'), '');
 
+  static double _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    final cleaned = '$value'
+        .replaceAll(',', '')
+        .replaceAll('SDG', '')
+        .replaceAll('جنيه', '')
+        .replaceAll(RegExp(r'[^0-9\.]'), '');
+    return double.tryParse(cleaned) ?? 0.0;
+  }
+
   static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(String identifier) async {
     final key = _digits(identifier);
     if (key.isEmpty) return null;
@@ -159,7 +169,7 @@ class FirebaseService {
     if (ref == null) return null;
     final doc = await ref.get();
     if (!doc.exists) return null;
-    final acc = BankAccount.fromMap(doc.data()!);
+    final acc = BankAccount.fromMap({...doc.data()!, 'docId': doc.id});
     if (acc.password != password || acc.status != 'active') return null;
     return acc;
   }
@@ -177,7 +187,7 @@ class FirebaseService {
     if (ref == null) return null;
     final doc = await ref.get();
     if (!doc.exists) return null;
-    return BankAccount.fromMap(doc.data()!);
+    return BankAccount.fromMap({...doc.data()!, 'docId': doc.id});
   }
 
   static Future<void> saveAccount(BankAccount account) async {
@@ -238,11 +248,11 @@ class FirebaseService {
       if (!toSnap.exists) throw Exception('receiver_not_found');
       final fromData = fromSnap.data()!;
       final toData = toSnap.data()!;
-      final current = (fromData['balance'] is num) ? (fromData['balance'] as num).toDouble() : 0.0;
+      final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
       if (current < amount) throw Exception('insufficient_balance');
-      final receiverBal = (toData['balance'] is num) ? (toData['balance'] as num).toDouble() : 0.0;
-      transaction.update(fromRef, {'balance': current - amount, 'updatedAt': FieldValue.serverTimestamp()});
-      transaction.update(toRef, {'balance': receiverBal + amount, 'updatedAt': FieldValue.serverTimestamp()});
+      final receiverBal = _toDouble(toData['balance'] ?? toData['الرصيد']);
+      transaction.update(fromRef, {'balance': current - amount, 'الرصيد': current - amount, 'updatedAt': FieldValue.serverTimestamp()});
+      transaction.update(toRef, {'balance': receiverBal + amount, 'الرصيد': receiverBal + amount, 'updatedAt': FieldValue.serverTimestamp()});
       final now = DateTime.now();
       receipt = ReceiptData(
         operationNumber: txId,
