@@ -4,108 +4,145 @@ import '../services/session_service.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  // الألوان الرسمية المعتمدة والمطابقة تماماً للصورة المرجعية
+  static const Color pageBg = Color(0xfff5f5f5); // الخلفية الرمادية الفاتحة والناعمة للتطبيق
+  static const Color titleText = Color(0xff1a1a1a); // تعديل لون الخط إلى الأسود الداكن المطابق للأصل
+  static const Color greetingText = Color(0xff2b2b2b); // لون نص الترحيب العلوي
+  static const Color headerTop = Color(0xffe31e24); // اللون الأحمر الصافي المشرق بأعلى الهيدر
+  static const Color headerBottom = Color(0xffb80006); // اللون الأحمر الداكن بأسفل الهيدر لتأثير التدرج
+
   @override
   Widget build(BuildContext context) {
-    final name = SessionService.current?.fullName ?? 'مستخدم تجريبي';
+    // جلب اسم المستخدم من الـ Session الخاص بك ليعمل بدون مشاكل
+    final name = SessionService.current?.fullName ?? 'Abdelrahman Hydar'; //
 
-    // استخدام صور الأزرار الأصلية الخاصة بك بشكل كامل
+    // مصفوفة العناصر مع الحفاظ على نفس أسماء أيقونات الـ grid والمسارات الخاصة بك
     final items = <_HomeItem>[
-      const _HomeItem('grid_3.png', 'تحويلات', '/transfer'),
-      const _HomeItem('grid_2.png', 'دفع\nفواتير', ''),
-      const _HomeItem('grid_1.png', 'تفاصيل\nالحساب', '/account'),
+      const _HomeItem('grid_3.png', 'تحويلات', '/transfer'), //
+      const _HomeItem('grid_2.png', 'دفع\nفواتير', ''), //
+      const _HomeItem('grid_1.png', 'تفاصيل\nالحساب', '/account'), //
 
-      const _HomeItem('grid_6.png', 'طلب الودائع\nالاستثمارية', ''),
-      const _HomeItem('grid_5.png', 'بنككPAY', ''),
-      const _HomeItem('grid_4.png', 'سحب\nبدون بطاقة', ''),
+      const _HomeItem('grid_6.png', 'طلب الودائع\nالإستثمارية', ''), //
+      const _HomeItem('grid_5.png', 'بنككPAY', ''), //
+      const _HomeItem('grid_4.png', 'سحب\nبدون بطاقة', ''), //
 
-      const _HomeItem('grid_9.png', 'إدارة\nالبطاقات', ''),
-      const _HomeItem('grid_8.png', 'المعاملات\nالسابقة', '/transactions'),
-      const _HomeItem('grid_7.png', 'إدارة\nالمستفيدين', ''),
+      const _HomeItem('grid_9.png', 'إدارة البطاقات', ''), //
+      const _HomeItem('grid_8.png', 'المعاملات\nالسابقة', '/transactions'), //
+      const _HomeItem('grid_7.png', 'إدارة\nالمستفيدين', ''), //
 
-      const _HomeItem('grid_12.png', 'الضبط', ''),
-      const _HomeItem('grid_11.png', 'أمر دفع\nدائم', ''),
-      const _HomeItem('grid_10.png', 'طلبات', ''),
+      const _HomeItem('grid_12.png', 'الضبط', ''), //
+      const _HomeItem('grid_11.png', 'أمر دفع دائم', ''), //
+      const _HomeItem('grid_10.png', 'طلبات', ''), //
 
-      const _HomeItem('grid_14.png', 'خدمات\nالعملات الأجنبية', ''),
-      const _HomeItem('grid_13.png', 'التجارة\nالإلكترونية', ''),
+      const _HomeItem('grid_13.png', 'التجارة الإلكترونية', ''), //
+      const _HomeItem('grid_14.png', 'خدمات العملات\nالأجنبية', ''), //
     ];
 
     return Directionality(
-      textDirection: TextDirection.rtl, // التوجيه الصحيح
+      textDirection: TextDirection.rtl, //
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F5F7),
+        backgroundColor: pageBg, //
         body: LayoutBuilder(
           builder: (context, c) {
-            final appW = c.maxWidth.clamp(0.0, 430.0);
-            final appH = c.maxHeight;
-            final scale = (appW / 360.0).clamp(0.8, 1.2);
+            // معالجة الأبعاد وعوامل القياس لتناسب شاشات الأجهزة بالملي كالأصل تماماً
+            final appW = c.maxWidth.clamp(0.0, 430.0); //
+            final appH = c.maxHeight; //
+            final scale = appW / 360.0; //
 
-            double s(double value) => value * scale;
+            double s(double value) => value * scale; //
 
             return Center(
               child: SizedBox(
-                width: appW,
-                height: appH,
+                width: appW, //
+                height: appH, //
                 child: Column(
                   children: [
-                    // 1. الشريط العلوي (الأيقونات كما في الصورة الجديدة 1000069040)
+                    // 1. الهيدر العلوي المحدث بالترتيب الصحيح (الجرس يمين، الطاقة يسار)
                     Container(
-                      height: s(76),
-                      padding: EdgeInsets.only(top: s(24), left: s(16), right: s(16)),
-                      color: const Color(0xFFE31E24), // الأحمر المطابق
+                      height: s(78), // ارتفاع الهيدر المتناسق لاحتواء الأيقونات والشعار
+                      padding: EdgeInsets.symmetric(horizontal: s(16)), //
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [headerTop, headerBottom], //
+                        ),
+                      ),
                       child: SafeArea(
-                        bottom: false,
+                        bottom: false, //
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween, //
                           children: [
-                            // أيقونة جرس التنبيهات على اليمين في وضع الـ RTL
+                            // في بيئة RTL: أول عنصر في الـ Row يظهر في أقصى اليمين (جرس الإشعارات)
                             InkWell(
                               onTap: () {
-                                Navigator.pushNamed(context, '/notify');
+                                Navigator.pushNamed(context, '/notify'); //
                               },
-                              child: Icon(Icons.notifications_none, color: Colors.white, size: s(28)),
+                              child: Image.asset(
+                                'assets/img/notification_icon.png', //
+                                width: s(26), //
+                                height: s(26), //
+                                fit: BoxFit.contain, //
+                              ),
                             ),
-                            // أيقونة إيقاف التشغيل على اليسار
+                            
+                            // شعار بنكك الرئيسي متمركز بالمنتصف تماماً
+                            Image.asset(
+                              'assets/img/bankak_logo_big.png', //
+                              width: s(105), //
+                              height: s(48), //
+                              fit: BoxFit.contain, //
+                            ),
+                            
+                            // في بيئة RTL: آخر عنصر في الـ Row يظهر في أقصى اليسار (زر تسجيل الخروج/الطاقة)
                             InkWell(
                               onTap: () async {
-                                await SessionService.logout();
+                                await SessionService.logout(); //
                                 if (context.mounted) {
-                                  Navigator.pushReplacementNamed(context, '/login');
+                                  Navigator.pushReplacementNamed(context, '/login'); //
                                 }
                               },
-                              child: Icon(Icons.power_settings_new, color: Colors.white, size: s(28)),
+                              child: Image.asset(
+                                'assets/img/logout_icon.png', //
+                                width: s(26), //
+                                height: s(26), //
+                                fit: BoxFit.contain, //
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
 
-                    // 2. التحية
+                    // 2. شريط التحية الفرعي
                     Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.only(top: s(16), right: s(20), left: s(20), bottom: s(18)),
+                      width: double.infinity, //
+                      padding: EdgeInsets.only(top: s(14), right: s(16), left: s(16), bottom: s(8)), //
+                      color: pageBg, //
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start, //
+                        crossAxisAlignment: CrossAxisAlignment.center, //
                         children: [
                           Text(
-                            'مساء الخير, ',
+                            'مساء الخير، ', //
                             style: TextStyle(
-                              fontFamily: 'Rubik',
-                              color: const Color(0xFF333333),
-                              fontSize: s(14.0),
+                              fontFamily: 'Rubik', //
+                              color: greetingText, //
+                              fontSize: s(14.0), //
+                              fontWeight: FontWeight.w400, //
                             ),
                           ),
                           Flexible(
                             child: Text(
-                              name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textDirection: TextDirection.ltr,
+                              name, //
+                              maxLines: 1, //
+                              overflow: TextOverflow.ellipsis, //
+                              textDirection: TextDirection.ltr, //
                               style: TextStyle(
-                                fontFamily: 'Rubik',
-                                color: const Color(0xFF111111),
-                                fontSize: s(14.5),
-                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Rubik', //
+                                color: greetingText, //
+                                fontSize: s(15.0), //
+                                fontWeight: FontWeight.bold, //
                               ),
                             ),
                           ),
@@ -113,32 +150,40 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
 
-                    // 3. شبكة الأزرار باستخدام صورك المرفوعة والمقاسات المطابقة
+                    // 3. شبكة الأيقونات المتطابقة هندسياً بالبكسل مع الأبعاد الجديدة المربعة للزر
                     Expanded(
                       child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: EdgeInsets.only(bottom: s(30)),
-                        child: Column(
-                          children: [
-                            _buildRow([items[0], items[1], items[2]], scale),
-                            _buildRow([items[3], items[4], items[5]], scale),
-                            _buildRow([items[6], items[7], items[8]], scale),
-                            _buildRow([items[9], items[10], items[11]], scale),
-                            
-                            // الصف الخامس مع الفراغ يميناً لدفع الأزرار لليسار لتطابق صورتك الجديدة
-                            Padding(
-                              padding: EdgeInsets.only(bottom: s(22)),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(width: s(85)), // مساحة فارغة
-                                  _GridItem(item: items[12], scale: scale),
-                                  _GridItem(item: items[13], scale: scale),
-                                ],
-                              ),
-                            ),
-                          ],
+                        physics: const BouncingScrollPhysics(), //
+                        padding: EdgeInsets.only(bottom: s(20)), //
+                        child: SizedBox(
+                          height: s(580), //
+                          child: Stack(
+                            children: [
+                              // الصف الأول
+                              _buildSymmetricalItem(context, items[0], s(268), s(10), scale), //
+                              _buildSymmetricalItem(context, items[1], s(148), s(10), scale), //
+                              _buildSymmetricalItem(context, items[2], s(28), s(10), scale), //
+
+                              // الصف الثاني
+                              _buildSymmetricalItem(context, items[3], s(268), s(124), scale), //
+                              _buildSymmetricalItem(context, items[4], s(148), s(124), scale), //
+                              _buildSymmetricalItem(context, items[5], s(28), s(124), scale), //
+
+                              // الصف الثالث
+                              _buildSymmetricalItem(context, items[6], s(268), s(238), scale), //
+                              _buildSymmetricalItem(context, items[7], s(148), s(238), scale), //
+                              _buildSymmetricalItem(context, items[8], s(28), s(238), scale), //
+
+                              // الصف الرابع
+                              _buildSymmetricalItem(context, items[9], s(268), s(352), scale), //
+                              _buildSymmetricalItem(context, items[10], s(148), s(352), scale), //
+                              _buildSymmetricalItem(context, items[11], s(28), s(352), scale), //
+
+                              // الصف الخامس (تموضع دقيق لليسار والمنتصف كالأصل)
+                              _buildSymmetricalItem(context, items[12], s(28), s(466), scale), //
+                              _buildSymmetricalItem(context, items[13], s(148), s(466), scale), //
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -152,19 +197,18 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(List<_HomeItem> rowItems, double scale) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: scale * 22.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: rowItems.map((item) => _GridItem(item: item, scale: scale)).toList(),
+  Widget _buildSymmetricalItem(BuildContext context, _HomeItem item, double left, double top, double scale) {
+    return Positioned(
+      left: left, //
+      top: top, //
+      child: _GridItem(
+        item: item, //
+        scale: scale, //
       ),
     );
   }
 }
 
-// تصميم الزر الذي يستدعي الصور الأصلية بدون تدخل برمجي في التدرجات
 class _GridItem extends StatelessWidget {
   final _HomeItem item;
   final double scale;
@@ -174,43 +218,49 @@ class _GridItem extends StatelessWidget {
     required this.scale,
   });
 
-  double s(double value) => value * scale;
+  double s(double value) => value * scale; //
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: item.route.isEmpty
           ? null
           : () {
-              Navigator.pushNamed(context, item.route);
+              Navigator.pushNamed(context, item.route); //
             },
+      borderRadius: BorderRadius.circular(12), //
       child: SizedBox(
-        width: s(85), // مقاس يعطي مساحة للنصوص الطويلة
+        width: s(64), //
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min, //
+          crossAxisAlignment: CrossAxisAlignment.center, //
           children: [
-            // صورتك الأصلية (تحتوي على الزر الأحمر والظل والأيقونة)
+            // تعديل أبعاد صورة الأيقونة لتصبح مربعة تماماً (الطول = الارتفاع = 64)
             Image.asset(
-              'assets/img/${item.icon}',
-              width: s(76),
-              height: s(62),
-              fit: BoxFit.fill,
+              'assets/img/${item.icon}', //
+              width: s(64), // العرض الحالي
+              height: s(64), // زيادة الارتفاع ليتطابق مع العرض تماماً ويصبح مربعاً
+              fit: BoxFit.fill, //
             ),
 
-            SizedBox(height: s(8)),
+            SizedBox(height: s(8)), // تباعد متناسق بين الأيقونة والنص
 
-            // النصوص أسفل الزر
-            Text(
-              item.title,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              style: TextStyle(
-                fontFamily: 'Rubik',
-                fontSize: s(13.0),
-                fontWeight: FontWeight.w600,
-                color: const Color(0xff222222), // لون رمادي غامق/أسود
-                height: 1.25,
+            // النص التوضيحي المكتوب أسفل الأزرار بالخط والحجم واللون الأسود الداكن المطابق تماماً
+            SizedBox(
+              width: s(96), //
+              child: Text(
+                item.title, //
+                textAlign: TextAlign.center, //
+                maxLines: 3, //
+                overflow: TextOverflow.visible, //
+                style: TextStyle(
+                  fontFamily: 'Rubik', //
+                  fontSize: s(13.5), //
+                  fontWeight: FontWeight.w600, // خط عريض ومطابق للمرجع
+                  color: HomePage.titleText, // تطبيق اللون الأسود الداكن الجديد
+                  height: 1.15, //
+                  letterSpacing: 0, //
+                ),
               ),
             ),
           ],
@@ -221,13 +271,13 @@ class _GridItem extends StatelessWidget {
 }
 
 class _HomeItem {
-  final String icon;
-  final String title;
-  final String route;
+  final String icon; //
+  final String title; //
+  final String route; //
 
   const _HomeItem(
-    this.icon,
-    this.title,
-    this.route,
+    this.icon, //
+    this.title, //
+    this.route, //
   );
 }
