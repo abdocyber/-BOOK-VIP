@@ -62,7 +62,7 @@ super.dispose();
         fullName: name,
         accountType: accountType,
         branch: branch.text.trim().isEmpty ? 'الخرطوم' : branch.text.trim(),
-        balance: 0.isEmpty ? '1234' : password.text.trim(),
+        balance: 0,
       );
 
       if (!mounted) return;
