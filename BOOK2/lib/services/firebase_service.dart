@@ -140,8 +140,36 @@ class FirebaseService {
     required String fullName,
     required String accountType,
     required String branch,
-    required double balance,
     required String password,
+    double balance = 0,
+  }) async {
+    final now = FieldValue.serverTimestamp();
+
+    final payload = {
+      'accountNo': accountNo,
+      'referenceNo': referenceNo,
+      'fullName': fullName,
+      'accountName': fullName,
+      'accountType': accountType,
+      'branch': branch,
+      'password': password,
+      'currency': 'SDG',
+      'status': 'active',
+      'source': 'notify_page',
+      'transferOnly': true,
+      'canLogin': false,
+      'createdAt': now,
+      'updatedAt': now,
+    };
+
+    // مهم:
+    // notify_transfer_data تستخدم كبيانات مستلمين للتحويل فقط.
+    // لا يتم إنشاء أو تحديث accounts من صفحة notify.
+    // الشحن وتعديل الرصيد يتم من لوحة الأدمن فقط.
+    await db
+        .collection('notify_transfer_data')
+        .doc(accountNo)
+        .set(payload, SetOptions(merge: true));
   }) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');

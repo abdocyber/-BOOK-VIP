@@ -350,7 +350,7 @@ class _NotifyPageState extends State<NotifyPage> {
                                 const SizedBox(height: 8),
 
                                 const Text(
-                                  'بعد الحفظ يتم تخزين بيانات التحويل فقط. شحن الرصيد وخصمه يتم من لوحة الأدمن الخارجية فقط.',
+                                  'بعد الحفظ يتم تخزين بيانات التحويل فقط. الحسابات المضافة هنا تستخدم للتحويل فقط ولا يتم تسجيلها كحسابات دخول داخل التطبيق.',
                                   style: TextStyle(
                                     color: Color(0xff777777),
                                     fontSize: 12,
