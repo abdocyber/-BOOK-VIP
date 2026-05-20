@@ -22,6 +22,19 @@ class FirebaseService {
     }
   }
 
+  static String _digits(String value) {
+    return value.replaceAll(RegExp(r'\D'), '');
+  }
+
+  static Future<Map<String, dynamic>> getAppConfig() async {
+    _ensureFirebase();
+    if (!await NetworkService.isOnline) throw Exception('offline');
+
+    final doc = await db.collection('app_settings').doc('config').get();
+    if (!doc.exists) {
+      return {'isAppDisabled': false, 'disabledMessage': ''};
+    }
+
   static Future<BankAccount?> login(String identifier, String password) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
