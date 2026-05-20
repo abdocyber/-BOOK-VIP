@@ -1,152 +1,333 @@
 import 'package:flutter/material.dart';
 
-class WhiteReceiptPage extends StatelessWidget {
+class WhiteReceiptPage extends StatefulWidget {
   const WhiteReceiptPage({super.key});
 
-  Map<String, String> _normalize(dynamic args) {
-    String fromMap(List<String> keys) {
-      if (args is Map) {
-        for (final k in keys) {
-          final v = args[k];
-          if (v != null && '$v'.trim().isNotEmpty) return '$v';
-        }
-      }
-      return '';
-    }
+  @override
+  State<WhiteReceiptPage> createState() => _WhiteReceiptPageState();
+}
 
-    String fromObject(String field) {
-      try {
-        final a = args as dynamic;
-        switch (field) {
-          case 'operationNumber':
-            return '${a.operationNumber ?? ''}';
-          case 'date':
-            return '${a.date ?? ''}';
-          case 'fromAccount':
-            return '${a.fromAccount ?? ''}';
-          case 'toAccount':
-            return '${a.toAccount ?? ''}';
-          case 'receiverName':
-            return '${a.receiverName ?? ''}';
-          case 'phone':
-            return '${a.phone ?? ''}';
-          case 'note':
-            return '${a.note ?? ''}';
-          case 'amount':
-            return '${a.amount ?? ''}';
-        }
-      } catch (_) {}
-      return '';
-    }
-
-    String pick(List<String> keys, String objField) {
-      final m = fromMap(keys);
-      if (m.isNotEmpty) return m;
-      final o = fromObject(objField);
-      return o;
-    }
-
-    final rawAmount = pick(['amount', 'المبلغ'], 'amount');
-    final parsedAmount = double.tryParse(
-          rawAmount.replaceAll(',', '').replaceAll('SDG', '').trim(),
-        ) ??
-        0.0;
-
-    return {
-      'operationNumber': pick(
-        ['operationNumber', 'id', 'رقم العملية'],
-        'operationNumber',
-      ),
-      'date': pick(
-        ['date', 'createdAt', 'التاريخ', 'التاريخ والوقت'],
-        'date',
-      ),
-      'type': pick(['type', 'نوع العملية'], 'type').isEmpty
-          ? 'تحويل إلى حساب آخر'
-          : pick(['type', 'نوع العملية'], 'type'),
-      'amount': parsedAmount.toStringAsFixed(2),
-      'from': _formatAccount(
-        pick(['fromAccount', 'from', 'من'], 'fromAccount'),
-      ),
-      'to': _formatAccount(
-        pick(['toAccount', 'to', 'إلى'], 'toAccount'),
-      ),
-      'status': pick(['status', 'الحالة'], 'status').isEmpty
-          ? 'نجاح'
-          : pick(['status', 'الحالة'], 'status'),
-      'receiverName': pick(
-        ['receiverName', 'name', 'fullName', 'اسم المرسل اليه'],
-        'receiverName',
-      ),
-      'note': pick(['note', 'comment', 'التعليق'], 'note').isEmpty
-          ? 'N/A'
-          : pick(['note', 'comment', 'التعليق'], 'note'),
-    };
+class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
+  Map<String, dynamic> _data(BuildContext context) {
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    if (arg is Map) return arg.cast<String, dynamic>();
+    return const <String, dynamic>{};
   }
 
-  static String _formatAccount(String value) {
-    final clean = value.replaceAll(' ', '').trim();
-    if (clean.isEmpty) return '';
-    final buffer = StringBuffer();
-    for (int i = 0; i < clean.length; i++) {
-      buffer.write(clean[i]);
-      final pos = i + 1;
-      if (pos < clean.length && pos % 4 == 0) {
-        buffer.write(' ');
-      }
-    }
-    return buffer.toString();
+  String _fmtDate(dynamic v) {
+    if (v == null) return '30-Apr-2026 21:09:01';
+
+    final text = '$v';
+    final parsed = DateTime.tryParse(text);
+    if (parsed == null) return text;
+
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+
+    String p(int n) => n.toString().padLeft(2, '0');
+
+    return '${p(parsed.day)}-${months[parsed.month - 1]}-${parsed.year} '
+        '${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
   }
 
-  Widget _infoRow({
-    required String label,
-    required String value,
-    bool multiLineValue = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 3),
-      height: multiLineValue ? 76 : 74,
-      decoration: BoxDecoration(
-        color: const Color(0xfff5f5f5),
-        border: Border.all(color: const Color(0xff9d9d9d), width: 1.25),
-        borderRadius: BorderRadius.circular(10),
+  String _fmtMoney(dynamic v) {
+    final n = v is num
+        ? v.toDouble()
+        : double.tryParse('$v'.replaceAll(',', '')) ?? 500000.00;
+    return n.toStringAsFixed(2);
+  }
+
+  String _statusAr(dynamic v) {
+    final t = '$v'.trim().toLowerCase();
+    if (t.isEmpty || t == 'success') return 'نجاح';
+    return '$v';
+  }
+
+  void _showSoon() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        duration: Duration(milliseconds: 1200),
+        content: Text(
+          'قريباً...',
+          textAlign: TextAlign.center,
+        ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 6,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  textAlign: TextAlign.left,
-                  maxLines: multiLineValue ? 2 : 1,
-                  overflow: multiLineValue ? TextOverflow.visible : TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    height: 1.1,
-                    color: Color(0xff585858),
-                    fontWeight: FontWeight.w500,
+    );
+  }
+
+  void _shareTx(Map<String, dynamic> d) {
+    final id = '${d['operationNumber'] ?? d['id'] ?? '20047360699'}';
+    final amount = _fmtMoney(d['amount'] ?? 500000.00);
+    final to = '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0038 5717 7730 001'}';
+
+    final text = 'تفاصيل المعاملة\nرقم العملية: $id\nالمبلغ: $amount\nإلى: $to';
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text, textAlign: TextAlign.center),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final d = _data(context);
+
+    final rows = <_ReceiptRow>[
+      _ReceiptRow(
+        'رقم العملية',
+        '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? '20047360699'}',
+      ),
+      _ReceiptRow(
+        'التاريخ والوقت',
+        _fmtDate(d['createdAt'] ?? d['date'] ?? '2026-04-30T21:09:01'),
+      ),
+      _ReceiptRow(
+        'نوع العملية',
+        '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب اخر'}',
+        arabicValue: true,
+      ),
+      _ReceiptRow(
+        'المبلغ',
+        _fmtMoney(d['amount'] ?? 500000.00),
+      ),
+      _ReceiptRow(
+        'من',
+        '${d['from'] ?? d['accountFrom'] ?? d['fromAccount'] ?? '0263 1898 8440 0001'}',
+      ),
+      _ReceiptRow(
+        'إلى',
+        '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0038 5717 7730 001'}',
+      ),
+      _ReceiptRow(
+        'الحالة',
+        _statusAr(d['status'] ?? 'success'),
+        arabicValue: true,
+      ),
+      _ReceiptRow(
+        'إسم المرسل\nاليه',
+        '${d['accountName'] ?? d['receiverName'] ?? 'Maram Mohammed Ahmed Ali'}',
+        arabicValue: true,
+      ),
+      _ReceiptRow(
+        'التعليق',
+        '${d['comment'] ?? d['note'] ?? 'N/A'}',
+      ),
+    ];
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xffefefef),
+        body: Column(
+          children: [
+            _buildTopHeader(),
+            _buildTitleBar(context),
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: 0.08,
+                      child: Image.asset(
+                        'assets/img/bg.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                  ListView(
+                    padding: const EdgeInsets.fromLTRB(0, 6, 0, 12),
+                    children: [
+                      ...rows.map((r) => _buildReceiptBox(r)).toList(),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          color: const Color(0xffefefef),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                child: Row(
+                  textDirection: TextDirection.ltr,
+                  children: [
+                    Expanded(
+                      child: _ActionButton(
+                        title: 'تحويل خاطئ',
+                        icon: 'block_icon.png',
+                        onTap: _showSoon,
+                      ),
+                    ),
+                    const SizedBox(width: 22),
+                    Expanded(
+                      child: _ActionButton(
+                        title: 'تذكير',
+                        icon: 'notification_white.png',
+                        onTap: _showSoon,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: const Color(0xff4a4a4a), width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    _BottomOption(
+                      title: 'مشاركة',
+                      icon: 'sharegray.png',
+                      onTap: () => _shareTx(d),
+                    ),
+                    _vDivider(),
+                    _BottomOption(
+                      title: 'طباعة',
+                      icon: 'printgray.png',
+                      onTap: _showSoon,
+                    ),
+                    _vDivider(),
+                    _BottomOption(
+                      title: 'تحميل',
+                      icon: 'downloadgray.png',
+                      onTap: _showSoon,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 34,
+                alignment: Alignment.center,
+                color: const Color(0xffd6d6d6),
+                child: const Text(
+                  '© 2024 بنك الخرطوم | بنكك حساب',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 12,
+                    height: 1,
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopHeader() {
+    return Container(
+      height: 66,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xffff0000),
+            Color(0xffcb1b2b),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Image.asset(
+                  'assets/img/white_logo_n.png',
+                  width: 74,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Image.asset(
+                  'assets/img/dehaze_24.png',
+                  width: 34,
+                  height: 34,
+                  fit: BoxFit.contain,
+                  color: Colors.white,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.menu, color: Colors.white, size: 34),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleBar(BuildContext context) {
+    return Container(
+      height: 92,
+      color: const Color(0xffefefef),
+      child: Stack(
+        children: [
+          const Center(
+            child: Text(
+              'تفاصيل المعاملة',
+              style: TextStyle(
+                color: Color(0xff222222),
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Expanded(
-            flex: 4,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  label,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    color: Color(0xff555555),
-                    fontWeight: FontWeight.w700,
+          Positioned(
+            right: 14,
+            top: 14,
+            child: InkWell(
+              onTap: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+              },
+              child: Image.asset(
+                'assets/img/back.png',
+                width: 98,
+                height: 40,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 98,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xffcc4a4a), width: 1.6),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x33000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'رجوع',
+                    style: TextStyle(
+                      color: Color(0xffcc4a4a),
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
@@ -157,249 +338,166 @@ class WhiteReceiptPage extends StatelessWidget {
     );
   }
 
-  Widget _outlineAction({
-    required String text,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: SizedBox(
-        height: 72,
-        child: OutlinedButton(
-          onPressed: onTap,
-          style: OutlinedButton.styleFrom(
-            backgroundColor: const Color(0xfff8f8f8),
-            side: const BorderSide(color: Color(0xffcc3a3a), width: 2.2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                text,
+  Widget _buildReceiptBox(_ReceiptRow row) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2.5),
+      decoration: BoxDecoration(
+        color: const Color(0xfff7f7f7),
+        border: Border.all(color: const Color(0xff666666), width: 1.2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      constraints: const BoxConstraints(minHeight: 70),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 142,
+              child: Text(
+                row.label,
+                textAlign: TextAlign.right,
                 style: const TextStyle(
-                  color: Color(0xffcc3a3a),
+                  color: Color(0xff303030),
                   fontSize: 17,
                   fontWeight: FontWeight.w500,
+                  height: 1.15,
                 ),
               ),
-              const SizedBox(width: 10),
-              Icon(icon, color: const Color(0xffcc3a3a), size: 28),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _bottomMiniAction({
-    required String text,
-    required IconData icon,
-  }) {
-    return Expanded(
-      child: Container(
-        height: 52,
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xff666666),
-                fontWeight: FontWeight.w500,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Directionality(
+                textDirection:
+                    row.arabicValue ? TextDirection.rtl : TextDirection.ltr,
+                child: Text(
+                  row.value.isEmpty ? 'N/A' : row.value,
+                  textAlign:
+                      row.arabicValue ? TextAlign.right : TextAlign.left,
+                  style: const TextStyle(
+                    color: Color(0xff3d3d3d),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    height: 1.15,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 6),
-            Icon(icon, color: const Color(0xff666666), size: 26),
           ],
         ),
       ),
     );
   }
 
+  Widget _vDivider() {
+    return Container(
+      width: 1,
+      height: double.infinity,
+      color: const Color(0xff4a4a4a),
+    );
+  }
+}
+
+class _ReceiptRow {
+  final String label;
+  final String value;
+  final bool arabicValue;
+
+  const _ReceiptRow(
+    this.label,
+    this.value, {
+    this.arabicValue = false,
+  });
+}
+
+class _ActionButton extends StatelessWidget {
+  final String title;
+  final String icon;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
+
   @override
   Widget build(BuildContext context) {
-    final d = _normalize(ModalRoute.of(context)?.settings.arguments);
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xffefefef),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Container(
-                height: 112,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xffdf1010), Color(0xffff1c1c)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Image.asset(
-                        'assets/img/white_logo_n.png',
-                        height: 72,
-                        errorBuilder: (_, __, ___) => const Text(
-                          'bankak',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 20,
-                      top: 22,
-                      child: Icon(Icons.menu, size: 46, color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(14, 16, 14, 0),
-                  child: Column(
-                    children: [
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 112,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xfff8f8f8),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: const Color(0xffcf4a4a),
-                                width: 1.5,
-                              ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x33000000),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'رجوع>',
-                              style: TextStyle(
-                                color: Color(0xffd15353),
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'تفاصيل المعاملة',
-                        style: TextStyle(
-                          fontSize: 27,
-                          color: Color(0xff2d2d2d),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      _infoRow(label: 'رقم العملية', value: d['operationNumber']!),
-                      _infoRow(label: 'التاريخ والوقت', value: d['date']!),
-                      _infoRow(label: 'نوع العملية', value: d['type']!),
-                      _infoRow(label: 'المبلغ', value: d['amount']!),
-                      _infoRow(label: 'من', value: d['from']!),
-                      _infoRow(label: 'إلى', value: d['to']!),
-                      _infoRow(label: 'الحالة', value: d['status']!),
-                      _infoRow(
-                        label: 'إسم المرسل اليه',
-                        value: d['receiverName']!,
-                        multiLineValue: true,
-                      ),
-                      _infoRow(label: 'التعليق', value: d['note']!),
-
-                      const SizedBox(height: 64),
-
-                      Directionality(
-                        textDirection: TextDirection.ltr,
-                        child: Row(
-                          children: [
-                            _outlineAction(
-                              text: 'تحويل خاطئ',
-                              icon: Icons.do_not_disturb_on_outlined,
-                              onTap: () {},
-                            ),
-                            const SizedBox(width: 16),
-                            _outlineAction(
-                              text: 'تذكير',
-                              icon: Icons.notifications_none_outlined,
-                              onTap: () {},
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      Container(
-                        height: 58,
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: Color(0xffd2d2d2), width: 1),
-                            bottom: BorderSide(color: Color(0xffd2d2d2), width: 1),
-                          ),
-                        ),
-                        child: Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: Row(
-                            children: [
-                              _bottomMiniAction(
-                                text: 'تحميل',
-                                icon: Icons.arrow_circle_down_outlined,
-                              ),
-                              Container(width: 1, height: 28, color: const Color(0xffd2d2d2)),
-                              _bottomMiniAction(
-                                text: 'طباعة',
-                                icon: Icons.print_outlined,
-                              ),
-                              Container(width: 1, height: 28, color: const Color(0xffd2d2d2)),
-                              _bottomMiniAction(
-                                text: 'مشاركة',
-                                icon: Icons.share_outlined,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-                      const Text(
-                        '2024 © بنك الخرطوم|بنكك حساب',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Color(0xff303030),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: const Color(0xffc93e3a),
+            width: 2.0,
           ),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Color(0xffc93e3a),
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Image.asset(
+              'assets/img/$icon',
+              width: 22,
+              height: 22,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox(width: 22, height: 22),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomOption extends StatelessWidget {
+  final String title;
+  final String icon;
+  final VoidCallback onTap;
+
+  const _BottomOption({
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/img/$icon',
+              width: 21,
+              height: 21,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox(width: 21, height: 21),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Color(0xff444444),
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
         ),
       ),
     );
