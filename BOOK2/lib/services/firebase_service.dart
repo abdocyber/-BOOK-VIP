@@ -28,50 +28,85 @@ class FirebaseService {
     return value.replaceAll(RegExp(r'\D'), '');
   }
 
+  static double _num(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(
+          '$value'.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), ''),
+        ) ??
+        0.0;
+  }
+
+  static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(
+    String identifier,
+  ) async {
+    final key = _digits(identifier);
+    if (key.isEmpty) return null;
+
+    final direct = db.collection('accounts').doc(key);
+    final directSnap = await direct.get();
+    if (directSnap.exists) return direct;
+
+    final queries = [
+      db.collection('accounts').where('accountNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('identifier', isEqualTo: key).limit(1),
+      db.collection('accounts').where('referenceNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('رقم الحساب', isEqualTo: key).limit(1),
+      db.collection('accounts').where('الرقم المرجعي', isEqualTo: key).limit(1),
+    ];
+
+    for (final q in queries) {
+      final r = await q.get();
+      if (r.docs.isNotEmpty) return r.docs.first.reference;
+    }
+
+    return null;
+  }
+
   static Future<void> ensureDemoAccount() async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
 
     await ensureSignedInAnonymously();
 
-    const demoAccountNo = '2777277';
-    const demoReferenceNo = '0123002777277001';
+    const accountNo = '2777277';
+    const referenceNo = '0123030248210001';
 
-    final ref = db.collection('accounts').doc(demoAccountNo);
+    final ref = db.collection('accounts').doc(accountNo);
     final snap = await ref.get();
 
-    if (snap.exists) {
-      await ref.set({
-        'accountNo': demoAccountNo,
-        'identifier': demoAccountNo,
-        'referenceNo': demoReferenceNo,
-        'password': '1234',
-        'status': 'active',
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      return;
-    }
-
-    await ref.set({
-      'accountNo': demoAccountNo,
-      'id': demoAccountNo,
-      'identifier': demoAccountNo,
-      'referenceNo': demoReferenceNo,
-      'iban': 'SD6804030002777277001',
+    final data = {
+      'accountNo': accountNo,
+      'identifier': accountNo,
+      'referenceNo': referenceNo,
       'fullName': 'حساب تجريبي',
       'name': 'حساب تجريبي',
       'accountName': 'حساب تجريبي',
       'accountType': 'حساب توفير',
       'phone': '249000000000',
-      'balance': 50000.0,
-      'الرصيد': 50000.0,
       'password': '1234',
       'status': 'active',
       'currency': 'SDG',
-      'source': 'demo_seed',
-      'createdAt': FieldValue.serverTimestamp(),
+      'balance': 50000.0,
+      'الرصيد': 50000.0,
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
+
+    if (snap.exists) {
+      await ref.set({
+        'accountNo': accountNo,
+        'identifier': accountNo,
+        'referenceNo': referenceNo,
+        'password': '1234',
+        'status': 'active',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } else {
+      await ref.set({
+        ...data,
+        'id': accountNo,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
   }
 
   static Future<Map<String, dynamic>> getAppConfig() async {
@@ -81,16 +116,10 @@ class FirebaseService {
     final doc = await db.collection('app_settings').doc('config').get();
 
     if (!doc.exists) {
-      return {
-        'isAppDisabled': false,
-        'disabledMessage': '',
-      };
+      return {'isAppDisabled': false, 'disabledMessage': ''};
     }
 
-    return doc.data() ?? {
-      'isAppDisabled': false,
-      'disabledMessage': '',
-    };
+    return doc.data() ?? {'isAppDisabled': false, 'disabledMessage': ''};
   }
 
   static Future<bool> refreshAppConfig() async {
@@ -154,6 +183,8 @@ class FirebaseService {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
 
+    await ensureSignedInAnonymously();
+
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/login', {
         'identifier': identifier,
@@ -169,7 +200,10 @@ class FirebaseService {
       if (api != null && api['ok'] == false) return null;
     }
 
-    final doc = await db.collection('accounts').doc(identifier).get();
+    final ref = await _findAccountRef(identifier);
+    if (ref == null) return null;
+
+    final doc = await ref.get();
     if (!doc.exists) return null;
 
     final acc = BankAccount.fromMap({
@@ -185,25 +219,21 @@ class FirebaseService {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
 
-    if (ApiService.enabled) {
-      final api = await ApiService.getJson('/accounts/$accountNo');
-      if (api != null && api['account'] is Map) {
-        return BankAccount.fromMap(
-          Map<String, dynamic>.from(api['account'] as Map),
-        );
+    await ensureSignedInAnonymously();
+
+    final ref = await _findAccountRef(accountNo);
+
+    if (ref != null) {
+      final doc = await ref.get();
+      if (doc.exists) {
+        return BankAccount.fromMap({
+          ...doc.data()!,
+          'docId': doc.id,
+        });
       }
     }
 
-    final doc = await db.collection('accounts').doc(accountNo).get();
-
-    if (doc.exists) {
-      return BankAccount.fromMap({
-        ...doc.data()!,
-        'docId': doc.id,
-      });
-    }
-
-    final notify = await db.collection('notify_transfer_data').doc(accountNo).get();
+    final notify = await db.collection('notify_transfer_data').doc(_digits(accountNo)).get();
 
     if (notify.exists) {
       return BankAccount.fromMap({
@@ -221,6 +251,8 @@ class FirebaseService {
   static Future<void> saveAccount(BankAccount account) async {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
+
+    await ensureSignedInAnonymously();
 
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/accounts/save', account.toMap());
@@ -245,6 +277,10 @@ class FirebaseService {
 
     await ensureSignedInAnonymously();
 
+    if (amount <= 0) {
+      throw Exception('invalid_amount');
+    }
+
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/transfer', {
         'fromAccount': fromAccount,
@@ -263,7 +299,7 @@ class FirebaseService {
           date: '${r['date'] ?? _fmt(DateTime.now())}',
           fromAccount: '${r['fromAccount'] ?? fromAccount}',
           toAccount: '${r['toAccount'] ?? toAccount}',
-          receiverName: '${r['receiverName'] ?? ''}',
+          receiverName: '${r['receiverName'] ?? 'مستلم'}',
           phone: '${r['phone'] ?? phone}',
           note: '${r['note'] ?? note}',
           amount: (r['amount'] is num)
@@ -273,11 +309,15 @@ class FirebaseService {
       }
     }
 
+    final fromRef = await _findAccountRef(fromAccount);
+    if (fromRef == null) {
+      throw Exception('sender_not_found');
+    }
+
     final txId = DateTime.now().millisecondsSinceEpoch.toString();
     late ReceiptData receipt;
 
     await db.runTransaction((transaction) async {
-      final fromRef = db.collection('accounts').doc(fromAccount);
       final fromSnap = await transaction.get(fromRef);
 
       if (!fromSnap.exists) {
@@ -285,26 +325,25 @@ class FirebaseService {
       }
 
       final fromData = fromSnap.data()!;
-      final current = (fromData['balance'] is num)
-          ? (fromData['balance'] as num).toDouble()
-          : 0.0;
+      final current = _num(fromData['balance'] ?? fromData['الرصيد']);
 
       if (current < amount) {
         throw Exception('insufficient_balance');
       }
 
+      final newBalance = current - amount;
+
       transaction.update(fromRef, {
-        'balance': current - amount,
-        'الرصيد': current - amount,
+        'balance': newBalance,
+        'الرصيد': newBalance,
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      final now = DateTime.now();
-
       receipt = ReceiptData(
         operationNumber: txId,
-        date: _fmt(now),
-        fromAccount: '${fromData['referenceNo'] ?? fromAccount}',
+        date: _fmt(DateTime.now()),
+        fromAccount:
+            '${fromData['referenceNo'] ?? fromData['accountNo'] ?? fromAccount}',
         toAccount: toAccount,
         receiverName: 'مستلم',
         phone: phone,
@@ -323,6 +362,8 @@ class FirebaseService {
         'note': note,
         'amount': amount,
         'status': 'success',
+        'mode': 'sender_debit_only',
+        'receiverCredited': false,
         'createdAt': FieldValue.serverTimestamp(),
       });
     });
