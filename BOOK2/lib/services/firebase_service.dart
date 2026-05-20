@@ -159,4 +159,103 @@ class FirebaseService {
     String p(int n)=>n.toString().padLeft(2,'0');
     return '${p(d.day)}-${m[d.month-1]}-${d.year} ${p(d.hour)}:${p(d.minute)}:${p(d.second)}';
   }
+
+  static String _compatDigits(String value) {
+    return value.replaceAll(RegExp(r'\D'), '');
+  }
+
+  static Future<void> _compatEnsureSignedIn() async {
+    if (FirebaseAuth.instance.currentUser != null) return;
+    await FirebaseAuth.instance.signInAnonymously().timeout(const Duration(seconds: 10));
+  }
+
+  static Future<void> ensureDemoAccount() async {
+    await _compatEnsureSignedIn();
+
+    const demoAccountNo = '2777277';
+    const demoReferenceNo = '0123002777277001';
+
+    final ref = FirebaseFirestore.instance
+        .collection('demo_accounts')
+        .doc(demoAccountNo);
+
+    final snap = await ref.get();
+
+    if (snap.exists) {
+      await ref.set({
+        'accountNo': demoAccountNo,
+        'identifier': demoAccountNo,
+        'referenceNo': demoReferenceNo,
+        'password': '1234',
+        'status': 'active',
+        'isDemo': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return;
+    }
+
+  static Future<bool> refreshAppConfig() async {
+    try {
+      await _compatEnsureSignedIn();
+
+      final doc = await FirebaseFirestore.instance
+          .collection('app_settings')
+          .doc('config')
+          .get();
+
+      final data = doc.data() ?? {};
+
+      AppState.appDisabled = data['isAppDisabled'] == true;
+      AppState.appDisabledMessage =
+          '${data['disabledMessage'] ?? ''}'.trim().isEmpty
+              ? 'التطبيق متوقف مؤقتًا، يرجى المحاولة لاحقًا'
+              : '${data['disabledMessage']}';
+
+      return AppState.appDisabled;
+    } catch (_) {
+      AppState.appDisabled = false;
+      return false;
+    }
+
+  static Future<void> saveNotifyTransferData({
+    required String accountNo,
+    required String referenceNo,
+    required String fullName,
+    required String accountType,
+    required String branch,
+    String? password,
+    double balance = 0,
+  }) async {
+    await _compatEnsureSignedIn();
+
+    final cleanAccountNo = _compatDigits(accountNo);
+    final cleanReferenceNo = _compatDigits(referenceNo);
+
+    if (cleanAccountNo.isEmpty) throw Exception('invalid_account_no');
+    if (cleanReferenceNo.isEmpty) throw Exception('invalid_reference_no');
+
+    final now = FieldValue.serverTimestamp();
+
+    await FirebaseFirestore.instance
+        .collection('demo_receivers')
+        .doc(cleanAccountNo)
+        .set({
+      'accountNo': cleanAccountNo,
+      'referenceNo': cleanReferenceNo,
+      'fullName': fullName.trim(),
+      'accountName': fullName.trim(),
+      'name': fullName.trim(),
+      'accountType': accountType.trim(),
+      'branch': branch.trim(),
+      'currency': 'DEMO',
+      'status': 'active',
+      'source': 'notify_page',
+      'transferOnly': true,
+      'canLogin': false,
+      'isDemoReceiver': true,
+      'updatedAt': now,
+      'createdAt': now,
+    }, SetOptions(merge: true));
+  }
+
 }
