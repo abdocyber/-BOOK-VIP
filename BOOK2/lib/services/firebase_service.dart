@@ -271,6 +271,8 @@ class FirebaseService {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
 
+    await ensureSignedInAnonymously();
+
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/transfer', {
         'fromAccount': fromAccount,
@@ -301,8 +303,10 @@ class FirebaseService {
     final txId = DateTime.now().millisecondsSinceEpoch.toString();
     late ReceiptData receipt;
 
+    final fromRef = await _findAccountRef(fromAccount);
+    if (fromRef == null) throw Exception('sender_not_found');
+
     await db.runTransaction((transaction) async {
-      final fromRef = await _findAccountRef(fromAccount);
     if (fromRef == null) throw Exception('sender_not_found');
 
     await db.runTransaction((transaction) async {
