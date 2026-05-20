@@ -79,6 +79,7 @@ class FirebaseService {
     if (!await NetworkService.isOnline) throw Exception('offline');
 
     final doc = await db.collection('app_settings').doc('config').get();
+
     if (!doc.exists) {
       return {
         'isAppDisabled': false,
@@ -153,8 +154,6 @@ class FirebaseService {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
 
-    await ensureSignedInAnonymously();
-
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/login', {
         'identifier': identifier,
@@ -196,10 +195,17 @@ class FirebaseService {
     }
 
     final doc = await db.collection('accounts').doc(accountNo).get();
-    if (!doc.exists) {
-      final notify = await db.collection('notify_transfer_data').doc(accountNo).get();
-      if (!notify.exists) return null;
 
+    if (doc.exists) {
+      return BankAccount.fromMap({
+        ...doc.data()!,
+        'docId': doc.id,
+      });
+    }
+
+    final notify = await db.collection('notify_transfer_data').doc(accountNo).get();
+
+    if (notify.exists) {
       return BankAccount.fromMap({
         ...notify.data()!,
         'docId': notify.id,
@@ -209,10 +215,7 @@ class FirebaseService {
       });
     }
 
-    return BankAccount.fromMap({
-      ...doc.data()!,
-      'docId': doc.id,
-    });
+    return null;
   }
 
   static Future<void> saveAccount(BankAccount account) async {
@@ -228,37 +231,6 @@ class FirebaseService {
       ...account.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-  }
-
-
-  static String _onlyDigits(String value) {
-    return value.replaceAll(RegExp(r'\D'), '');
-  }
-
-  static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(
-    String identifier,
-  ) async {
-    final key = _onlyDigits(identifier);
-    if (key.isEmpty) return null;
-
-    final directRef = db.collection('accounts').doc(key);
-    final directSnap = await directRef.get();
-    if (directSnap.exists) return directRef;
-
-    final queries = [
-      db.collection('accounts').where('accountNo', isEqualTo: key).limit(1),
-      db.collection('accounts').where('identifier', isEqualTo: key).limit(1),
-      db.collection('accounts').where('referenceNo', isEqualTo: key).limit(1),
-      db.collection('accounts').where('رقم الحساب', isEqualTo: key).limit(1),
-      db.collection('accounts').where('الرقم المرجعي', isEqualTo: key).limit(1),
-    ];
-
-    for (final q in queries) {
-      final r = await q.get();
-      if (r.docs.isNotEmpty) return r.docs.first.reference;
-    }
-
-    return null;
   }
 
   static Future<ReceiptData> transfer({
@@ -284,6 +256,7 @@ class FirebaseService {
 
       if (api != null && api['receipt'] is Map) {
         final r = Map<String, dynamic>.from(api['receipt'] as Map);
+
         return ReceiptData(
           operationNumber:
               '${r['operationNumber'] ?? r['id'] ?? DateTime.now().millisecondsSinceEpoch}',
@@ -303,16 +276,13 @@ class FirebaseService {
     final txId = DateTime.now().millisecondsSinceEpoch.toString();
     late ReceiptData receipt;
 
-    final fromRef = await _findAccountRef(fromAccount);
-    if (fromRef == null) throw Exception('sender_not_found');
-
     await db.runTransaction((transaction) async {
-    if (fromRef == null) throw Exception('sender_not_found');
-
-    await db.runTransaction((transaction) async {
+      final fromRef = db.collection('accounts').doc(fromAccount);
       final fromSnap = await transaction.get(fromRef);
 
-      if (!fromSnap.exists) throw Exception('sender_not_found');
+      if (!fromSnap.exists) {
+        throw Exception('sender_not_found');
+      }
 
       final fromData = fromSnap.data()!;
       final current = (fromData['balance'] is num)
