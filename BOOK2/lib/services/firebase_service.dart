@@ -28,10 +28,15 @@ class FirebaseService {
     return value.replaceAll(RegExp(r'\D'), '');
   }
 
-  static double _num(dynamic value) {
+  static double _toDouble(dynamic value) {
     if (value is num) return value.toDouble();
+
     return double.tryParse(
-          '$value'.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), ''),
+          '$value'
+              .replaceAll(',', '')
+              .replaceAll('SDG', '')
+              .replaceAll('جنيه', '')
+              .replaceAll(RegExp(r'[^0-9.]'), ''),
         ) ??
         0.0;
   }
@@ -42,9 +47,9 @@ class FirebaseService {
     final key = _digits(identifier);
     if (key.isEmpty) return null;
 
-    final direct = db.collection('accounts').doc(key);
-    final directSnap = await direct.get();
-    if (directSnap.exists) return direct;
+    final directRef = db.collection('accounts').doc(key);
+    final directSnap = await directRef.get();
+    if (directSnap.exists) return directRef;
 
     final queries = [
       db.collection('accounts').where('accountNo', isEqualTo: key).limit(1),
@@ -68,45 +73,44 @@ class FirebaseService {
 
     await ensureSignedInAnonymously();
 
-    const accountNo = '2777277';
-    const referenceNo = '0123030248210001';
+    const demoAccountNo = '2777277';
+    const demoReferenceNo = '0123030248210001';
 
-    final ref = db.collection('accounts').doc(accountNo);
+    final ref = db.collection('accounts').doc(demoAccountNo);
     final snap = await ref.get();
 
-    final data = {
-      'accountNo': accountNo,
-      'identifier': accountNo,
-      'referenceNo': referenceNo,
+    if (snap.exists) {
+      await ref.set({
+        'accountNo': demoAccountNo,
+        'identifier': demoAccountNo,
+        'referenceNo': demoReferenceNo,
+        'password': '1234',
+        'status': 'active',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return;
+    }
+
+    await ref.set({
+      'accountNo': demoAccountNo,
+      'id': demoAccountNo,
+      'identifier': demoAccountNo,
+      'referenceNo': demoReferenceNo,
+      'iban': 'SD6804030002777277001',
       'fullName': 'حساب تجريبي',
       'name': 'حساب تجريبي',
       'accountName': 'حساب تجريبي',
       'accountType': 'حساب توفير',
       'phone': '249000000000',
+      'balance': 50000.0,
+      'الرصيد': 50000.0,
       'password': '1234',
       'status': 'active',
       'currency': 'SDG',
-      'balance': 50000.0,
-      'الرصيد': 50000.0,
+      'source': 'demo_seed',
+      'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (snap.exists) {
-      await ref.set({
-        'accountNo': accountNo,
-        'identifier': accountNo,
-        'referenceNo': referenceNo,
-        'password': '1234',
-        'status': 'active',
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } else {
-      await ref.set({
-        ...data,
-        'id': accountNo,
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    }
+    }, SetOptions(merge: true));
   }
 
   static Future<Map<String, dynamic>> getAppConfig() async {
@@ -114,12 +118,17 @@ class FirebaseService {
     if (!await NetworkService.isOnline) throw Exception('offline');
 
     final doc = await db.collection('app_settings').doc('config').get();
-
     if (!doc.exists) {
-      return {'isAppDisabled': false, 'disabledMessage': ''};
+      return {
+        'isAppDisabled': false,
+        'disabledMessage': '',
+      };
     }
 
-    return doc.data() ?? {'isAppDisabled': false, 'disabledMessage': ''};
+    return doc.data() ?? {
+      'isAppDisabled': false,
+      'disabledMessage': '',
+    };
   }
 
   static Future<bool> refreshAppConfig() async {
@@ -221,8 +230,16 @@ class FirebaseService {
 
     await ensureSignedInAnonymously();
 
-    final ref = await _findAccountRef(accountNo);
+    if (ApiService.enabled) {
+      final api = await ApiService.getJson('/accounts/$accountNo');
+      if (api != null && api['account'] is Map) {
+        return BankAccount.fromMap(
+          Map<String, dynamic>.from(api['account'] as Map),
+        );
+      }
+    }
 
+    final ref = await _findAccountRef(accountNo);
     if (ref != null) {
       final doc = await ref.get();
       if (doc.exists) {
@@ -233,7 +250,10 @@ class FirebaseService {
       }
     }
 
-    final notify = await db.collection('notify_transfer_data').doc(_digits(accountNo)).get();
+    final notify = await db
+        .collection('notify_transfer_data')
+        .doc(_digits(accountNo))
+        .get();
 
     if (notify.exists) {
       return BankAccount.fromMap({
@@ -277,9 +297,7 @@ class FirebaseService {
 
     await ensureSignedInAnonymously();
 
-    if (amount <= 0) {
-      throw Exception('invalid_amount');
-    }
+    if (amount <= 0) throw Exception('invalid_amount');
 
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/transfer', {
@@ -292,7 +310,6 @@ class FirebaseService {
 
       if (api != null && api['receipt'] is Map) {
         final r = Map<String, dynamic>.from(api['receipt'] as Map);
-
         return ReceiptData(
           operationNumber:
               '${r['operationNumber'] ?? r['id'] ?? DateTime.now().millisecondsSinceEpoch}',
@@ -310,29 +327,23 @@ class FirebaseService {
     }
 
     final fromRef = await _findAccountRef(fromAccount);
-    if (fromRef == null) {
-      throw Exception('sender_not_found');
-    }
+    if (fromRef == null) throw Exception('sender_not_found');
 
     final txId = DateTime.now().millisecondsSinceEpoch.toString();
     late ReceiptData receipt;
 
     await db.runTransaction((transaction) async {
       final fromSnap = await transaction.get(fromRef);
-
-      if (!fromSnap.exists) {
-        throw Exception('sender_not_found');
-      }
+      if (!fromSnap.exists) throw Exception('sender_not_found');
 
       final fromData = fromSnap.data()!;
-      final current = _num(fromData['balance'] ?? fromData['الرصيد']);
+      final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
 
-      if (current < amount) {
-        throw Exception('insufficient_balance');
-      }
+      if (current < amount) throw Exception('insufficient_balance');
 
       final newBalance = current - amount;
 
+      // منطق التحويل الحالي: خصم من المرسل فقط. لا يوجد تحديث للمستلم.
       transaction.update(fromRef, {
         'balance': newBalance,
         'الرصيد': newBalance,
