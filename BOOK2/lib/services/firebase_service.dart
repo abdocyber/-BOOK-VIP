@@ -153,6 +153,8 @@ class FirebaseService {
     _ensureFirebase();
     if (!await NetworkService.isOnline) throw Exception('offline');
 
+    await ensureSignedInAnonymously();
+
     if (ApiService.enabled) {
       final api = await ApiService.postJson('/login', {
         'identifier': identifier,
@@ -228,6 +230,37 @@ class FirebaseService {
     }, SetOptions(merge: true));
   }
 
+
+  static String _onlyDigits(String value) {
+    return value.replaceAll(RegExp(r'\D'), '');
+  }
+
+  static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(
+    String identifier,
+  ) async {
+    final key = _onlyDigits(identifier);
+    if (key.isEmpty) return null;
+
+    final directRef = db.collection('accounts').doc(key);
+    final directSnap = await directRef.get();
+    if (directSnap.exists) return directRef;
+
+    final queries = [
+      db.collection('accounts').where('accountNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('identifier', isEqualTo: key).limit(1),
+      db.collection('accounts').where('referenceNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('رقم الحساب', isEqualTo: key).limit(1),
+      db.collection('accounts').where('الرقم المرجعي', isEqualTo: key).limit(1),
+    ];
+
+    for (final q in queries) {
+      final r = await q.get();
+      if (r.docs.isNotEmpty) return r.docs.first.reference;
+    }
+
+    return null;
+  }
+
   static Future<ReceiptData> transfer({
     required String fromAccount,
     required String toAccount,
@@ -269,7 +302,10 @@ class FirebaseService {
     late ReceiptData receipt;
 
     await db.runTransaction((transaction) async {
-      final fromRef = db.collection('accounts').doc(fromAccount);
+      final fromRef = await _findAccountRef(fromAccount);
+    if (fromRef == null) throw Exception('sender_not_found');
+
+    await db.runTransaction((transaction) async {
       final fromSnap = await transaction.get(fromRef);
 
       if (!fromSnap.exists) throw Exception('sender_not_found');
