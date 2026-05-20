@@ -5,6 +5,11 @@ class ErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final map = args is Map ? args : const {};
+    final dynamicMessage = '${map['message'] ?? ''}';
+    final rawError = '${map['rawError'] ?? ''}';
+
     final rawArgs = ModalRoute.of(context)?.settings.arguments;
     final args = rawArgs is Map ? rawArgs : <String, dynamic>{};
 

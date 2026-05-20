@@ -297,53 +297,35 @@ class FirebaseService {
 
     await ensureSignedInAnonymously();
 
-    if (amount <= 0) throw Exception('invalid_amount');
-
-    if (ApiService.enabled) {
-      final api = await ApiService.postJson('/transfer', {
-        'fromAccount': fromAccount,
-        'toAccount': toAccount,
-        'amount': amount,
-        'note': note,
-        'phone': phone,
-      });
-
-      if (api != null && api['receipt'] is Map) {
-        final r = Map<String, dynamic>.from(api['receipt'] as Map);
-        return ReceiptData(
-          operationNumber:
-              '${r['operationNumber'] ?? r['id'] ?? DateTime.now().millisecondsSinceEpoch}',
-          date: '${r['date'] ?? _fmt(DateTime.now())}',
-          fromAccount: '${r['fromAccount'] ?? fromAccount}',
-          toAccount: '${r['toAccount'] ?? toAccount}',
-          receiverName: '${r['receiverName'] ?? 'مستلم'}',
-          phone: '${r['phone'] ?? phone}',
-          note: '${r['note'] ?? note}',
-          amount: (r['amount'] is num)
-              ? (r['amount'] as num).toDouble()
-              : amount,
-        );
-      }
+    if (amount <= 0) {
+      throw Exception('invalid_amount');
     }
 
     final fromRef = await _findAccountRef(fromAccount);
-    if (fromRef == null) throw Exception('sender_not_found');
+    if (fromRef == null) {
+      throw Exception('sender_not_found:$fromAccount');
+    }
 
     final txId = DateTime.now().millisecondsSinceEpoch.toString();
     late ReceiptData receipt;
 
     await db.runTransaction((transaction) async {
       final fromSnap = await transaction.get(fromRef);
-      if (!fromSnap.exists) throw Exception('sender_not_found');
+
+      if (!fromSnap.exists) {
+        throw Exception('sender_not_found:$fromAccount');
+      }
 
       final fromData = fromSnap.data()!;
       final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
 
-      if (current < amount) throw Exception('insufficient_balance');
+      if (current < amount) {
+        throw Exception('insufficient_balance: current=$current amount=$amount');
+      }
 
       final newBalance = current - amount;
 
-      // منطق التحويل الحالي: خصم من المرسل فقط. لا يوجد تحديث للمستلم.
+      // منطق التحويل: خصم من المرسل فقط، بدون إضافة للمستلم.
       transaction.update(fromRef, {
         'balance': newBalance,
         'الرصيد': newBalance,
@@ -381,6 +363,7 @@ class FirebaseService {
 
     return receipt;
   }
+
 
   static Stream<QuerySnapshot<Map<String, dynamic>>> transactions() {
     return db
