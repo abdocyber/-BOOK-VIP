@@ -290,7 +290,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
 
-                            SizedBox(height: appH * 0.04),
+                            SizedBox(height: appH * 0.075),
 
                             // أزرار التواصل السفلية
                             Row(
