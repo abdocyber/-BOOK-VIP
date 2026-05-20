@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 
-class WhiteReceiptPage extends StatefulWidget {
+class WhiteReceiptPage extends StatelessWidget {
   const WhiteReceiptPage({super.key});
 
-  @override
-  State<WhiteReceiptPage> createState() => _WhiteReceiptPageState();
-}
-
-class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   Map<String, dynamic> _data(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is Map) return arg.cast<String, dynamic>();
@@ -16,20 +11,17 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
 
   String _fmtDate(dynamic v) {
     if (v == null) return '30-Apr-2026 21:09:01';
-
     final text = '$v';
     final parsed = DateTime.tryParse(text);
     if (parsed == null) return text;
 
-    const months = [
+    const m = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
 
     String p(int n) => n.toString().padLeft(2, '0');
-
-    return '${p(parsed.day)}-${months[parsed.month - 1]}-${parsed.year} '
-        '${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
+    return '${p(parsed.day)}-${m[parsed.month - 1]}-${parsed.year} ${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
   }
 
   String _fmtMoney(dynamic v) {
@@ -45,94 +37,36 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     return '$v';
   }
 
-  void _showSoon() {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        duration: Duration(milliseconds: 1200),
-        content: Text(
-          'قريباً...',
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-
-  void _shareTx(Map<String, dynamic> d) {
-    final id = '${d['operationNumber'] ?? d['id'] ?? '20047360699'}';
-    final amount = _fmtMoney(d['amount'] ?? 500000.00);
-    final to = '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0038 5717 7730 001'}';
-
-    final text = 'تفاصيل المعاملة\nرقم العملية: $id\nالمبلغ: $amount\nإلى: $to';
-
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text, textAlign: TextAlign.center),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final d = _data(context);
 
     final rows = <_ReceiptRow>[
-      _ReceiptRow(
-        'رقم العملية',
-        '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? '20047360699'}',
-      ),
-      _ReceiptRow(
-        'التاريخ والوقت',
-        _fmtDate(d['createdAt'] ?? d['date'] ?? '2026-04-30T21:09:01'),
-      ),
-      _ReceiptRow(
-        'نوع العملية',
-        '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب اخر'}',
-        arabicValue: true,
-      ),
-      _ReceiptRow(
-        'المبلغ',
-        _fmtMoney(d['amount'] ?? 500000.00),
-      ),
-      _ReceiptRow(
-        'من',
-        '${d['from'] ?? d['accountFrom'] ?? d['fromAccount'] ?? '0263 1898 8440 0001'}',
-      ),
-      _ReceiptRow(
-        'إلى',
-        '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0038 5717 7730 001'}',
-      ),
-      _ReceiptRow(
-        'الحالة',
-        _statusAr(d['status'] ?? 'success'),
-        arabicValue: true,
-      ),
-      _ReceiptRow(
-        'إسم المرسل\nاليه',
-        '${d['accountName'] ?? d['receiverName'] ?? 'Maram Mohammed Ahmed Ali'}',
-        arabicValue: true,
-      ),
-      _ReceiptRow(
-        'التعليق',
-        '${d['comment'] ?? d['note'] ?? 'N/A'}',
-      ),
+      _ReceiptRow('رقم العملية', '${d['operationNumber'] ?? d['id'] ?? '20047360699'}'),
+      _ReceiptRow('التاريخ والوقت', _fmtDate(d['createdAt'] ?? d['date'] ?? '2026-04-30T21:09:01')),
+      _ReceiptRow('نوع العملية', '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب اخر'}', arabicValue: true),
+      _ReceiptRow('المبلغ', _fmtMoney(d['amount'] ?? 500000.00)),
+      _ReceiptRow('من', '${d['from'] ?? d['accountFrom'] ?? d['fromAccount'] ?? '0263 1898 8440 0001'}'),
+      _ReceiptRow('إلى', '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0038 5717 7730 001'}'),
+      _ReceiptRow('الحالة', _statusAr(d['status'] ?? 'success'), arabicValue: true),
+      _ReceiptRow('إسم المرسل\nاليه', '${d['accountName'] ?? d['receiverName'] ?? 'Maram Mohammed Ahmed Ali'}', arabicValue: true),
+      _ReceiptRow('التعليق', '${d['comment'] ?? d['note'] ?? 'N/A'}'),
     ];
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xffefefef),
+        backgroundColor: const Color(0xffeeeeee),
         body: Column(
           children: [
-            _buildTopHeader(),
-            _buildTitleBar(context),
+            _topHeader(),
+            _titleBar(context),
             Expanded(
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: Opacity(
-                      opacity: 0.08,
+                      opacity: 0.055,
                       child: Image.asset(
                         'assets/img/bg.png',
                         fit: BoxFit.cover,
@@ -140,194 +74,113 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                       ),
                     ),
                   ),
-                  ListView(
-                    padding: const EdgeInsets.fromLTRB(0, 6, 0, 12),
-                    children: [
-                      ...rows.map((r) => _buildReceiptBox(r)).toList(),
-                      const SizedBox(height: 10),
-                    ],
+                  ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                    itemCount: rows.length,
+                    itemBuilder: (_, i) => _receiptRow(rows[i]),
                   ),
                 ],
               ),
             ),
           ],
         ),
-        bottomNavigationBar: Container(
-          color: const Color(0xffefefef),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                child: Row(
-                  textDirection: TextDirection.ltr,
-                  children: [
-                    Expanded(
-                      child: _ActionButton(
-                        title: 'تحويل خاطئ',
-                        icon: 'block_icon.png',
-                        onTap: _showSoon,
-                      ),
-                    ),
-                    const SizedBox(width: 22),
-                    Expanded(
-                      child: _ActionButton(
-                        title: 'تذكير',
-                        icon: 'notification_white.png',
-                        onTap: _showSoon,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: const Color(0xff4a4a4a), width: 1.0),
-                ),
-                child: Row(
-                  children: [
-                    _BottomOption(
-                      title: 'مشاركة',
-                      icon: 'sharegray.png',
-                      onTap: () => _shareTx(d),
-                    ),
-                    _vDivider(),
-                    _BottomOption(
-                      title: 'طباعة',
-                      icon: 'printgray.png',
-                      onTap: _showSoon,
-                    ),
-                    _vDivider(),
-                    _BottomOption(
-                      title: 'تحميل',
-                      icon: 'downloadgray.png',
-                      onTap: _showSoon,
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                height: 34,
-                alignment: Alignment.center,
-                color: const Color(0xffd6d6d6),
-                child: const Text(
-                  '© 2024 بنك الخرطوم | بنكك حساب',
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 12,
-                    height: 1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        bottomNavigationBar: _bottomArea(context, d),
       ),
     );
   }
 
-  Widget _buildTopHeader() {
+  Widget _topHeader() {
     return Container(
-      height: 66,
+      height: 62,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xffff0000),
-            Color(0xffcb1b2b),
-          ],
+          colors: [Color(0xffff0000), Color(0xffc9182a)],
         ),
       ),
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Image.asset(
-                  'assets/img/white_logo_n.png',
-                  width: 74,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Center(
+              child: Image.asset(
+                'assets/img/white_logo_n.png',
+                width: 72,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Image.asset(
-                  'assets/img/dehaze_24.png',
-                  width: 34,
-                  height: 34,
-                  fit: BoxFit.contain,
-                  color: Colors.white,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.menu, color: Colors.white, size: 34),
-                ),
+            ),
+            Positioned(
+              right: 15,
+              top: 13,
+              child: Image.asset(
+                'assets/img/dehaze_24.png',
+                width: 35,
+                height: 35,
+                color: Colors.white,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.menu, color: Colors.white, size: 35),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTitleBar(BuildContext context) {
+  Widget _titleBar(BuildContext context) {
     return Container(
-      height: 92,
-      color: const Color(0xffefefef),
+      height: 94,
+      color: const Color(0xffeeeeee),
       child: Stack(
         children: [
-          const Center(
+          const Positioned(
+            left: 0,
+            right: 0,
+            top: 31,
             child: Text(
               'تفاصيل المعاملة',
+              textAlign: TextAlign.center,
               style: TextStyle(
+                fontSize: 20,
                 color: Color(0xff222222),
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),
           Positioned(
-            right: 14,
-            top: 14,
+            right: 16,
+            top: 18,
             child: InkWell(
               onTap: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
+                if (Navigator.canPop(context)) Navigator.pop(context);
               },
               child: Image.asset(
                 'assets/img/back.png',
-                width: 98,
+                width: 86,
                 height: 40,
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => Container(
-                  width: 98,
-                  height: 40,
+                  width: 86,
+                  height: 38,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border.all(color: const Color(0xffcc4a4a), width: 1.6),
-                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xffcf4c4c), width: 1.4),
+                    borderRadius: BorderRadius.circular(10),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x33000000),
-                        blurRadius: 6,
-                        offset: Offset(0, 2),
+                        blurRadius: 5,
+                        offset: Offset(1, 2),
                       ),
                     ],
                   ),
                   child: const Text(
                     'رجوع',
-                    style: TextStyle(
-                      color: Color(0xffcc4a4a),
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Color(0xffcf4c4c), fontSize: 16),
                   ),
                 ),
               ),
@@ -338,17 +191,20 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  Widget _buildReceiptBox(_ReceiptRow row) {
+  Widget _receiptRow(_ReceiptRow row) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 2.5),
+      margin: const EdgeInsets.only(left: 0, right: 0, bottom: 1.8),
+      constraints: const BoxConstraints(minHeight: 72),
       decoration: BoxDecoration(
         color: const Color(0xfff7f7f7),
-        border: Border.all(color: const Color(0xff666666), width: 1.2),
-        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: const Color(0xff4f4f4f),
+          width: 1.15,
+        ),
+        borderRadius: BorderRadius.circular(7),
       ),
-      constraints: const BoxConstraints(minHeight: 70),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -358,27 +214,27 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 row.label,
                 textAlign: TextAlign.right,
                 style: const TextStyle(
+                  fontSize: 18,
+                  height: 1.05,
                   color: Color(0xff303030),
-                  fontSize: 17,
                   fontWeight: FontWeight.w500,
-                  height: 1.15,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Directionality(
-                textDirection:
-                    row.arabicValue ? TextDirection.rtl : TextDirection.ltr,
+                textDirection: row.arabicValue ? TextDirection.rtl : TextDirection.ltr,
                 child: Text(
                   row.value.isEmpty ? 'N/A' : row.value,
-                  textAlign:
-                      row.arabicValue ? TextAlign.right : TextAlign.left,
+                  textAlign: row.arabicValue ? TextAlign.right : TextAlign.left,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Color(0xff3d3d3d),
-                    fontSize: 16,
+                    fontSize: 16.5,
+                    height: 1.05,
+                    color: Color(0xff4a4a4a),
                     fontWeight: FontWeight.w400,
-                    height: 1.15,
                   ),
                 ),
               ),
@@ -389,11 +245,100 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  Widget _vDivider() {
+  Widget _bottomArea(BuildContext context, Map<String, dynamic> d) {
+    return Container(
+      color: const Color(0xffeeeeee),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 12),
+            child: Row(
+              textDirection: TextDirection.ltr,
+              children: [
+                Expanded(
+                  child: _ActionButton(
+                    title: 'تحويل خاطئ',
+                    icon: 'block_icon.png',
+                    onTap: () => _soon(context),
+                  ),
+                ),
+                const SizedBox(width: 32),
+                Expanded(
+                  child: _ActionButton(
+                    title: 'تذكير',
+                    icon: 'notification_white.png',
+                    onTap: () => _soon(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            height: 51,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xff333333), width: 1),
+            ),
+            child: Row(
+              children: [
+                _BottomOption(title: 'مشاركة', icon: 'sharegray.png', onTap: () => _share(context, d)),
+                _divider(),
+                _BottomOption(title: 'طباعة', icon: 'printgray.png', onTap: () => _soon(context)),
+                _divider(),
+                _BottomOption(title: 'تحميل', icon: 'downloadgray.png', onTap: () => _soon(context)),
+              ],
+            ),
+          ),
+          Container(
+            height: 36,
+            alignment: Alignment.center,
+            color: const Color(0xffcfcfcf),
+            child: const Text(
+              '© 2024 بنك الخرطوم | بنكك حساب',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider() {
     return Container(
       width: 1,
       height: double.infinity,
-      color: const Color(0xff4a4a4a),
+      color: const Color(0xff333333),
+    );
+  }
+
+  void _soon(BuildContext context) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        duration: Duration(milliseconds: 1100),
+        content: Text('قريباً...', textAlign: TextAlign.center),
+      ),
+    );
+  }
+
+  void _share(BuildContext context, Map<String, dynamic> d) {
+    final id = '${d['operationNumber'] ?? d['id'] ?? '20047360699'}';
+    final amount = _fmtMoney(d['amount'] ?? 500000.00);
+    final to = '${d['to'] ?? d['toAccount'] ?? '0038 5717 7730 001'}';
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'تفاصيل المعاملة\nرقم العملية: $id\nالمبلغ: $amount\nإلى: $to',
+          textAlign: TextAlign.center,
+        ),
+      ),
     );
   }
 }
@@ -427,13 +372,10 @@ class _ActionButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        height: 56,
+        height: 54,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(
-            color: const Color(0xffc93e3a),
-            width: 2.0,
-          ),
+          border: Border.all(color: const Color(0xffc73b3b), width: 2.2),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
@@ -442,18 +384,18 @@ class _ActionButton extends StatelessWidget {
             Text(
               title,
               style: const TextStyle(
-                color: Color(0xffc93e3a),
+                color: Color(0xffc73b3b),
                 fontSize: 17,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
               ),
             ),
             const SizedBox(width: 10),
             Image.asset(
               'assets/img/$icon',
-              width: 22,
-              height: 22,
+              width: 23,
+              height: 23,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const SizedBox(width: 22, height: 22),
+              errorBuilder: (_, __, ___) => const SizedBox(width: 23, height: 23),
             ),
           ],
         ),
@@ -483,17 +425,17 @@ class _BottomOption extends StatelessWidget {
           children: [
             Image.asset(
               'assets/img/$icon',
-              width: 21,
-              height: 21,
+              width: 22,
+              height: 22,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const SizedBox(width: 21, height: 21),
+              errorBuilder: (_, __, ___) => const SizedBox(width: 22, height: 22),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 7),
             Text(
               title,
               style: const TextStyle(
                 color: Color(0xff444444),
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: FontWeight.w400,
               ),
             ),
