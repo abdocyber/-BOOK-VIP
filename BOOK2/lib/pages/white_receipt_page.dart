@@ -1,144 +1,329 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import '../models/receipt.dart';
+import 'package:intl/intl.dart'; // ستحتاج لإضافة هذا الباكيج لتنسيق التاريخ والعملة
 
 class WhiteReceiptPage extends StatefulWidget {
-  const WhiteReceiptPage({super.key});
+  // هنا يتم تمرير البيانات القادمة من قاعدة البيانات عبر الـ Constructor
+  final Map<String, dynamic> transactionData;
+
+  const WhiteReceiptPage({Key? key, required this.transactionData}) : super(key: key);
 
   @override
   State<WhiteReceiptPage> createState() => _WhiteReceiptPageState();
 }
 
 class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
-  final GlobalKey _receiptKey = GlobalKey();
-  bool isProcessing = false;
-
-  Map<String, dynamic> _data(BuildContext context) {
-    final arg = ModalRoute.of(context)?.settings.arguments;
-    if (arg is Map) return arg.cast<String, dynamic>();
-    return const <String, dynamic>{
-      'operationNumber': '20018909275',
-      'createdAt': '2026-05-05T15:36:50',
-      'amount': 100.00,
-      'from': '1326253024820001',
-      'to': '1113025957200001',
-      'receiverName': 'احمد سليمان احمد محمود',
-      'mobile': 'N/A',
-      'comment': 'كاش',
-      'status': 'success',
-      'operationType': 'تحويل إلى حساب آخر'
-    };
-  }
-
-  // الدوال المساعدة للربط
-  Future<Uint8List?> _capturePng() async {
-    try {
-      RenderRepaintBoundary boundary = _receiptKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      return byteData?.buffer.asUint8List();
-    } catch (e) { return null; }
-  }
-
-  Future<void> _shareReceipt() async {
-    if (isProcessing) return;
-    setState(() => isProcessing = true);
-    final bytes = await _capturePng();
-    if (bytes != null) {
-      final dir = await getTemporaryDirectory();
-      final file = await File('${dir.path}/receipt.png').create();
-      await file.writeAsBytes(bytes);
-      await Share.shareXFiles([XFile(file.path)], text: 'إشعار تحويل بنكك');
-    }
-    setState(() => isProcessing = false);
-  }
+  // ألوان التصميم بناءً على الصورة
+  final Color primaryRed = const Color(0xFFC62828);
+  final Color goldColor = const Color(0xFFD4AF37);
+  final Color greyTextColor = const Color(0xFF757575);
+  final Color blackTextColor = const Color(0xFF212121);
+  final Color dividerColor = const Color(0xFFEEEEEE);
 
   @override
   Widget build(BuildContext context) {
-    final d = _data(context);
-    final rows = [
-      ['رقم العملية', d['operationNumber']],
-      ['التاريخ والوقت', d['createdAt']],
-      ['نوع العملية', d['operationType']],
-      ['المبلغ', '${d['amount']} SDG'],
-      ['من', d['from']],
-      ['إلى', d['to']],
-      ['الحالة', d['status'] == 'success' ? 'نجاح' : d['status']],
-      ['إسم المرسل اليه', d['receiverName']],
-      ['التعليق', d['comment']],
-    ];
+    // بفرض أن البيانات قادمة بهذا الشكل من قاعدة البيانات، نقوم بتهيئتها
+    // في حال عدم وجود بيانات، نضع قيماً افتراضية (Mock Data) المطابقة للصورة للتجربة
+    final String referenceNumber = widget.transactionData['ref_no'] ?? '20018909627';
+    final DateTime transactionDate = widget.transactionData['date'] ?? DateTime.now();
+    final String fromAccount = widget.transactionData['from_acc'] ?? '0123 0302 4821 0001';
+    final String toAccount = widget.transactionData['to_acc'] ?? '0123 0252 2939 0001';
+    final String recipientName = widget.transactionData['recipient_name'] ?? 'احمد سليمان احمد محمود';
+    final String mobileNumber = widget.transactionData['mobile_no'] ?? '0912345678';
+    final double amount = widget.transactionData['amount'] ?? 9900.00;
+    final String comment = widget.transactionData['comment'] ?? 'كاش';
+    final String status = widget.transactionData['status'] ?? 'نجاح';
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: RepaintBoundary(
-          key: _receiptKey,
-          child: Column(
-            children: [
-              // 1. الشريط العلوي
-              Container(
-                height: 65,
-                decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xffe31e24), Color(0xffb80006)])),
-                child: SafeArea(child: Stack(children: [
-                  Center(child: Image.asset('assets/img/white_logo_n.png', width: 95)),
-                  Positioned(right: 10, top: 18, child: Image.asset('assets/img/dehaze_24.png', width: 28))
-                ])),
+    // تنسيق التاريخ والوقت
+    String formattedDate = DateFormat('dd أبريل yyyy، HH:mm:ss', 'ar').format(transactionDate);
+    // تنسيق المبلغ
+    final currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: '');
+    String formattedAmount = currencyFormatter.format(amount);
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80.0), // ارتفاع الـ AppBar العلوي
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                primaryRed,
+                primaryRed.withOpacity(0.8),
+              ],
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: const Icon(Icons.menu, color: Colors.white),
+            title: Image.asset(
+              'assets/images/bankak_logo.png', // تأكد من إضافة الشعار في المسار الصحيح
+              height: 40,
+            ),
+            centerTitle: true,
+            actions: const [
+              Icon(Icons.power_settings_new, color: Colors.white),
+              SizedBox(width: 15),
+            ],
+          ),
+        ),
+      ),
+      body: Directionality(
+        textDirection: TextDirection.rtl, // لضمان اتجاه النص العربي من اليمين لليسار
+        child: Column(
+          children: [
+            // قسم التاريخ والوقت أسفل الـ AppBar
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              color: Colors.white,
+              child: Text(
+                'تاريخ/وقت المعاملة: $formattedDate',
+                style: TextStyle(color: blackTextColor, fontSize: 13),
+                textAlign: TextAlign.center,
               ),
-              // العنوان
-              Container(height: 50, alignment: Alignment.center, color: const Color(0xfff8f8f8), 
-                child: const Text('تفاصيل المعاملة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
-              
-              // 2. الجدول: ملاصق للحواف (هامش 0.2px)
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 8, left: 0.2, right: 0.2),
-                  child: Container(
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xff999999), width: 1.0)),
-                    child: Column(
-                      children: rows.map((e) => Container(
-                        // الارتفاع المضبوط لـ 8px padding عمودي
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xffcccccc), width: 0.5))),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(e[0], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xff555555))),
-                            Expanded(child: Text('${e[1]}', textAlign: TextAlign.left, style: const TextStyle(fontSize: 14, color: Color(0xff333333)))),
-                          ],
-                        ),
-                      )).toList(),
+            ),
+            
+            // العنوان الرئيسي
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                'تفاصيل المعاملة',
+                style: TextStyle(
+                  color: blackTextColor,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Rubik', // تأكد من تعريف الخط في pubspec.yaml
+                ),
+              ),
+            ),
+
+            // البطاقة البيضاء التي تحتوي على التفاصيل (Container مع Shadow وبوردر خفيف)
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(15, 0, 15, 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: ListView(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(), // لمنع التمرير داخل البطاقة نفسها
+                    children: [
+                      // بناء الصفوف بناءً على التصميم
+                      _buildInfoRow('الرقم المرجعي', referenceNumber, isBoldValue: true),
+                      _buildDivider(),
+                      _buildInfoRow('من حساب', fromAccount),
+                      _buildDivider(),
+                      _buildInfoRow('إلى حساب', toAccount),
+                      _buildDivider(),
+                      _buildInfoRow('اسم المستلم', recipientName),
+                      _buildDivider(),
+                      _buildInfoRow('رقم الموبايل', mobileNumber),
+                      _buildDivider(),
+                      // ستايل خاص للمبلغ
+                      _buildAmountRow('المبلغ', formattedAmount),
+                      _buildDivider(),
+                      _buildInfoRow('التعليق', comment),
+                      _buildDivider(),
+                      // ستايل خاص للحالة (لون أخضر)
+                      _buildStatusRow('الحالة', status),
+                    ],
                   ),
                 ),
               ),
-
-              // 3. الأزرار السفلية المشغلة
-              Padding(padding: const EdgeInsets.all(12), child: Row(children: [
-                Expanded(child: _btn('تحويل خاطئ', 'block_icon.png')),
-                const SizedBox(width: 10),
-                Expanded(child: _btn('تذكير', 'notification_white.png')),
-              ])),
-              
-              Container(height: 40, color: const Color(0xfff8f8f8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _opt('مشاركة', 'sharegray.png', _shareReceipt),
-                _opt('طباعة', 'printgray.png', () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('قريباً...')))),
-                _opt('تحميل', 'downloadgray.png', () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('قريباً...')))),
-              ])),
-            ],
+            ),
+          ],
+        ),
+      ),
+      // الشريط السفلي الأحمر (Bottom Navigation Bar)
+      bottomNavigationBar: Container(
+        height: 70,
+        decoration: BoxDecoration(
+          color: primaryRed,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildBottomActionButton('assets/images/ic_incorrect_trans.png', 'تحويل خاطئ'),
+            _buildBottomActionButton('assets/images/ic_reminder.png', 'تذكير'),
+            _buildBottomActionButton('assets/images/ic_print.png', 'طباعة'),
+            _buildBottomActionButton('assets/images/ic_share.png', 'مشاركة'),
+            _buildBottomActionButton('assets/images/ic_download.png', 'تحميل'),
+          ],
         ),
       ),
     );
   }
 
-  Widget _btn(String t, String i) => Container(height: 40, decoration: BoxDecoration(border: Border.all(color: Colors.red), borderRadius: BorderRadius.circular(20)), 
-    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Text(t, style: const TextStyle(color: Colors.red)), const SizedBox(width: 5), Image.asset('assets/img/$i', width: 16, color: Colors.red)]));
-  
-  Widget _opt(String t, String i, VoidCallback tap) => InkWell(onTap: tap, child: Row(children: [Text(t, style: const TextStyle(fontSize: 12)), const SizedBox(width: 4), Image.asset('assets/img/$i', width: 16)]));
+  // ويجت لبناء الصف القياسي (مفتاح : قيمة)
+  Widget _buildInfoRow(String label, String value, {bool isBoldValue = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      child: Row(
+        children: [
+          // التسمية (يمين)
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(color: greyTextColor, fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+          // القيمة (يسار)
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: blackTextColor,
+                fontSize: 14,
+                fontWeight: isBoldValue ? FontWeight.bold : FontWeight.normal,
+              ),
+              textAlign: TextAlign.left, // محاذاة النص لليسار كما في الصورة
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ويجت خاص بصف المبلغ لتلوين العملة وتضخيم الرقم
+  Widget _buildAmountRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(color: greyTextColor, fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: RichText(
+              textAlign: TextAlign.left,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(color: blackTextColor, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const TextSpan(text: ' '),
+                  TextSpan(
+                    text: 'SDG',
+                    style: TextStyle(color: greyTextColor, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ويجت خاص بصف الحالة لتلوين كلمة "نجاح" بالأخضر
+  Widget _buildStatusRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(color: greyTextColor, fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Container(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.green, // اللون الأخضر للحالة
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ويجت لبناء الخط الفاصل بين الصفوف
+  Widget _buildDivider() {
+    return Divider(
+      color: dividerColor,
+      height: 1,
+      thickness: 1,
+      indent: 15, // بداية الخط بعد مسافة من اليمين
+      endIndent: 15, // نهاية الخط قبل مسافة من اليسار
+    );
+  }
+
+  // ويجت لبناء أزرار الحركة في الشريط السفلي
+  Widget _buildBottomActionButton(String assetPath, String label) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          assetPath, // تأكد من إضافة الأيقونات في المسار الصحيح
+          height: 24,
+          color: Colors.white, // تلوين الأيقونات باللون الأبيض
+        ),
+        const SizedBox(height: 5),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 10),
+        ),
+      ],
+    );
+  }
+}
+
+// مثال لكيفية استدعاء هذه الصفحة وتمرير البيانات الحقيقية إليها
+void navigateToReceipt(BuildContext context) {
+  // هذه البيانات يفترض أن تأتي من نتيجة استعلام قاعدة البيانات بعد نجاح التحويل
+  Map<String, dynamic> dbData = {
+    'ref_no': '20018909627',
+    'date': DateTime(2026, 4, 23, 20, 2, 58), // تاريخ حقيقي
+    'from_acc': '0123 0302 4821 0001',
+    'to_acc': '0123 0252 2939 0001',
+    'recipient_name': 'احمد سليمان احمد محمود',
+    'mobile_no': '0912345678',
+    'amount': 9900.00,
+    'comment': 'كاش',
+    'status': 'نجاح',
+  };
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => WhiteReceiptPage(transactionData: dbData),
+    ),
+  );
 }
