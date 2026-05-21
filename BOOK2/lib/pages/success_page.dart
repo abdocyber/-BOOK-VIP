@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'dart:typed_data'; // تمت الإضافة لمنع أي خطأ في البناء (Build Error)
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../models/receipt.dart'; // تأكد من المسار الصحيح للـ Model
+import '../models/receipt.dart'; // تأكد من أن مسار الموديل صحيح في مشروعك
 
 class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
@@ -16,15 +17,17 @@ class SuccessPage extends StatefulWidget {
 }
 
 class _SuccessPageState extends State<SuccessPage> {
-  final GlobalKey _receiptKey = GlobalKey(); // مفتاح لالتقاط الشاشة
+  final GlobalKey _receiptKey = GlobalKey(); // مفتاح التقاط الشاشة
   bool showPrintSoon = false;
   bool isProcessing = false;
 
-  // جلب البيانات أو استخدام بيانات وهمية (Fallback)
+  // جلب البيانات من قاعدة البيانات (عن طريق صفحة التحويل السابقة)
   ReceiptData _receipt(BuildContext context) {
+    // هذه الخطوة تضمن استلام البيانات الموثقة من Firebase دون عمل اتصال جديد
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is ReceiptData) return arg;
     
+    // بيانات احتياطية (تظهر فقط إذا قمت بفتح الصفحة للتجربة بدون تمرير بيانات)
     return const ReceiptData(
       operationNumber: '1779360902681',
       date: '21-May-2026 12:55:03',
@@ -45,11 +48,11 @@ class _SuccessPageState extends State<SuccessPage> {
     return '$whole.${parts.last}';
   }
 
-  // دالة التقاط الشاشة
+  // دالة التقاط الشاشة (آمنة تماماً ولا تتدخل بالبيانات)
   Future<Uint8List?> _capturePng() async {
     try {
       RenderRepaintBoundary boundary = _receiptKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0); // جودة عالية
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       return byteData?.buffer.asUint8List();
     } catch (e) {
@@ -103,7 +106,7 @@ class _SuccessPageState extends State<SuccessPage> {
     });
   }
 
-  // تنبيه بسيط
+  // تنبيهات الواجهة
   void _showCustomToast(String msg, IconData icon) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -131,7 +134,7 @@ class _SuccessPageState extends State<SuccessPage> {
       ['التاريخ و الزمن', r.date],
       ['من حساب', r.fromAccount],
       ['الى حساب', r.toAccount],
-      ['إسم المرسل ...', r.receiverName], // تقصير الكلمة لتطابق الصورة
+      ['إسم المرسل ...', r.receiverName],
       ['رقم الموبايل', r.phone],
       ['التعليق', r.note],
       ['المبلغ', _formatAmount(r.amount)],
@@ -140,12 +143,13 @@ class _SuccessPageState extends State<SuccessPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: const Color(0xff57a82c), // احتياطي للون الخلفية
         body: RepaintBoundary(
-          key: _receiptKey,
+          key: _receiptKey, // تغليف الواجهة للالتقاط كصورة عند المشاركة
           child: Container(
             width: double.infinity,
             decoration: const BoxDecoration(
-              // تدرج اللون الأخضر المطابق تماماً للصورة
+              // تدرج اللون الأخضر المطابق للصورة تماماً
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -154,13 +158,12 @@ class _SuccessPageState extends State<SuccessPage> {
             ),
             child: Stack(
               children: [
-                // 1. المحتوى القابل للتمرير
+                // 1. المحتوى الأساسي القابل للتمرير
                 LayoutBuilder(
                   builder: (context, constraints) {
                     return SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      // ترك مساحة سفلية ثابتة للأشرطة (46 + 28 = 74)
-                      padding: const EdgeInsets.only(bottom: 74),
+                      padding: const EdgeInsets.only(bottom: 74), // مساحة الأشرطة السفلية
                       child: ConstrainedBox(
                         constraints: BoxConstraints(minHeight: constraints.maxHeight - 74),
                         child: IntrinsicHeight(
@@ -221,7 +224,6 @@ class _SuccessPageState extends State<SuccessPage> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          // العنوان: يمين
                                           Text(
                                             e[0],
                                             style: const TextStyle(
@@ -231,7 +233,6 @@ class _SuccessPageState extends State<SuccessPage> {
                                               fontFamily: 'Rubik',
                                             ),
                                           ),
-                                          // القيمة: يسار (مع LTR للأرقام)
                                           Expanded(
                                             child: Align(
                                               alignment: Alignment.centerLeft,
@@ -282,17 +283,17 @@ class _SuccessPageState extends State<SuccessPage> {
                                 ),
                               ),
 
-                              const Spacer(), // لدفع الأزرار السفلية إلى الأسفل إذا كانت الشاشة طويلة
+                              const Spacer(), // لتوزيع المساحة بشكل مثالي
                               const SizedBox(height: 30),
 
-                              // أزرار "إضافة" و "تحويل" الملاصقة للتذييل
+                              // أزرار (إضافة - تحويل) السفلية
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 24),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _buildSubBtn('إضافة', 'newaddbenf.png', Icons.person_add_alt_1, () {}),
-                                    _buildSubBtn('تحويل', 'newaddtransfernow.png', Icons.sync, () {}),
+                                    _buildSubBtn('إضافة', 'newaddbenf.png', Icons.person_add_alt_1, () => Navigator.pushReplacementNamed(context, '/transactions')),
+                                    _buildSubBtn('تحويل', 'newaddtransfernow.png', Icons.sync, () => Navigator.pushReplacementNamed(context, '/transfer')),
                                   ],
                                 ),
                               ),
@@ -305,14 +306,14 @@ class _SuccessPageState extends State<SuccessPage> {
                   },
                 ),
 
-                // 2. الأشرطة السفلية الثابتة (لا تتحرك مع التمرير)
+                // 2. الأشرطة السفلية الثابتة (لا تتحرك عند التمرير)
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Column(
                     children: [
-                      // شريط الخيارات: مشاركة | طباعة | تحميل
+                      // شريط الخيارات: تحميل | طباعة | مشاركة
                       Container(
                         height: 46,
                         decoration: const BoxDecoration(
@@ -348,10 +349,10 @@ class _SuccessPageState extends State<SuccessPage> {
                   ),
                 ),
 
-                // 3. رسالة (قريباً...) المخصصة للطباعة تظهر فوق كل شيء
+                // 3. رسالة (قريباً...) المخصصة للطباعة
                 if (showPrintSoon)
                   Positioned(
-                    bottom: 90, // تظهر فوق الأشرطة السفلية
+                    bottom: 90,
                     left: 0,
                     right: 0,
                     child: Center(
@@ -369,7 +370,7 @@ class _SuccessPageState extends State<SuccessPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Image.asset(
-                              'assets/img/bankak_logo_big.png', // أيقونة التطبيق المصغرة
+                              'assets/img/bankak_logo_big.png',
                               width: 36,
                               height: 18,
                               fit: BoxFit.contain,
@@ -393,7 +394,6 @@ class _SuccessPageState extends State<SuccessPage> {
     );
   }
 
-  // بناء أزرار "إضافة" و "تحويل"
   Widget _buildSubBtn(String title, String icon, IconData fallback, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
@@ -416,7 +416,6 @@ class _SuccessPageState extends State<SuccessPage> {
     );
   }
 
-  // بناء خيارات الشريط السفلي الثابت (تحميل، طباعة، مشاركة)
   Widget _buildFooterOpt(String title, String icon, IconData fallback, VoidCallback onTap) {
     return Expanded(
       child: InkWell(
@@ -424,7 +423,6 @@ class _SuccessPageState extends State<SuccessPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // النص باليمين والأيقونة باليسار كما في الصورة
             Text(
               title,
               style: const TextStyle(
