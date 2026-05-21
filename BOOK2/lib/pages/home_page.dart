@@ -230,7 +230,7 @@ class _GridItem extends StatelessWidget {
             },
       borderRadius: BorderRadius.circular(12), //
       child: SizedBox(
-        width: s(64), //
+        width: s(76), //
         child: Column(
           mainAxisSize: MainAxisSize.min, //
           crossAxisAlignment: CrossAxisAlignment.center, //
@@ -238,12 +238,12 @@ class _GridItem extends StatelessWidget {
             // تعديل أبعاد صورة الأيقونة لتصبح مربعة تماماً (الطول = الارتفاع = 64)
             Image.asset(
               'assets/img/${item.icon}', //
-              width: s(64), // العرض الحالي
-              height: s(64), // زيادة الارتفاع ليتطابق مع العرض تماماً ويصبح مربعاً
+              width: s(76), // العرض الحالي
+              height: s(76), // زيادة الارتفاع ليتطابق مع العرض تماماً ويصبح مربعاً
               fit: BoxFit.fill, //
             ),
 
-            SizedBox(height: s(8)), // تباعد متناسق بين الأيقونة والنص
+            SizedBox(height: s(7)), // تباعد متناسق بين الأيقونة والنص
 
             // النص التوضيحي المكتوب أسفل الأزرار بالخط والحجم واللون الأسود الداكن المطابق تماماً
             SizedBox(
@@ -255,8 +255,8 @@ class _GridItem extends StatelessWidget {
                 overflow: TextOverflow.visible, //
                 style: TextStyle(
                   fontFamily: 'Rubik', //
-                  fontSize: s(13.5), //
-                  fontWeight: FontWeight.w600, // خط عريض ومطابق للمرجع
+                  fontSize: s(13.8), //
+                  fontWeight: FontWeight.w500, // خط أقل سماكة
                   color: HomePage.titleText, // تطبيق اللون الأسود الداكن الجديد
                   height: 1.15, //
                   letterSpacing: 0, //
