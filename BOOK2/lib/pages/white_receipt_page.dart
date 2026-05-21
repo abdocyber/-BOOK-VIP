@@ -1,48 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // ستحتاج لإضافة هذا الباكيج لتنسيق التاريخ والعملة
+import 'package:intl/intl.dart' hide TextDirection; // تم إخفاء التعارض هنا
 
 class WhiteReceiptPage extends StatefulWidget {
-  // هنا يتم تمرير البيانات القادمة من قاعدة البيانات عبر الـ Constructor
-  final Map<String, dynamic> transactionData;
-
-  const WhiteReceiptPage({Key? key, required this.transactionData}) : super(key: key);
+  const WhiteReceiptPage({super.key}); // تم إرجاع الـ Constructor لشكله الأصلي لكي لا يضرب في main.dart
 
   @override
   State<WhiteReceiptPage> createState() => _WhiteReceiptPageState();
 }
 
 class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
-  // ألوان التصميم بناءً على الصورة
+  // ألوان التصميم
   final Color primaryRed = const Color(0xFFC62828);
   final Color goldColor = const Color(0xFFD4AF37);
   final Color greyTextColor = const Color(0xFF757575);
   final Color blackTextColor = const Color(0xFF212121);
   final Color dividerColor = const Color(0xFFEEEEEE);
 
+  // دالة لجلب البيانات من الـ Route (تحافظ على منطق قاعدة البيانات الخاص بك)
+  Map<String, dynamic> _data(BuildContext context) {
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    if (arg is Map) return arg.cast<String, dynamic>();
+    // إذا كنت تمرر Object من نوع ReceiptData، يمكنك استخراج بياناته هنا
+    return const <String, dynamic>{};
+  }
+
   @override
   Widget build(BuildContext context) {
-    // بفرض أن البيانات قادمة بهذا الشكل من قاعدة البيانات، نقوم بتهيئتها
-    // في حال عدم وجود بيانات، نضع قيماً افتراضية (Mock Data) المطابقة للصورة للتجربة
-    final String referenceNumber = widget.transactionData['ref_no'] ?? '20018909627';
-    final DateTime transactionDate = widget.transactionData['date'] ?? DateTime.now();
-    final String fromAccount = widget.transactionData['from_acc'] ?? '0123 0302 4821 0001';
-    final String toAccount = widget.transactionData['to_acc'] ?? '0123 0252 2939 0001';
-    final String recipientName = widget.transactionData['recipient_name'] ?? 'احمد سليمان احمد محمود';
-    final String mobileNumber = widget.transactionData['mobile_no'] ?? '0912345678';
-    final double amount = widget.transactionData['amount'] ?? 9900.00;
-    final String comment = widget.transactionData['comment'] ?? 'كاش';
-    final String status = widget.transactionData['status'] ?? 'نجاح';
+    final dbData = _data(context);
+
+    // جلب البيانات مع توفير قيم افتراضية للمطابقة
+    final String referenceNumber = '${dbData['ref_no'] ?? dbData['operationNumber'] ?? dbData['id'] ?? '20018909627'}';
+    final String rawDate = '${dbData['createdAt'] ?? dbData['date'] ?? DateTime.now().toString()}';
+    final String fromAccount = '${dbData['from'] ?? dbData['accountFrom'] ?? '0123 0302 4821 0001'}';
+    final String toAccount = '${dbData['to'] ?? dbData['accountTo'] ?? '0123 0252 2939 0001'}';
+    final String recipientName = '${dbData['accountName'] ?? dbData['receiverName'] ?? 'احمد سليمان احمد محمود'}';
+    final String mobileNumber = '${dbData['mobile'] ?? dbData['phone'] ?? '0912345678'}';
+    final double amount = (dbData['amount'] is num) ? (dbData['amount'] as num).toDouble() : (double.tryParse('${dbData['amount']}'.replaceAll(',', '')) ?? 9900.00);
+    final String comment = '${dbData['comment'] ?? dbData['note'] ?? 'كاش'}';
+    final String rawStatus = '${dbData['status'] ?? 'نجاح'}';
 
     // تنسيق التاريخ والوقت
+    DateTime transactionDate = DateTime.tryParse(rawDate) ?? DateTime.now();
+    // يجب تعيين locale إلى ar إذا كنت تستخدم intl package لدعم اللغة العربية
     String formattedDate = DateFormat('dd أبريل yyyy، HH:mm:ss', 'ar').format(transactionDate);
+
     // تنسيق المبلغ
     final currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: '');
     String formattedAmount = currencyFormatter.format(amount);
 
+    // تنسيق الحالة
+    String status = (rawStatus.toLowerCase() == 'success' || rawStatus.isEmpty) ? 'نجاح' : rawStatus;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80.0), // ارتفاع الـ AppBar العلوي
+        preferredSize: const Size.fromHeight(80.0),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -57,10 +69,16 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
           child: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: const Icon(Icons.menu, color: Colors.white),
+            leading: InkWell(
+              onTap: () {
+                if (Navigator.canPop(context)) Navigator.pop(context);
+              },
+              child: const Icon(Icons.menu, color: Colors.white),
+            ),
             title: Image.asset(
-              'assets/images/bankak_logo.png', // تأكد من إضافة الشعار في المسار الصحيح
+              'assets/images/bankak_logo.png', // تأكد من مسار الشعار
               height: 40,
+              errorBuilder: (_, __, ___) => const Text('بنكك', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
             centerTitle: true,
             actions: const [
@@ -71,10 +89,10 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
         ),
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl, // لضمان اتجاه النص العربي من اليمين لليسار
+        textDirection: TextDirection.rtl, // تحديد اتجاه النص العربي من اليمين لليسار
         child: Column(
           children: [
-            // قسم التاريخ والوقت أسفل الـ AppBar
+            // تاريخ ووقت المعاملة
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -86,7 +104,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
             ),
             
-            // العنوان الرئيسي
+            // عنوان تفاصيل المعاملة
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Text(
@@ -95,12 +113,12 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   color: blackTextColor,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Rubik', // تأكد من تعريف الخط في pubspec.yaml
+                  fontFamily: 'Rubik',
                 ),
               ),
             ),
 
-            // البطاقة البيضاء التي تحتوي على التفاصيل (Container مع Shadow وبوردر خفيف)
+            // البطاقة التي تحتوي على البيانات
             Expanded(
               child: Container(
                 margin: const EdgeInsets.fromLTRB(15, 0, 15, 10),
@@ -121,9 +139,8 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   borderRadius: BorderRadius.circular(15),
                   child: ListView(
                     shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(), // لمنع التمرير داخل البطاقة نفسها
+                    physics: const BouncingScrollPhysics(),
                     children: [
-                      // بناء الصفوف بناءً على التصميم
                       _buildInfoRow('الرقم المرجعي', referenceNumber, isBoldValue: true),
                       _buildDivider(),
                       _buildInfoRow('من حساب', fromAccount),
@@ -134,12 +151,10 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                       _buildDivider(),
                       _buildInfoRow('رقم الموبايل', mobileNumber),
                       _buildDivider(),
-                      // ستايل خاص للمبلغ
                       _buildAmountRow('المبلغ', formattedAmount),
                       _buildDivider(),
                       _buildInfoRow('التعليق', comment),
                       _buildDivider(),
-                      // ستايل خاص للحالة (لون أخضر)
                       _buildStatusRow('الحالة', status),
                     ],
                   ),
@@ -149,7 +164,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
           ],
         ),
       ),
-      // الشريط السفلي الأحمر (Bottom Navigation Bar)
+      // الشريط السفلي للعمليات
       bottomNavigationBar: Container(
         height: 70,
         decoration: BoxDecoration(
@@ -162,24 +177,22 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildBottomActionButton('assets/images/ic_incorrect_trans.png', 'تحويل خاطئ'),
-            _buildBottomActionButton('assets/images/ic_reminder.png', 'تذكير'),
-            _buildBottomActionButton('assets/images/ic_print.png', 'طباعة'),
-            _buildBottomActionButton('assets/images/ic_share.png', 'مشاركة'),
-            _buildBottomActionButton('assets/images/ic_download.png', 'تحميل'),
+            _buildBottomActionButton('assets/images/ic_incorrect_trans.png', Icons.block, 'تحويل خاطئ'),
+            _buildBottomActionButton('assets/images/ic_reminder.png', Icons.notifications_active, 'تذكير'),
+            _buildBottomActionButton('assets/images/ic_print.png', Icons.print, 'طباعة'),
+            _buildBottomActionButton('assets/images/ic_share.png', Icons.share, 'مشاركة'),
+            _buildBottomActionButton('assets/images/ic_download.png', Icons.file_download, 'تحميل'),
           ],
         ),
       ),
     );
   }
 
-  // ويجت لبناء الصف القياسي (مفتاح : قيمة)
   Widget _buildInfoRow(String label, String value, {bool isBoldValue = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       child: Row(
         children: [
-          // التسمية (يمين)
           Expanded(
             flex: 2,
             child: Text(
@@ -187,7 +200,6 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               style: TextStyle(color: greyTextColor, fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
-          // القيمة (يسار)
           Expanded(
             flex: 3,
             child: Text(
@@ -197,7 +209,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 fontSize: 14,
                 fontWeight: isBoldValue ? FontWeight.bold : FontWeight.normal,
               ),
-              textAlign: TextAlign.left, // محاذاة النص لليسار كما في الصورة
+              textAlign: TextAlign.left, // محاذاة لليسار
             ),
           ),
         ],
@@ -205,7 +217,6 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  // ويجت خاص بصف المبلغ لتلوين العملة وتضخيم الرقم
   Widget _buildAmountRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
@@ -226,12 +237,12 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 children: [
                   TextSpan(
                     text: value,
-                    style: TextStyle(color: blackTextColor, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: blackTextColor, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
                   ),
                   const TextSpan(text: ' '),
                   TextSpan(
                     text: 'SDG',
-                    style: TextStyle(color: greyTextColor, fontSize: 12),
+                    style: TextStyle(color: greyTextColor, fontSize: 12, fontFamily: 'Rubik'),
                   ),
                 ],
               ),
@@ -242,7 +253,6 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  // ويجت خاص بصف الحالة لتلوين كلمة "نجاح" بالأخضر
   Widget _buildStatusRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
@@ -262,7 +272,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               child: Text(
                 value,
                 style: const TextStyle(
-                  color: Colors.green, // اللون الأخضر للحالة
+                  color: Colors.green,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -274,56 +284,38 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  // ويجت لبناء الخط الفاصل بين الصفوف
   Widget _buildDivider() {
     return Divider(
       color: dividerColor,
       height: 1,
       thickness: 1,
-      indent: 15, // بداية الخط بعد مسافة من اليمين
-      endIndent: 15, // نهاية الخط قبل مسافة من اليسار
+      indent: 15,
+      endIndent: 15,
     );
   }
 
-  // ويجت لبناء أزرار الحركة في الشريط السفلي
-  Widget _buildBottomActionButton(String assetPath, String label) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Image.asset(
-          assetPath, // تأكد من إضافة الأيقونات في المسار الصحيح
-          height: 24,
-          color: Colors.white, // تلوين الأيقونات باللون الأبيض
-        ),
-        const SizedBox(height: 5),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 10),
-        ),
-      ],
+  Widget _buildBottomActionButton(String assetPath, IconData fallbackIcon, String label) {
+    return InkWell(
+      onTap: () {
+        // يمكنك إضافة الأوامر (مثل التقاط الشاشة والمشاركة) هنا لاحقاً
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم الضغط على $label', textAlign: TextAlign.center)));
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            assetPath,
+            height: 24,
+            color: Colors.white,
+            errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 10),
+          ),
+        ],
+      ),
     );
   }
-}
-
-// مثال لكيفية استدعاء هذه الصفحة وتمرير البيانات الحقيقية إليها
-void navigateToReceipt(BuildContext context) {
-  // هذه البيانات يفترض أن تأتي من نتيجة استعلام قاعدة البيانات بعد نجاح التحويل
-  Map<String, dynamic> dbData = {
-    'ref_no': '20018909627',
-    'date': DateTime(2026, 4, 23, 20, 2, 58), // تاريخ حقيقي
-    'from_acc': '0123 0302 4821 0001',
-    'to_acc': '0123 0252 2939 0001',
-    'recipient_name': 'احمد سليمان احمد محمود',
-    'mobile_no': '0912345678',
-    'amount': 9900.00,
-    'comment': 'كاش',
-    'status': 'نجاح',
-  };
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => WhiteReceiptPage(transactionData: dbData),
-    ),
-  );
 }
