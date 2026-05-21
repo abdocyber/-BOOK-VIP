@@ -41,9 +41,9 @@ Future<void> main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 8));
 
-    if (FirebaseAuth.instance.currentUser == null) {
+    // Force anonymous auth for Firestore demo access
+      await FirebaseAuth.instance.signOut();
       await FirebaseAuth.instance.signInAnonymously();
-    }
 
     await FirebaseService.ensureSignedInAnonymously();
     AppState.firebaseReady = true;
