@@ -41,7 +41,7 @@ class FirebaseService {
         0.0;
   }
 
-  static Future<DocumentReference<Map<String, dynamic>>?> _findAccountRef(
+  static Future<DocumentReference<Map<String, dynamic>>?> _findSenderRef(
     String identifier,
   ) async {
     final key = _digits(identifier);
@@ -119,16 +119,10 @@ class FirebaseService {
 
     final doc = await db.collection('app_settings').doc('config').get();
     if (!doc.exists) {
-      return {
-        'isAppDisabled': false,
-        'disabledMessage': '',
-      };
+      return {'isAppDisabled': false, 'disabledMessage': ''};
     }
 
-    return doc.data() ?? {
-      'isAppDisabled': false,
-      'disabledMessage': '',
-    };
+    return doc.data() ?? {'isAppDisabled': false, 'disabledMessage': ''};
   }
 
   static Future<bool> refreshAppConfig() async {
@@ -209,7 +203,7 @@ class FirebaseService {
       if (api != null && api['ok'] == false) return null;
     }
 
-    final ref = await _findAccountRef(identifier);
+    final ref = await _findSenderRef(identifier);
     if (ref == null) return null;
 
     final doc = await ref.get();
@@ -239,7 +233,7 @@ class FirebaseService {
       }
     }
 
-    final ref = await _findAccountRef(accountNo);
+    final ref = await _findSenderRef(accountNo);
     if (ref != null) {
       final doc = await ref.get();
       if (doc.exists) {
@@ -285,33 +279,6 @@ class FirebaseService {
     }, SetOptions(merge: true));
   }
 
-
-  static Future<DocumentReference<Map<String, dynamic>>?> _findSenderRef(
-    String identifier,
-  ) async {
-    final key = _digits(identifier);
-    if (key.isEmpty) return null;
-
-    final directRef = db.collection('accounts').doc(key);
-    final directSnap = await directRef.get();
-    if (directSnap.exists) return directRef;
-
-    final queries = [
-      db.collection('accounts').where('accountNo', isEqualTo: key).limit(1),
-      db.collection('accounts').where('identifier', isEqualTo: key).limit(1),
-      db.collection('accounts').where('referenceNo', isEqualTo: key).limit(1),
-      db.collection('accounts').where('رقم الحساب', isEqualTo: key).limit(1),
-      db.collection('accounts').where('الرقم المرجعي', isEqualTo: key).limit(1),
-    ];
-
-    for (final q in queries) {
-      final r = await q.get();
-      if (r.docs.isNotEmpty) return r.docs.first.reference;
-    }
-
-    return null;
-  }
-
   static Future<ReceiptData> transfer({
     required String fromAccount,
     required String toAccount,
@@ -329,7 +296,6 @@ class FirebaseService {
     }
 
     final fromRef = await _findSenderRef(fromAccount);
-
     if (fromRef == null) {
       throw Exception('sender_not_found:$fromAccount');
     }
@@ -357,9 +323,6 @@ class FirebaseService {
 
       final newBalance = currentBalance - amount;
 
-      // خصم من حساب المرسل فقط.
-      // لا بحث عن حساب المستلم.
-      // لا إضافة رصيد للمستلم.
       transaction.update(fromRef, {
         'balance': newBalance,
         'الرصيد': newBalance,
@@ -397,7 +360,6 @@ class FirebaseService {
 
     return receipt;
   }
-
 
   static Stream<QuerySnapshot<Map<String, dynamic>>> transactions() {
     return db
