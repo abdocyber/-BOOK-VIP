@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:intl/intl.dart' hide TextDirection; // منع تعارض المسميات البرمجية
+import 'package:intl/intl.dart' hide TextDirection; // حجب التعارض البرمجي
 
 class WhiteReceiptPage extends StatefulWidget {
   const WhiteReceiptPage({super.key});
@@ -15,34 +15,16 @@ class WhiteReceiptPage extends StatefulWidget {
 }
 
 class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
-  final GlobalKey _receiptKey = GlobalKey(); // مفتاح التقاط الشاشة للإيصال
+  final GlobalKey _receiptKey = GlobalKey(); // مفتاح التقاط الشاشة
   bool showPrintSoon = false;
   bool isProcessing = false;
 
-  // جلب البيانات ديناميكياً لدعم كافة أنواع الربط مع قاعدة البيانات (Map أو Object)
+  // دالة لجلب البيانات من الـ Route لدعم كافة أنواع الربط (Map أو Object)
   Map<String, dynamic> _getTxData(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is Map) return arg.cast<String, dynamic>();
     
-    if (arg != null) {
-      try {
-        final dynamic dynamicArg = arg;
-        return {
-          'operationNumber': dynamicArg.operationNumber ?? dynamicArg.id,
-          'createdAt': dynamicArg.date ?? dynamicArg.createdAt,
-          'amount': dynamicArg.amount,
-          'from': dynamicArg.fromAccount ?? dynamicArg.from,
-          'to': dynamicArg.toAccount ?? dynamicArg.to,
-          'receiverName': dynamicArg.receiverName ?? dynamicArg.accountName,
-          'phone': dynamicArg.phone ?? dynamicArg.mobile,
-          'note': dynamicArg.note ?? dynamicArg.comment,
-          'status': dynamicArg.status,
-          'operationType': dynamicArg.operationType,
-        };
-      } catch (_) {}
-    }
-    
-    // بيانات افتراضية مطابقة للصورة تماماً في حال فتح الصفحة بدون وسائط
+    // بيانات احتياطية مطابقة للصورة تماماً كاحتياطي
     return const <String, dynamic>{
       'operationNumber': '20018909627',
       'createdAt': '2026-04-23T20:02:58',
@@ -61,10 +43,8 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     final text = '$v';
     final parsed = DateTime.tryParse(text);
     if (parsed == null) return text;
-
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     String p(int n) => n.toString().padLeft(2, '0');
-
     return '${p(parsed.day)}-${months[parsed.month - 1]}-${parsed.year} ${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
   }
 
@@ -73,7 +53,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     return n.toStringAsFixed(2);
   }
 
-  // التقاط الشاشة كصورة ومشاركتها بدقة عالية
+  // التقاط الشاشة والمشاركة
   Future<void> _shareReceiptImage() async {
     if (isProcessing) return;
     setState(() => isProcessing = true);
@@ -96,7 +76,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     }
   }
 
-  // حفظ صورة الإيصال في ذاكرة الجهاز
+  // حفظ صورة الإيصال
   Future<void> _downloadReceiptImage() async {
     if (isProcessing) return;
     setState(() => isProcessing = true);
@@ -165,7 +145,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 children: [
                   Column(
                     children: [
-                      // 1. شريط التطبيق العلوي (الأحمر)
+                      // 1. الشريط العلوي (الأحمر)
                       Container(
                         height: 60,
                         width: double.infinity,
@@ -229,7 +209,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                             physics: const BouncingScrollPhysics(),
                             padding: const EdgeInsets.only(top: 12, bottom: 20),
                             child: Padding(
-                              // ملاصق تماماً للشاشة بهامش 0.2 بكسل فقط لتطابق كامل وحاد للإطار
+                              // ملاصق تماماً للشاشة بهامش 0.2 بكسل فقط كما طلبت
                               padding: const EdgeInsets.symmetric(horizontal: 0.2),
                               child: Container(
                                 decoration: BoxDecoration(
@@ -244,7 +224,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                                     final bool isSuccessStatus = row[0] == 'الحالة' && row[1] == 'نجاح';
 
                                     return Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), // ارتفاع 8px المضغوط والمطابق للصورة
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), // 8px كما طلبت
                                       decoration: BoxDecoration(
                                         border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffcccccc), width: 0.8)),
                                       ),
@@ -259,7 +239,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                                               alignment: Alignment.centerLeft,
                                               child: Text(
                                                 row[1].isEmpty ? 'N/A' : row[1],
-                                                textAlign: TextAlign.left, // محاذاة يسارية مطلقة لجميع القيم
+                                                textAlign: TextAlign.left, // محاذاة لليسار
                                                 style: TextStyle(
                                                   color: isSuccessStatus ? const Color(0xff2e7d32) : const Color(0xff333333), 
                                                   fontSize: 14.0, 
@@ -280,7 +260,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                         ),
                       ),
                       
-                      // 4. أزرار الأكشن السفلية (تحويل خاطئ وتذكير)
+                      // 4. أزرار الأكشن السفلية
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                         child: Row(
@@ -304,7 +284,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                         ),
                       ),
                       
-                      // 5. شريط خيارات التذييل (مشاركة، طباعة، تحميل)
+                      // 5. شريط التذييل (مشاركة، طباعة، تحميل)
                       Container(
                         height: 44,
                         decoration: const BoxDecoration(
@@ -322,7 +302,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                         ),
                       ),
                       
-                      // 6. شريط الحقوق المعدني السفلي
+                      // 6. شريط التذييل السفلي
                       Container(
                         height: 28,
                         alignment: Alignment.center,
@@ -341,7 +321,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     ],
                   ),
 
-                  // 7. التنبيه العائم المخصص لزر الطباعة (قريباً...) مع المربع الأحمر والأيقونة بداخلها
+                  // 7. التنبيه العائم المخصص لزر الطباعة (قريباً...)
                   if (showPrintSoon)
                     Positioned(
                       bottom: 86, 
