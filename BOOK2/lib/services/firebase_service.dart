@@ -285,6 +285,33 @@ class FirebaseService {
     }, SetOptions(merge: true));
   }
 
+
+  static Future<DocumentReference<Map<String, dynamic>>?> _findSenderRef(
+    String identifier,
+  ) async {
+    final key = _digits(identifier);
+    if (key.isEmpty) return null;
+
+    final directRef = db.collection('accounts').doc(key);
+    final directSnap = await directRef.get();
+    if (directSnap.exists) return directRef;
+
+    final queries = [
+      db.collection('accounts').where('accountNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('identifier', isEqualTo: key).limit(1),
+      db.collection('accounts').where('referenceNo', isEqualTo: key).limit(1),
+      db.collection('accounts').where('رقم الحساب', isEqualTo: key).limit(1),
+      db.collection('accounts').where('الرقم المرجعي', isEqualTo: key).limit(1),
+    ];
+
+    for (final q in queries) {
+      final r = await q.get();
+      if (r.docs.isNotEmpty) return r.docs.first.reference;
+    }
+
+    return null;
+  }
+
   static Future<ReceiptData> transfer({
     required String fromAccount,
     required String toAccount,
@@ -301,7 +328,8 @@ class FirebaseService {
       throw Exception('invalid_amount');
     }
 
-    final fromRef = await _findAccountRef(fromAccount);
+    final fromRef = await _findSenderRef(fromAccount);
+
     if (fromRef == null) {
       throw Exception('sender_not_found:$fromAccount');
     }
@@ -317,15 +345,21 @@ class FirebaseService {
       }
 
       final fromData = fromSnap.data()!;
-      final current = _toDouble(fromData['balance'] ?? fromData['الرصيد']);
+      final currentBalance = _toDouble(
+        fromData['balance'] ?? fromData['الرصيد'],
+      );
 
-      if (current < amount) {
-        throw Exception('insufficient_balance: current=$current amount=$amount');
+      if (currentBalance < amount) {
+        throw Exception(
+          'insufficient_balance: current=$currentBalance amount=$amount',
+        );
       }
 
-      final newBalance = current - amount;
+      final newBalance = currentBalance - amount;
 
-      // منطق التحويل: خصم من المرسل فقط، بدون إضافة للمستلم.
+      // خصم من حساب المرسل فقط.
+      // لا بحث عن حساب المستلم.
+      // لا إضافة رصيد للمستلم.
       transaction.update(fromRef, {
         'balance': newBalance,
         'الرصيد': newBalance,

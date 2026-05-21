@@ -46,36 +46,80 @@ class _SendToPageState extends State<SendToPage> {
 
   // --- الدالة المحدثة للتعامل مع الرصيد وحالة التحميل ---
   Future<void> submit() async {
-    final a = double.tryParse(amount.text.replaceAll(',', '')) ?? 0;
-    if (a <= 0) return toast('يرجى إدخال المبلغ');
-    
-    setState(() => isSubmitting = true); // تفعيل التحميل عند الضغط
+    final rawAmount = amount.text.trim().replaceAll(',', '');
+    final a = double.tryParse(rawAmount) ?? 0;
+
+    if (a <= 0) {
+      toast('يرجى إدخال المبلغ');
+      return;
+    }
+
+    final current = SessionService.current;
+    final from = current?.accountNo.trim() ?? '';
+
+    if (from.isEmpty) {
+      if (!mounted) return;
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/error',
+        arguments: {
+          'message': 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى',
+          'retryRoute': '/login',
+        },
+      );
+      return;
+    }
 
     try {
-      final from = SessionService.current?.accountNo ?? '';
-      
-      final ReceiptData r = await FirebaseService.transfer(
+      final ReceiptData receipt = await FirebaseService.transfer(
         fromAccount: from,
         toAccount: to,
         amount: a,
         note: note.text.trim().isEmpty ? 'N/A' : note.text.trim(),
         phone: phone.text.trim().isEmpty ? 'N/A' : phone.text.trim(),
       );
-      
+
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/success', arguments: r);
-      
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/success',
+        (route) => false,
+        arguments: receipt,
+      );
+      return;
     } catch (e) {
       if (!mounted) return;
-      setState(() => isSubmitting = false); // إيقاف التحميل
-      
-      // فحص نوع الخطأ الوارد من قاعدة البيانات
-      if (e.toString().contains('insufficient_balance')) {
-        toast('عفواً، الرصيد غير كافي لإتمام التحويل');
+
+      final err = e.toString();
+
+      String message = 'تعذر تنفيذ التحويل';
+
+      if (err.contains('invalid_amount')) {
+        message = 'المبلغ غير صحيح';
+      } else if (err.contains('insufficient_balance')) {
+        message = 'لايوجد رصيد كافي لإجراء المعاملة';
+      } else if (err.contains('sender_not_found')) {
+        message = 'حساب المرسل غير موجود أو غير مربوط بشكل صحيح';
+      } else if (err.contains('permission-denied')) {
+        message = 'صلاحيات قاعدة البيانات تمنع تنفيذ التحويل';
+      } else if (err.contains('offline')) {
+        message = 'تأكد من الاتصال بالإنترنت';
       } else {
-        toast('تعذر تنفيذ التحويل، يرجى المحاولة لاحقاً');
-        // Navigator.pushReplacementNamed(context, '/error');
+        message = 'خطأ التحويل: $err';
       }
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/error',
+        arguments: {
+          'message': message,
+          'rawError': err,
+          'retryRoute': '/sendto',
+          'to': to,
+        },
+      );
+      return;
     }
   }
 
