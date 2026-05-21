@@ -149,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                                 style: TextStyle(
                                   fontSize: s(17), 
                                   color: const Color(0xFF777777), // لون رمادي غامق كالصورة
-                                  fontWeight: FontWeight.w600, // خط سميك للأرقام
+                                  fontWeight: FontWeight.w400, // خط سميك للأرقام
                                   letterSpacing: 1.2,
                                 ),
                                 decoration: InputDecoration(
@@ -185,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                                 style: TextStyle(
                                   fontSize: s(20), 
                                   color: const Color(0xFF777777), 
-                                  fontWeight: FontWeight.w600, 
+                                  fontWeight: FontWeight.w400, 
                                   letterSpacing: 4.0,
                                 ),
                                 decoration: const InputDecoration(
