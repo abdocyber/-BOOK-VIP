@@ -361,10 +361,36 @@ class FirebaseService {
     return receipt;
   }
 
+
+  static Future<void> cleanupOldTransactions() async {
+    try {
+      await ensureSignedInAnonymously();
+
+      final snap = await db
+          .collection('transactions')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      if (snap.docs.length <= 10) return;
+
+      final batch = db.batch();
+
+      for (final doc in snap.docs.skip(10)) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+    } catch (e) {
+      // إذا لم تسمح القواعد بالحذف، لا نفشل التحويل.
+      print('cleanupOldTransactions failed: $e');
+    }
+  }
+
   static Stream<QuerySnapshot<Map<String, dynamic>>> transactions() {
     return db
         .collection('transactions')
         .orderBy('createdAt', descending: true)
+        .limit(10)
         .snapshots();
   }
 
