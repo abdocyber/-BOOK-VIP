@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-
-import '../models/receipt.dart';
+import 'package:intl/intl.dart' hide TextDirection; // لمنع أي تعارض في البناء
 
 class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
@@ -16,30 +15,60 @@ class SuccessPage extends StatefulWidget {
 }
 
 class _SuccessPageState extends State<SuccessPage> {
-  final GlobalKey _receiptKey = GlobalKey();
+  final GlobalKey _receiptKey = GlobalKey(); // مفتاح التقاط الشاشة
   bool showPrintSoon = false;
   bool isProcessing = false;
 
-  // جلب البيانات من المعاملة (أو استخدام القيم المطابقة للصورة כاحتياطي)
-  ReceiptData _receipt(BuildContext context) {
+  // جلب البيانات مع الحفاظ على منطق قواعد البيانات والربط
+  Map<String, dynamic> _getTxData(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
-    if (arg is ReceiptData) return arg;
+    if (arg is Map) return arg.cast<String, dynamic>();
     
-    return const ReceiptData(
-      operationNumber: '20019741802',
-      date: '21-May-2026 16:39:17',
-      fromAccount: '0123 0302 4821 0001',
-      toAccount: '0033 0443 6676 0001',
-      receiverName: 'نازك عبدالقادر الطيب\nعبدالقادر',
-      phone: 'N/A',
-      note: 'N/A',
-      amount: 15000.00,
-    );
+    // دعم استقبال البيانات كـ Object إذا كنت تستخدم Model
+    if (arg != null) {
+      try {
+        final dynamic dynamicArg = arg;
+        return {
+          'operationNumber': dynamicArg.operationNumber ?? dynamicArg.id,
+          'createdAt': dynamicArg.date ?? dynamicArg.createdAt,
+          'amount': dynamicArg.amount,
+          'from': dynamicArg.fromAccount ?? dynamicArg.from,
+          'to': dynamicArg.toAccount ?? dynamicArg.to,
+          'receiverName': dynamicArg.receiverName ?? dynamicArg.accountName,
+          'phone': dynamicArg.phone ?? dynamicArg.mobile,
+          'note': dynamicArg.note ?? dynamicArg.comment,
+        };
+      } catch (_) {}
+    }
+    
+    // بيانات افتراضية مطابقة للصورة لتسهيل التجربة
+    return const <String, dynamic>{
+      'operationNumber': '20019741802',
+      'createdAt': '21-May-2026 16:39:17',
+      'amount': 15000.00,
+      'from': '0123 0302 4821 0001',
+      'to': '0033 0443 6676 0001',
+      'receiverName': 'نازك عبدالقادر الطيب\nعبدالقادر',
+      'phone': 'N/A',
+      'note': 'N/A',
+    };
   }
 
-  // تنسيق المبلغ بالفاصلة العشرية
-  String _formatAmount(double v) {
-    final fixed = v.toStringAsFixed(2);
+  // تنسيق التاريخ
+  String _fmtDate(dynamic v) {
+    if (v == null) return '21-May-2026 16:39:17';
+    final text = '$v';
+    final parsed = DateTime.tryParse(text);
+    if (parsed == null) return text;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    String p(int n) => n.toString().padLeft(2, '0');
+    return '${p(parsed.day)}-${months[parsed.month - 1]}-${parsed.year} ${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
+  }
+
+  // تنسيق المبلغ 
+  String _formatAmount(dynamic v) {
+    final double n = v is num ? v.toDouble() : double.tryParse('$v'.replaceAll(',', '')) ?? 15000.00;
+    final fixed = n.toStringAsFixed(2);
     final parts = fixed.split('.');
     final whole = parts.first.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
     return '$whole.${parts.last}';
@@ -52,7 +81,9 @@ class _SuccessPageState extends State<SuccessPage> {
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       return byteData?.buffer.asUint8List();
-    } catch (e) { return null; }
+    } catch (e) {
+      return null;
+    }
   }
 
   // تشغيل زر "مشاركة"
@@ -93,7 +124,7 @@ class _SuccessPageState extends State<SuccessPage> {
     }
   }
 
-  // تشغيل زر "طباعة" (يعرض التنبيه الداكن)
+  // تشغيل زر "طباعة" (يعرض التنبيه الداكن المخصص)
   void _printSoon() {
     setState(() => showPrintSoon = true);
     Future.delayed(const Duration(milliseconds: 1800), () {
@@ -101,7 +132,7 @@ class _SuccessPageState extends State<SuccessPage> {
     });
   }
 
-  // تنبيه عام
+  // تنبيهات عامة
   void _showCustomToast(String msg, IconData icon) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -120,30 +151,30 @@ class _SuccessPageState extends State<SuccessPage> {
 
   @override
   Widget build(BuildContext context) {
-    final r = _receipt(context);
+    final d = _getTxData(context);
 
-    // بناء بيانات الجدول
+    // بناء الجدول بنفس الترتيب والمسميات
     final rows = [
-      ['رقم العملية', r.operationNumber],
-      ['التاريخ و الزمن', r.date],
-      ['من حساب', r.fromAccount],
-      ['الى حساب', r.toAccount],
-      ['إسم المرسل اليه', r.receiverName],
-      ['رقم الموبايل', r.phone],
-      ['التعليق', r.note],
-      ['المبلغ', _formatAmount(r.amount)],
+      ['رقم العملية', '${d['operationNumber'] ?? '20019741802'}'],
+      ['التاريخ و الزمن', _fmtDate(d['createdAt'])],
+      ['من حساب', '${d['from'] ?? '0123 0302 4821 0001'}'],
+      ['الى حساب', '${d['to'] ?? '0033 0443 6676 0001'}'],
+      ['إسم المرسل اليه', '${d['receiverName'] ?? 'نازك عبدالقادر الطيب\nعبدالقادر'}'],
+      ['رقم الموبايل', '${d['phone'] ?? 'N/A'}'],
+      ['التعليق', '${d['note'] ?? 'N/A'}'],
+      ['المبلغ', _formatAmount(d['amount'])],
     ];
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xff2d8d1e), // خلفية الصفحة
+        backgroundColor: const Color(0xff2d8d1e),
         body: RepaintBoundary(
-          key: _receiptKey,
+          key: _receiptKey, // تغليف الواجهة للالتقاط
           child: Container(
             width: double.infinity,
             decoration: const BoxDecoration(
-              // التدرج اللوني المطابق للصورة تماماً
+              // تدرج اللون الأخضر المطابق تماماً للصورة
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -152,7 +183,6 @@ class _SuccessPageState extends State<SuccessPage> {
             ),
             child: Column(
               children: [
-                // 1. الجزء العلوي القابل للتمرير
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -165,7 +195,7 @@ class _SuccessPageState extends State<SuccessPage> {
                               children: [
                                 const SizedBox(height: 55),
                                 
-                                // علامة الصح البيضاء الدائرية 
+                                // علامة الصح الدائرية
                                 Container(
                                   width: 125,
                                   height: 125,
@@ -180,7 +210,6 @@ class _SuccessPageState extends State<SuccessPage> {
                                 
                                 const SizedBox(height: 16),
 
-                                // نص تحويلات
                                 const Text(
                                   'تحويلات',
                                   style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
@@ -188,7 +217,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                 
                                 const SizedBox(height: 20),
 
-                                // الجدول المطابق بالملي (حواف رقيقة، خلفية شفافة، ونصوص بيضاء)
+                                // الجدول بإطار أبيض رقيق ومطابق بالملي
                                 Container(
                                   margin: const EdgeInsets.symmetric(horizontal: 16),
                                   decoration: BoxDecoration(
@@ -218,7 +247,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                               child: Align(
                                                 alignment: Alignment.centerLeft,
                                                 child: Directionality(
-                                                  textDirection: TextDirection.ltr, // لضبط الأرقام
+                                                  textDirection: TextDirection.ltr,
                                                   child: Text(
                                                     e[1],
                                                     textAlign: TextAlign.left,
@@ -234,43 +263,56 @@ class _SuccessPageState extends State<SuccessPage> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 35),
-
-                                // زر موافق (مطابق للصورة تماماً)
-                                InkWell(
-                                  onTap: () {
-                                    if (Navigator.canPop(context)) {
-                                      Navigator.pop(context);
-                                    } else {
-                                      Navigator.pushReplacementNamed(context, '/home');
-                                    }
-                                  },
-                                  child: Image.asset(
-                                    'assets/img/sucessbutton.png',
-                                    width: 145, 
-                                    height: 44,
-                                    fit: BoxFit.fill,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      width: 145, height: 44,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 1.5), borderRadius: BorderRadius.circular(8)),
-                                      child: const Text('موافق', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                // ======= إصلاح زر موافق المطابق للـ CSS تماماً =======
+                                Center(
+                                  child: InkWell(
+                                    onTap: () {
+                                      if (Navigator.canPop(context)) {
+                                        Navigator.pop(context);
+                                      } else {
+                                        Navigator.pushReplacementNamed(context, '/home');
+                                      }
+                                    },
+                                    borderRadius: BorderRadius.circular(9),
+                                    child: Container(
+                                      margin: const EdgeInsets.only(top: 40), // margin: 40px auto 0
+                                      width: 96, // width: 96px
+                                      height: 44, // height: 44px
+                                      alignment: Alignment.center, // الكلمة في المنتصف تماماً (justify-content: center; align-items: center;)
+                                      decoration: BoxDecoration(
+                                        // تم استخدام التدرج الأخضر ليطابق شكل الزر في الصورة
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [Color(0xff57a82b), Color(0xff398b14)],
+                                        ),
+                                        border: Border.all(color: const Color(0xffd8f0dc), width: 1.3), // border: 1.3px solid #d8f0dc;
+                                        borderRadius: BorderRadius.circular(9), // border-radius: 9px;
+                                      ),
+                                      child: const Text(
+                                        'موافق',
+                                        style: TextStyle(
+                                          color: Color(0xffeef7ee), // color: #eef7ee;
+                                          fontSize: 15, // font-size: 15px;
+                                          fontWeight: FontWeight.w700, // font-weight: 700;
+                                          fontFamily: 'Rubik', // متوافق مع باقي التطبيق
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
+                                // ======================================================
 
-                                const Spacer(), // توزيع المسافة بمرونة
+                                const Spacer(),
                                 const SizedBox(height: 30),
 
-                                // أزرار (إضافة - تحويل) ملتصقة بأسفل منطقة التمرير
+                                // أزرار (تحويل - إضافة) السفلية
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 24),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      // تحويل (في اليمين)
                                       _buildSubBtn('تحويل', 'newaddtransfernow.png', () => Navigator.pushReplacementNamed(context, '/transfer')),
-                                      // إضافة (في اليسار)
                                       _buildSubBtn('إضافة', 'newaddbenf.png', () => Navigator.pushReplacementNamed(context, '/transactions')),
                                     ],
                                   ),
@@ -285,7 +327,7 @@ class _SuccessPageState extends State<SuccessPage> {
                   ),
                 ),
 
-                // 2. الشريط السفلي الثابت (مشاركة، طباعة، تحميل)
+                // الأشرطة السفلية الثابتة
                 Stack(
                   alignment: Alignment.bottomCenter,
                   clipBehavior: Clip.none,
@@ -293,7 +335,7 @@ class _SuccessPageState extends State<SuccessPage> {
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // شريط الخيارات
+                        // شريط (مشاركة - طباعة - تحميل)
                         Container(
                           height: 44,
                           decoration: const BoxDecoration(
@@ -323,14 +365,14 @@ class _SuccessPageState extends State<SuccessPage> {
                       ],
                     ),
                     
-                    // 3. رسالة (قريباً...) تظهر فوق الأشرطة السفلية
+                    // التنبيه العائم المخصص لزر الطباعة (قريباً...)
                     if (showPrintSoon)
                       Positioned(
-                        bottom: 60, // الارتفاع المناسب لتكون فوق الشريط
+                        bottom: 60,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: const Color(0xff333333),
+                            color: const Color(0xff333333), // اللون الداكن
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [BoxShadow(color: Colors.black.withOpacity(.3), blurRadius: 10, offset: const Offset(0, 4))],
                           ),
@@ -339,13 +381,14 @@ class _SuccessPageState extends State<SuccessPage> {
                             children: [
                               const Text('قريباً...', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Rubik', fontWeight: FontWeight.w500)),
                               const SizedBox(width: 10),
+                              // المربع الأحمر بداخله الأيقونة البيضاء
                               Container(
                                 width: 26,
                                 height: 26,
                                 decoration: BoxDecoration(color: const Color(0xffd33234), borderRadius: BorderRadius.circular(6)),
                                 padding: const EdgeInsets.all(4),
                                 child: Image.asset(
-                                  'assets/img/white_logo_n.png', // أيقونة البنك البيضاء
+                                  'assets/img/white_logo_n.png', 
                                   fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white, size: 16),
                                 ),
@@ -364,7 +407,7 @@ class _SuccessPageState extends State<SuccessPage> {
     );
   }
 
-  // بناء أزرار "إضافة" و "تحويل"
+  // بناء أزرار (إضافة - تحويل)
   Widget _buildSubBtn(String title, String icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
@@ -387,7 +430,7 @@ class _SuccessPageState extends State<SuccessPage> {
     );
   }
 
-  // بناء خيارات الشريط السفلي 
+  // بناء أزرار الشريط السفلي (مشاركة - طباعة - تحميل)
   Widget _buildFooterOpt(String title, String icon, VoidCallback onTap) {
     return Expanded(
       child: InkWell(
