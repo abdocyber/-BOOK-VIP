@@ -5,17 +5,16 @@ class ErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final map = args is Map ? args : const {};
-    final dynamicMessage = '${map['message'] ?? ''}';
-    final rawError = '${map['rawError'] ?? ''}';
-
     final rawArgs = ModalRoute.of(context)?.settings.arguments;
-    final args = rawArgs is Map ? rawArgs : <String, dynamic>{};
+    final Map<String, dynamic> args =
+        rawArgs is Map ? Map<String, dynamic>.from(rawArgs) : <String, dynamic>{};
 
-    final message = '${args['message'] ?? 'لايوجد رصيد كافي لإجراء المعاملة'}';
+    final message =
+        '${args['message'] ?? 'لايوجد رصيد كافي لإجراء المعاملة'}';
     final retryRoute = '${args['retryRoute'] ?? '/transfer'}';
     final to = '${args['to'] ?? ''}';
+
+
 
     return Directionality(
       textDirection: TextDirection.rtl,
