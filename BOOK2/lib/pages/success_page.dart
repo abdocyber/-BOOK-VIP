@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:intl/intl.dart' hide TextDirection; // لمنع أي تعارض في البناء
+
+import '../models/receipt.dart'; // تأكد من مطابقة مسار الموديل في مشروعك
 
 class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
@@ -15,16 +16,15 @@ class SuccessPage extends StatefulWidget {
 }
 
 class _SuccessPageState extends State<SuccessPage> {
-  final GlobalKey _receiptKey = GlobalKey(); // مفتاح التقاط الشاشة
+  final GlobalKey _receiptKey = GlobalKey(); // مفتاح التقاط الشاشة للإيصال
   bool showPrintSoon = false;
   bool isProcessing = false;
 
-  // جلب البيانات مع الحفاظ على منطق قواعد البيانات والربط
+  // جلب البيانات من الـ Route arguments (يدعم الخرائط والكائنات تلقائياً)
   Map<String, dynamic> _getTxData(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is Map) return arg.cast<String, dynamic>();
     
-    // دعم استقبال البيانات كـ Object إذا كنت تستخدم Model
     if (arg != null) {
       try {
         final dynamic dynamicArg = arg;
@@ -41,7 +41,7 @@ class _SuccessPageState extends State<SuccessPage> {
       } catch (_) {}
     }
     
-    // بيانات افتراضية مطابقة للصورة لتسهيل التجربة
+    // بيانات افتراضية مطابقة للصورة لتسهيل التجربة في بيئة التطوير
     return const <String, dynamic>{
       'operationNumber': '20019741802',
       'createdAt': '21-May-2026 16:39:17',
@@ -54,18 +54,7 @@ class _SuccessPageState extends State<SuccessPage> {
     };
   }
 
-  // تنسيق التاريخ
-  String _fmtDate(dynamic v) {
-    if (v == null) return '21-May-2026 16:39:17';
-    final text = '$v';
-    final parsed = DateTime.tryParse(text);
-    if (parsed == null) return text;
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    String p(int n) => n.toString().padLeft(2, '0');
-    return '${p(parsed.day)}-${months[parsed.month - 1]}-${parsed.year} ${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
-  }
-
-  // تنسيق المبلغ 
+  // تنسيق المبلغ المالي بوضع الفواصل
   String _formatAmount(dynamic v) {
     final double n = v is num ? v.toDouble() : double.tryParse('$v'.replaceAll(',', '')) ?? 15000.00;
     final fixed = n.toStringAsFixed(2);
@@ -74,7 +63,7 @@ class _SuccessPageState extends State<SuccessPage> {
     return '$whole.${parts.last}';
   }
 
-  // دالة التقاط الشاشة
+  // دالة التقاط الشاشة كصورة
   Future<Uint8List?> _capturePng() async {
     try {
       RenderRepaintBoundary boundary = _receiptKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -87,7 +76,7 @@ class _SuccessPageState extends State<SuccessPage> {
   }
 
   // تشغيل زر "مشاركة"
-  Future<void> _shareReceipt() async {
+  Future<void> _shareReceiptImage() async {
     if (isProcessing) return;
     setState(() => isProcessing = true);
     try {
@@ -106,7 +95,7 @@ class _SuccessPageState extends State<SuccessPage> {
   }
 
   // تشغيل زر "تحميل"
-  Future<void> _downloadReceipt() async {
+  Future<void> _downloadReceiptImage() async {
     if (isProcessing) return;
     setState(() => isProcessing = true);
     try {
@@ -115,24 +104,22 @@ class _SuccessPageState extends State<SuccessPage> {
         final directory = await getApplicationDocumentsDirectory();
         final imagePath = await File('${directory.path}/receipt_${DateTime.now().millisecondsSinceEpoch}.png').create();
         await imagePath.writeAsBytes(imageBytes);
-        _showCustomToast('تم تحميل الإشعار بنجاح في الجهاز', Icons.check_circle);
+        _showCustomToast('تم حفظ إشعار المعاملة في الجهاز بنجاح', Icons.check_circle);
       }
     } catch (e) {
-      _showCustomToast('تعذر حفظ الصورة', Icons.error);
+      _showCustomToast('حدث خطأ أثناء حفظ الإشعار', Icons.error);
     } finally {
       setState(() => isProcessing = false);
     }
   }
 
-  // تشغيل زر "طباعة" (يعرض التنبيه الداكن المخصص)
-  void _printSoon() {
+  void _triggerPrintSoon() {
     setState(() => showPrintSoon = true);
-    Future.delayed(const Duration(milliseconds: 1800), () {
+    Future.delayed(const Duration(milliseconds: 1600), () {
       if (mounted) setState(() => showPrintSoon = false);
     });
   }
 
-  // تنبيهات عامة
   void _showCustomToast(String msg, IconData icon) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -153,10 +140,9 @@ class _SuccessPageState extends State<SuccessPage> {
   Widget build(BuildContext context) {
     final d = _getTxData(context);
 
-    // بناء الجدول بنفس الترتيب والمسميات
     final rows = [
       ['رقم العملية', '${d['operationNumber'] ?? '20019741802'}'],
-      ['التاريخ و الزمن', _fmtDate(d['createdAt'])],
+      ['التاريخ و الزمن', '${d['createdAt'] ?? '21-May-2026 16:39:17'}'],
       ['من حساب', '${d['from'] ?? '0123 0302 4821 0001'}'],
       ['الى حساب', '${d['to'] ?? '0033 0443 6676 0001'}'],
       ['إسم المرسل اليه', '${d['receiverName'] ?? 'نازك عبدالقادر الطيب\nعبدالقادر'}'],
@@ -170,11 +156,10 @@ class _SuccessPageState extends State<SuccessPage> {
       child: Scaffold(
         backgroundColor: const Color(0xff2d8d1e),
         body: RepaintBoundary(
-          key: _receiptKey, // تغليف الواجهة للالتقاط
+          key: _receiptKey,
           child: Container(
             width: double.infinity,
             decoration: const BoxDecoration(
-              // تدرج اللون الأخضر المطابق تماماً للصورة
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -195,7 +180,7 @@ class _SuccessPageState extends State<SuccessPage> {
                               children: [
                                 const SizedBox(height: 55),
                                 
-                                // علامة الصح الدائرية
+                                // علامة الصح البيضاء الدائرية
                                 Container(
                                   width: 125,
                                   height: 125,
@@ -217,7 +202,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                 
                                 const SizedBox(height: 20),
 
-                                // الجدول بإطار أبيض رقيق ومطابق بالملي
+                                // الجدول
                                 Container(
                                   margin: const EdgeInsets.symmetric(horizontal: 16),
                                   decoration: BoxDecoration(
@@ -227,7 +212,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                   child: Column(
                                     children: rows.asMap().entries.map((entry) {
                                       final isLast = entry.key == rows.length - 1;
-                                      final e = entry.value;
+                                      final row = entry.value;
 
                                       return Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -239,7 +224,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              e[0],
+                                              row[0],
                                               style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600, fontFamily: 'Rubik'),
                                             ),
                                             const SizedBox(width: 12),
@@ -249,7 +234,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                                 child: Directionality(
                                                   textDirection: TextDirection.ltr,
                                                   child: Text(
-                                                    e[1],
+                                                    row[1],
                                                     textAlign: TextAlign.left,
                                                     style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Rubik'),
                                                   ),
@@ -263,57 +248,62 @@ class _SuccessPageState extends State<SuccessPage> {
                                   ),
                                 ),
 
-                                // ======= إصلاح زر موافق المطابق للـ CSS تماماً =======
-                                Center(
-                                  child: InkWell(
-                                    onTap: () {
-                                      if (Navigator.canPop(context)) {
-                                        Navigator.pop(context);
-                                      } else {
-                                        Navigator.pushReplacementNamed(context, '/home');
-                                      }
-                                    },
-                                    borderRadius: BorderRadius.circular(9),
-                                    child: Container(
-                                      margin: const EdgeInsets.only(top: 40), // margin: 40px auto 0
-                                      width: 96, // width: 96px
-                                      height: 44, // height: 44px
-                                      alignment: Alignment.center, // الكلمة في المنتصف تماماً (justify-content: center; align-items: center;)
-                                      decoration: BoxDecoration(
-                                        // تم استخدام التدرج الأخضر ليطابق شكل الزر في الصورة
-                                        gradient: const LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [Color(0xff57a82b), Color(0xff398b14)],
+                                // ======= تعديل زر موافق ليتطابق مع الـ CSS وتركيز النص في المنتصف بالملي =======
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 40), // margin: 40px auto 0
+                                  child: Center(
+                                    child: InkWell(
+                                      onTap: () {
+                                        // يرجع للخلف إلى صفحة sendto
+                                        Navigator.pushReplacementNamed(context, '/sendto');
+                                      },
+                                      borderRadius: BorderRadius.circular(9),
+                                      child: Container(
+                                        width: 96, // width: 96px
+                                        height: 44, // height: 44px
+                                        alignment: Alignment.center, // النص في السنتر تماماً عمودياً وأفقياً
+                                        decoration: BoxDecoration(
+                                          image: const DecorationImage(
+                                            image: AssetImage('assets/img/sucessbutton.png'), // استخدام الأيقونة من الملف
+                                            fit: BoxFit.fill,
+                                          ),
+                                          border: Border.all(color: const Color(0xffd8f0dc), width: 1.3), // border: 1.3px solid #d8f0dc;
+                                          borderRadius: BorderRadius.circular(9), // border-radius: 9px;
                                         ),
-                                        border: Border.all(color: const Color(0xffd8f0dc), width: 1.3), // border: 1.3px solid #d8f0dc;
-                                        borderRadius: BorderRadius.circular(9), // border-radius: 9px;
-                                      ),
-                                      child: const Text(
-                                        'موافق',
-                                        style: TextStyle(
-                                          color: Color(0xffeef7ee), // color: #eef7ee;
-                                          fontSize: 15, // font-size: 15px;
-                                          fontWeight: FontWeight.w700, // font-weight: 700;
-                                          fontFamily: 'Rubik', // متوافق مع باقي التطبيق
+                                        child: const Text(
+                                          'موافق',
+                                          style: TextStyle(
+                                            color: Color(0xffeef7ee), // color: #eef7ee;
+                                            fontSize: 15, // font-size: 15px;
+                                            fontWeight: FontWeight.w700, // font-weight: 700;
+                                            fontFamily: 'Rubik',
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                                // ======================================================
+                                // ===========================================================================
 
                                 const Spacer(),
                                 const SizedBox(height: 30),
 
-                                // أزرار (تحويل - إضافة) السفلية
+                                // أزرار تحويل وإضافة السفلية
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 24),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      _buildSubBtn('تحويل', 'newaddtransfernow.png', () => Navigator.pushReplacementNamed(context, '/transfer')),
-                                      _buildSubBtn('إضافة', 'newaddbenf.png', () => Navigator.pushReplacementNamed(context, '/transactions')),
+                                      _buildSubBtn(
+                                        'تحويل',
+                                        'newaddtransfernow.png',
+                                        () => Navigator.pushReplacementNamed(context, '/transfer'),
+                                      ),
+                                      _buildSubBtn(
+                                        'إضافة',
+                                        'newaddbenf.png',
+                                        () => Navigator.pushReplacementNamed(context, '/transactions'),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -335,26 +325,24 @@ class _SuccessPageState extends State<SuccessPage> {
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // شريط (مشاركة - طباعة - تحميل)
                         Container(
-                          height: 44,
+                          height: 46,
                           decoration: const BoxDecoration(
                             color: Color(0xff126815),
                             border: Border(top: BorderSide(color: Colors.white, width: 1.0)),
                           ),
                           child: Row(
                             children: [
-                              _buildFooterOpt('مشاركة', 'share.png', _shareReceipt),
+                              _buildFooterOpt('مشاركة', 'share.png', Icons.share, _shareReceiptImage),
                               Container(width: 1.2, height: 22, color: Colors.white),
-                              _buildFooterOpt('طباعة', 'print.png', _printSoon),
+                              _buildFooterOpt('طباعة', 'print.png', Icons.print, _triggerPrintSoon),
                               Container(width: 1.2, height: 22, color: Colors.white),
-                              _buildFooterOpt('تحميل', 'download.png', _downloadReceipt),
+                              _buildFooterOpt('تحميل', 'download.png', Icons.download, _downloadReceiptImage),
                             ],
                           ),
                         ),
-                        // تذييل الحقوق
                         Container(
-                          height: 26,
+                          height: 28,
                           alignment: Alignment.center,
                           color: const Color(0xff0e4a0f),
                           child: const Text(
@@ -365,23 +353,23 @@ class _SuccessPageState extends State<SuccessPage> {
                       ],
                     ),
                     
-                    // التنبيه العائم المخصص لزر الطباعة (قريباً...)
                     if (showPrintSoon)
                       Positioned(
                         bottom: 60,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: const Color(0xff333333), // اللون الداكن
+                            color: const Color(0xff2b2b2b),
                             borderRadius: BorderRadius.circular(24),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(.3), blurRadius: 10, offset: const Offset(0, 4))],
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withOpacity(.28), blurRadius: 10, offset: const Offset(0, 4)),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text('قريباً...', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Rubik', fontWeight: FontWeight.w500)),
                               const SizedBox(width: 10),
-                              // المربع الأحمر بداخله الأيقونة البيضاء
                               Container(
                                 width: 26,
                                 height: 26,
@@ -407,7 +395,6 @@ class _SuccessPageState extends State<SuccessPage> {
     );
   }
 
-  // بناء أزرار (إضافة - تحويل)
   Widget _buildSubBtn(String title, String icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
@@ -418,6 +405,7 @@ class _SuccessPageState extends State<SuccessPage> {
             width: 40,
             height: 40,
             fit: BoxFit.contain,
+            color: Colors.white,
             errorBuilder: (_, __, ___) => const Icon(Icons.circle, color: Colors.white, size: 36),
           ),
           const SizedBox(height: 6),
@@ -430,8 +418,7 @@ class _SuccessPageState extends State<SuccessPage> {
     );
   }
 
-  // بناء أزرار الشريط السفلي (مشاركة - طباعة - تحميل)
-  Widget _buildFooterOpt(String title, String icon, VoidCallback onTap) {
+  Widget _buildFooterOpt(String title, String icon, IconData fallback, VoidCallback onTap) {
     return Expanded(
       child: InkWell(
         onTap: isProcessing ? null : onTap,
@@ -449,7 +436,7 @@ class _SuccessPageState extends State<SuccessPage> {
               height: 18,
               color: Colors.white,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(Icons.image, color: Colors.white, size: 18),
+              errorBuilder: (_, __, ___) => Icon(fallback, color: Colors.white, size: 18),
             ),
           ],
         ),
