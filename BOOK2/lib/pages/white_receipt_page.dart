@@ -1,10 +1,4 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 class WhiteReceiptPage extends StatefulWidget {
   const WhiteReceiptPage({super.key});
@@ -14,16 +8,12 @@ class WhiteReceiptPage extends StatefulWidget {
 }
 
 class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
-  final GlobalKey _receiptKey = GlobalKey(); 
-  bool isProcessing = false;
   bool _showPrintSoonPopup = false;
 
-  // جلب البيانات مع الحفاظ على منطق قواعد البيانات
   Map<String, dynamic> _data(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is Map) return arg.cast<String, dynamic>();
-    
-    // بيانات افتراضية مطابقة للصورة للتجربة البصرية
+
     return const <String, dynamic>{
       'operationNumber': '20018909627',
       'createdAt': '23-Apr-2026 20:02:58',
@@ -31,33 +21,76 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
       'amount': 9900.00,
       'from': '0123 0302 4821 0001',
       'to': '0123 0252 2939 0001',
-      'status': ' نجاح ',
+      'status': 'نجاح',
       'accountName': 'احمد سليمان احمد محمود',
       'comment': 'كاش',
     };
   }
 
   String _fmtMoney(dynamic v) {
-    final n = v is num ? v.toDouble() : double.tryParse('$v'.replaceAll(',', '')) ?? 9900.00;
+    final n = v is num
+        ? v.toDouble()
+        : double.tryParse('$v'.replaceAll(',', '')) ?? 9900.00;
     return n.toStringAsFixed(2);
+  }
+
+  String _fmtDate(dynamic v) {
+    if (v == null) return '23-Apr-2026 20:02:58';
+
+    final text = '$v';
+    final parsed = DateTime.tryParse(text);
+
+    if (parsed == null) return text;
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    String p(int n) => n.toString().padLeft(2, '0');
+
+    return '${p(parsed.day)}-${months[parsed.month - 1]}-${parsed.year} '
+        '${p(parsed.hour)}:${p(parsed.minute)}:${p(parsed.second)}';
+  }
+
+  String _statusText(dynamic v) {
+    final s = '$v'.trim().toLowerCase();
+    if (s == 'success' || s.isEmpty) return 'نجاح';
+    return '$v'.trim();
   }
 
   bool _isNumericLike(String text) {
     return RegExp(r'^[0-9\s\-\.:/A-Za-z,]+$').hasMatch(text);
   }
 
-  // دالة مخصصة لزر الطباعة تظهر التنبيه العائم الداكن
   void _handlePrintTap() {
     setState(() => _showPrintSoonPopup = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _showPrintSoonPopup = false);
+
+    Future.delayed(const Duration(milliseconds: 1600), () {
+      if (mounted) {
+        setState(() => _showPrintSoonPopup = false);
+      }
     });
   }
 
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Rubik')),
+        content: Text(
+          msg,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontFamily: 'Rubik'),
+        ),
         duration: const Duration(milliseconds: 1400),
       ),
     );
@@ -68,90 +101,94 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     final d = _data(context);
 
     final rows = <_ReceiptRow>[
-      _ReceiptRow('رقم العملية', '${d['id'] ?? d['operationNumber'] ?? '20018909627'}'),
-      _ReceiptRow('التاريخ والوقت', '${d['date'] ?? d['createdAt'] ?? '23-Apr-2026 20:02:58'}'),
-      _ReceiptRow('نوع العملية', '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب آخر'}'),
-      _ReceiptRow('المبلغ', '${_fmtMoney(d['amount'] ?? 9900.00)} SDG'),
-      _ReceiptRow('من', '${d['from'] ?? d['accountFrom'] ?? '0123 0302 4821 0001'}'),
-      _ReceiptRow('إلى', '${d['to'] ?? d['accountTo'] ?? '0123 0252 2939 0001'}'),
-      _ReceiptRow('الحالة', '${d['status'] ?? 'نجاح'}'.trim()),
-      _ReceiptRow('إسم المرسل اليه', '${d['accountName'] ?? d['receiverName'] ?? 'احمد سليمان احمد محمود'}'),
-      _ReceiptRow('التعليق', '${d['comment'] ?? d['note'] ?? 'كاش'}'),
+      _ReceiptRow(
+        'رقم العملية',
+        '${d['id'] ?? d['operationNumber'] ?? d['transactionId'] ?? '20018909627'}',
+      ),
+      _ReceiptRow(
+        'التاريخ والوقت',
+        _fmtDate(d['date'] ?? d['createdAt'] ?? '23-Apr-2026 20:02:58'),
+      ),
+      _ReceiptRow(
+        'نوع العملية',
+        '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب آخر'}',
+      ),
+      _ReceiptRow(
+        'المبلغ',
+        _fmtMoney(d['amount'] ?? 9900.00),
+      ),
+      _ReceiptRow(
+        'من',
+        '${d['from'] ?? d['accountFrom'] ?? '0123 0302 4821 0001'}',
+      ),
+      _ReceiptRow(
+        'إلى',
+        '${d['to'] ?? d['accountTo'] ?? '0123 0252 2939 0001'}',
+      ),
+      _ReceiptRow(
+        'الحالة',
+        _statusText(d['status'] ?? 'نجاح'),
+      ),
+      _ReceiptRow(
+        'إسم المرسل اليه',
+        '${d['accountName'] ?? d['receiverName'] ?? 'احمد سليمان احمد محمود'}',
+      ),
+      _ReceiptRow(
+        'التعليق',
+        '${d['comment'] ?? d['note'] ?? 'كاش'}',
+      ),
     ];
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white, // خلفية بيضاء نقية
+        backgroundColor: Colors.white,
         body: Stack(
           children: [
             Positioned.fill(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: RepaintBoundary(
-                  key: _receiptKey,
-                  child: Container(
-                    color: Colors.white,
-                    child: Column(
-                      children: [
-                        _buildHeader(context),
-                        _buildTitleBar(context),
-                        const SizedBox(height: 14),
-                        _buildTable(rows),
-                        const SizedBox(height: 30),
-                        _buildActionButtons(context),
-                        const SizedBox(height: 30),
-                        _buildBottomSection(context),
-                      ],
+              child: Column(
+                children: [
+                  _buildHeader(context),
+                  _buildTitleBar(context),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 165),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 13),
+                          _buildTable(rows),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-            
-            // التنبيه العائم المخصص (قريباً...)
-            if (_showPrintSoonPopup)
-              _buildPrintSoonPopup(),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildPrintSoonPopup() {
-    return Positioned(
-      bottom: 110, 
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xff2b2b2b),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'قريبا...',
-                style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Rubik', fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(color: const Color(0xffd33234), borderRadius: BorderRadius.circular(6)),
-                padding: const EdgeInsets.all(4),
-                child: Image.asset(
-                  'assets/img/white_logo_n.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white, size: 16),
-                ),
-              ),
-            ],
-          ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 88,
+              child: _buildActionButtons(),
+            ),
+
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 36,
+              child: _buildOptionsBar(),
+            ),
+
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildFooter(),
+            ),
+
+            if (_showPrintSoonPopup) _buildPrintSoonPopup(),
+          ],
         ),
       ),
     );
@@ -165,7 +202,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xffd33234), Color(0xffca1e24)],
+          colors: [Color(0xffff0000), Color(0xffca1e24)],
         ),
       ),
       child: SafeArea(
@@ -177,7 +214,11 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 'assets/img/white_logo_n.png',
                 width: 132,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white, size: 40),
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.account_balance,
+                  color: Colors.white,
+                  size: 40,
+                ),
               ),
             ),
             Positioned(
@@ -190,21 +231,11 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   width: 40,
                   height: 40,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.menu, color: Colors.white, size: 36),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 14,
-              top: 18,
-              child: InkWell(
-                onTap: () => _showSnack('تسجيل الخروج'),
-                child: Image.asset(
-                  'assets/img/power.png',
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.power_settings_new, color: Colors.white, size: 36),
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.menu,
+                    color: Colors.white,
+                    size: 36,
+                  ),
                 ),
               ),
             ),
@@ -218,23 +249,33 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     return Container(
       width: double.infinity,
       height: 86,
-      color: const Color(0xffececec),
+      color: const Color(0xffeeeeee),
       child: Stack(
         children: [
           const Center(
             child: Text(
               'تفاصيل المعاملة',
-              style: TextStyle(color: Color(0xff2f2f2f), fontSize: 22, fontWeight: FontWeight.w400, fontFamily: 'Rubik'),
+              style: TextStyle(
+                color: Color(0xff2f2f2f),
+                fontSize: 22,
+                fontWeight: FontWeight.w400,
+                fontFamily: 'Rubik',
+              ),
             ),
           ),
           Positioned(
             right: 12,
             top: 10,
             child: InkWell(
-              onTap: () { if (Navigator.canPop(context)) Navigator.pop(context); },
+              onTap: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+              },
               child: Image.asset(
                 'assets/img/back.png',
-                width: 82, height: 42,
+                width: 82,
+                height: 42,
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const SizedBox(),
               ),
@@ -246,39 +287,45 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   }
 
   Widget _buildTable(List<_ReceiptRow> rows) {
-    const double unifiedBorderWidth = 1.2; 
-    const TextStyle unifiedTextStyle = TextStyle(
-      color: Color(0xff444444), // لون رمادي داكن موحد للجميع
-      fontSize: 15.0,           
-      fontWeight: FontWeight.w600, 
-      fontFamily: 'Rubik',
-    );
+    const borderColor = Color(0xff9f9d99);
+    const separatorColor = Color(0xffd7d7d7);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0.2),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xffa5a5a5), width: unifiedBorderWidth),
-          borderRadius: BorderRadius.circular(8),
-        ),
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 0),
+      decoration: BoxDecoration(
+        color: const Color(0xfff7f7f7),
+        border: Border.all(color: borderColor, width: 1.35),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(5),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: rows.asMap().entries.map((entry) {
-            final isLast = entry.key == rows.length - 1;
+            final index = entry.key;
             final row = entry.value;
-            final bool numeric = _isNumericLike(row.value);
-            
-            // ارتفاع ملحوظ للصفوف ليتطابق مع الصورة
-            final double rowHeight = (row.label == 'إسم المرسل اليه' && row.value.length > 25) ? 76.0 : 60.0;
+            final isLast = index == rows.length - 1;
+            final numeric = _isNumericLike(row.value);
+
+            final double rowHeight =
+                row.label == 'إسم المرسل اليه' && row.value.length > 22
+                    ? 56
+                    : 52;
 
             return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
               height: rowHeight,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: const Color(0xfff6f6f6), 
-                border: Border(
-                  bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffdcdcdc), width: unifiedBorderWidth),
-                ),
+                color: const Color(0xfff7f7f7),
+                border: isLast
+                    ? null
+                    : const Border(
+                        bottom: BorderSide(
+                          color: separatorColor,
+                          width: 1.25,
+                        ),
+                      ),
               ),
               child: Row(
                 children: [
@@ -286,26 +333,42 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Directionality(
-                        textDirection: numeric ? TextDirection.ltr : TextDirection.rtl,
+                        textDirection:
+                            numeric ? TextDirection.ltr : TextDirection.rtl,
                         child: Text(
                           row.value.isEmpty ? 'N/A' : row.value,
-                          textAlign: numeric ? TextAlign.left : TextAlign.right,
+                          textAlign:
+                              numeric ? TextAlign.left : TextAlign.right,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: unifiedTextStyle, 
+                          style: const TextStyle(
+                            color: Color(0xff5f5f5f),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: 'Rubik',
+                            height: 1.1,
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   SizedBox(
-                    width: 140,
+                    width: 142,
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Text(
                         row.label,
                         textAlign: TextAlign.right,
-                        style: unifiedTextStyle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xff555555),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Rubik',
+                          height: 1.1,
+                        ),
                       ),
                     ),
                   ),
@@ -318,7 +381,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -343,31 +406,45 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  Widget _buildOutlinedBtn({required String text, required String iconPath, required VoidCallback onTap}) {
+  Widget _buildOutlinedBtn({
+    required String text,
+    required String iconPath,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         height: 62,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: const Color(0xffd33234), width: 2), 
-          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xffd33234), width: 2.2),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               text,
-              style: const TextStyle(color: Color(0xffd33234), fontSize: 16, fontFamily: 'Rubik', fontWeight: FontWeight.w400),
+              style: const TextStyle(
+                color: Color(0xffd33234),
+                fontSize: 16,
+                fontFamily: 'Rubik',
+                fontWeight: FontWeight.w400,
+              ),
             ),
             const SizedBox(width: 10),
             Image.asset(
               iconPath,
-              width: 22, height: 22,
-              color: const Color(0xffd33234), 
+              width: 22,
+              height: 22,
+              color: const Color(0xffd33234),
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(Icons.error_outline, color: Color(0xffd33234), size: 22),
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.error_outline,
+                color: Color(0xffd33234),
+                size: 22,
+              ),
             ),
           ],
         ),
@@ -375,44 +452,48 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  Widget _buildBottomSection(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          height: 52,
-          decoration: const BoxDecoration(
-            color: Color(0xffefefef),
-            border: Border(top: BorderSide(color: Color(0xffc7c7c7), width: 1)),
-          ),
-          child: Row(
-            children: [
-              _buildFooterBtn(text: 'مشاركة', iconPath: 'assets/img/sharegray.png', fallbackIcon: 'share.png', onTap: () => _showSnack('المشاركة قيد التجهيز')),
-              _verticalDivider(),
-              _buildFooterBtn(text: 'طباعة', iconPath: 'assets/img/printgray.png', fallbackIcon: 'print.png', onTap: _handlePrintTap),
-              _verticalDivider(),
-              _buildFooterBtn(text: 'تحميل', iconPath: 'assets/img/download.png', fallbackIcon: 'download.png', onTap: () => _showSnack('التحميل قيد التجهيز')),
-            ],
-          ),
+  Widget _buildOptionsBar() {
+    return Container(
+      height: 52,
+      decoration: const BoxDecoration(
+        color: Color(0xffefefef),
+        border: Border(
+          top: BorderSide(color: Color(0xffc7c7c7), width: 1),
         ),
-        Container(
-          height: 36,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              colors: [Color(0xffd9dcde), Color(0xffbfc3c6), Color(0xffe4e5e6)],
-            ),
+      ),
+      child: Row(
+        children: [
+          _buildFooterBtn(
+            text: 'مشاركة',
+            iconPath: 'assets/img/sharegray.png',
+            fallbackIcon: Icons.share,
+            onTap: () => _showSnack('المشاركة قيد التجهيز'),
           ),
-          child: const Text(
-            'بنك الخرطوم بنكك حساب 2024©',
-            style: TextStyle(color: Color(0xff222222), fontSize: 12.5, fontFamily: 'Rubik', fontWeight: FontWeight.w400),
+          _verticalDivider(),
+          _buildFooterBtn(
+            text: 'طباعة',
+            iconPath: 'assets/img/printgray.png',
+            fallbackIcon: Icons.print,
+            onTap: _handlePrintTap,
           ),
-        ),
-      ],
+          _verticalDivider(),
+          _buildFooterBtn(
+            text: 'تحميل',
+            iconPath: 'assets/img/downloadgray.png',
+            fallbackIcon: Icons.download,
+            onTap: () => _showSnack('التحميل قيد التجهيز'),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildFooterBtn({required String text, required String iconPath, required String fallbackIcon, required VoidCallback onTap}) {
+  Widget _buildFooterBtn({
+    required String text,
+    required String iconPath,
+    required IconData fallbackIcon,
+    required VoidCallback onTap,
+  }) {
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -423,18 +504,24 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
             children: [
               Text(
                 text,
-                style: const TextStyle(color: Color(0xff5c5c5c), fontSize: 16, fontFamily: 'Rubik', fontWeight: FontWeight.w400),
+                style: const TextStyle(
+                  color: Color(0xff5c5c5c),
+                  fontSize: 16,
+                  fontFamily: 'Rubik',
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               const SizedBox(width: 6),
               Image.asset(
                 iconPath,
-                width: 22, height: 22,
+                width: 22,
+                height: 22,
                 color: const Color(0xff5c5c5c),
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Image.asset(
-                  'assets/img/$fallbackIcon',
-                  width: 22, height: 22, color: const Color(0xff5c5c5c),
-                  errorBuilder: (___, ____, _____) => const Icon(Icons.image_outlined, color: Color(0xff5c5c5c), size: 22),
+                errorBuilder: (_, __, ___) => Icon(
+                  fallbackIcon,
+                  color: const Color(0xff5c5c5c),
+                  size: 22,
                 ),
               ),
             ],
@@ -445,12 +532,101 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   }
 
   Widget _verticalDivider() {
-    return Container(width: 1, height: 26, color: const Color(0xffcfcfcf));
+    return Container(
+      width: 1,
+      height: 26,
+      color: const Color(0xffcfcfcf),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Container(
+      height: 36,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xffd9dcde),
+            Color(0xffbfc3c6),
+            Color(0xffe4e5e6),
+          ],
+        ),
+      ),
+      child: const Text(
+        'بنك الخرطوم بنكك حساب 2024©',
+        style: TextStyle(
+          color: Color(0xff222222),
+          fontSize: 12.5,
+          fontFamily: 'Rubik',
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrintSoonPopup() {
+    return Positioned(
+      bottom: 98,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xff2b2b2b),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'قريباً...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontFamily: 'Rubik',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: const Color(0xffd33234),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Image.asset(
+                  'assets/img/white_logo_n.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.account_balance,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class _ReceiptRow {
   final String label;
   final String value;
+
   const _ReceiptRow(this.label, this.value);
 }
