@@ -47,12 +47,20 @@ jobs:
       - name: Clean Flutter
         run: flutter clean
 
+      # ... (الأكواد السابقة)
+      
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze project
-        run: flutter analyze
-        continue-on-error: true
+      # ----- هذا هو السطر الذي ستقوم بإضافته -----
+      - name: Generate App Icon
+        run: flutter pub run flutter_launcher_icons
+      # -------------------------------------------
+
+      - name: Build APK
+        run: flutter build apk --release
+        
+      # ... (باقي الأكواد)
 
       - name: Build release APK
         run: flutter build apk --release --no-tree-shake-icons
