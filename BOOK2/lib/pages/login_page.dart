@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/firebase_service.dart';
-import '../services/session_service.dart';
-import '../services/app_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,399 +8,330 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final id = TextEditingController();
-  final pass = TextEditingController();
-  bool loading = false;
-  bool _obscurePassword = true;
+  // للتحكم في المدخلات وإظهار/إخفاء كلمة المرور
+  final TextEditingController _accountController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
+
+  // الثوابت البكسلية الدقيقة للمطابقة مع الصورة
+  static const double inputCardHeight = 42.0; // تصغير ارتفاع الكرت بدقة
+  static const double borderRadiusValue = 6.0;
+  static const double labelFontSize = 14.5;
+  static const double inputFontSize = 15.0;
+
+  // ارتفاع ثابت للمنطقة الحمراء لمنع تشوه التصميم عند ظهور الكيبورد
+  static const double redBannerHeight = 340.0;
 
   @override
   void dispose() {
-    id.dispose();
-    pass.dispose();
+    _accountController.dispose();
+    _passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> login() async {
-    if (loading) return;
-
-    if (!AppState.firebaseReady) {
-      return toast('توقف الاتصال بالخادم، لا يمكن تسجيل الدخول الآن');
-    }
-
-    final account = id.text.trim();
-    final password = pass.text.trim();
-
-    if (account.isEmpty) return toast('يرجى إدخال رقم المعرف');
-    if (password.isEmpty) return toast('يرجى إدخال كلمة المرور');
-
-    FocusScope.of(context).unfocus();
-    setState(() => loading = true);
-
-    try {
-      final acc = await FirebaseService.login(account, password);
-      if (!mounted) return;
-
-      if (acc == null) {
-        pass.clear();
-        toast('بيانات الدخول غير صحيحة');
-      } else {
-        await SessionService.save(acc);
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
-      }
-    } catch (_) {
-      if (mounted) toast('تعذر الاتصال بالخادم، ابقَ في صفحة تسجيل الدخول');
-    } finally {
-      if (mounted) setState(() => loading = false);
-    }
-  }
-
-  void toast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(milliseconds: 1500),
-        content: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl, // التوجيه العربي
+      textDirection: TextDirection.rtl, // تحديد الاتجاه من اليمين لليسار
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F5F7), // لون الخلفية الرمادي الفاتح للنصف السفلي
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final appW = constraints.maxWidth.clamp(0.0, 430.0);
-            final appH = constraints.maxHeight;
-            final scale = (appW / 360.0).clamp(0.8, 1.2);
-            double s(double value) => value * scale;
-
-            return Center(
-              child: SizedBox(
-                width: appW,
-                height: appH,
-                child: Stack(
-                  children: [
-                    // المساحة الحمراء العلوية (تمتد لتغطي الحقول وتقف فوق زر الدخول)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: appH * 0.46, // تم تمديدها للأسفل كالصورة الأصلية
-                      child: Container(
-                        color: const Color(0xFFE31E24),
+        backgroundColor: Colors.white, // الجزء السفلي أبيض نقي
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              // 1. المنطقة العلوية (الأحمر + الكروت المتداخلة)
+              Stack(
+                clipBehavior: Clip.none, // هام جداً للسماح للكروت بالخروج عن حدود الـ Stack
+                children: [
+                  // الخلفية الحمراء المتدرجة
+                  Container(
+                    height: redBannerHeight,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xffe31e24), // أحمر فاتح علوي
+                          Color(0xffc62828), // أحمر داكن سفلي
+                        ],
                       ),
                     ),
+                  ),
 
-                    // محتوى الواجهة (قابل للتمرير)
-                    SafeArea(
-                      bottom: false,
-                      child: SingleChildScrollView(
-                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: EdgeInsets.symmetric(horizontal: s(22)),
-                        child: Column(
-                          children: [
-                            // أيقونة تغيير اللغة
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: Padding(
-                                padding: EdgeInsets.only(top: s(12)),
-                                child: Image.asset(
-                                  'assets/img/arab_lang_icon.png',
-                                  width: s(30),
-                                  height: s(30),
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                            
-                            // دفع الشعار للأسفل قليلاً
-                            SizedBox(height: appH * 0.02),
-
-                            // الشعار الرئيسي
-                            Image.asset(
-                              'assets/img/bankak_logo_big.png',
-                              width: s(170),
-                              height: s(75),
+                  // شريط الأدوات العلوي (الشعار والأيقونات)
+                  SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // أيقونة القائمة (يمين)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Image.asset(
+                              'assets/img/dehaze_24.png',
+                              width: 32, height: 32,
                               fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.menu, color: Colors.white, size: 32),
                             ),
-
-                            // دفع حقول الإدخال للأسفل لتتمركز بشكل صحيح كالصورة
-                            SizedBox(height: appH * 0.065),
-
-                            // 1. حقل إدخال رقم المعرف (يحتوي على سطرين ليكون أطول كالصورة)
-                            _buildNativeInputBox(
-                              label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم\nالموبايل)', // استخدام \n لكسر السطر ومطابقة الحجم
-                              iconAsset: 'assets/img/loginmanicon.png',
-                              scale: scale,
-                              child: TextField(
-                                controller: id,
-                                keyboardType: TextInputType.number,
-                                textInputAction: TextInputAction.next,
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  fontSize: s(17), 
-                                  color: const Color(0xFF777777), // لون رمادي غامق كالصورة
-                                  fontWeight: FontWeight.w400, // خط سميك للأرقام
-                                  letterSpacing: 1.2,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                  hintText: '2777277',
-                                  hintStyle: TextStyle(color: Colors.black.withOpacity(0.15)),
-                                ),
-                              ),
+                          ),
+                          // الشعار (المنتصف)
+                          Image.asset(
+                            'assets/img/white_logo_n.png', // أو bankak_logo.png
+                            width: 140,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white, size: 40),
+                          ),
+                          // أيقونة الخروج (يسار)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Image.asset(
+                              'assets/img/power.png',
+                              width: 32, height: 32,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.power_settings_new, color: Colors.white, size: 32),
                             ),
-
-                            SizedBox(height: s(12)),
-
-                            // 2. حقل إدخال كلمة المرور (سطر واحد ليكون أقصر)
-                            _buildNativeInputBox(
-                              label: 'ادخل كلمة المرور',
-                              iconAsset: _obscurePassword ? 'assets/img/loginpinicon.png' : 'assets/img/loginpiniconold.png',
-                              scale: scale,
-                              onIconTap: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                              child: TextField(
-                                controller: pass,
-                                keyboardType: TextInputType.visiblePassword,
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: (_) => login(),
-                                obscureText: _obscurePassword,
-                                obscuringCharacter: '*',
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  fontSize: s(20), 
-                                  color: const Color(0xFF777777), 
-                                  fontWeight: FontWeight.w400, 
-                                  letterSpacing: 4.0,
-                                ),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(height: s(22)),
-
-                            // زر تسجيل الدخول بحواف معدلة
-                            GestureDetector(
-                              onTap: loading ? null : login,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(s(6)), // تقليل الانحناء ليكون شبه مستطيل كالصورة
-                                child: Container(
-                                  width: double.infinity,
-                                  height: s(50),
-                                  decoration: const BoxDecoration(
-                                    image: DecorationImage(
-                                      image: AssetImage('assets/img/button.9.png'),
-                                      fit: BoxFit.fill,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: loading
-                                        ? SizedBox(
-                                            height: s(20),
-                                            width: s(20),
-                                            child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                                          )
-                                        : Text(
-                                            'تسجيل الدخول',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: s(18),
-                                              fontWeight: FontWeight.w600, // سمك خط الزر
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(height: s(20)),
-
-                            // الروابط بألوان وسمك مطابق تماماً
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: Text(
-                                    'لا تستطيع تسجيل الدخول؟',
-                                    style: TextStyle(
-                                      color: const Color(0xFF666666), 
-                                      fontSize: s(13.5), 
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: Text(
-                                    'تسجيل جديد؟',
-                                    style: TextStyle(
-                                      color: const Color(0xFF666666), 
-                                      fontSize: s(13.5), 
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: s(16)),
-
-                            // أيقونة شارك رمز
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/img/slidscanandpay.png',
-                                    width: s(46),
-                                    height: s(46),
-                                    fit: BoxFit.contain,
-                                  ),
-                                  SizedBox(height: s(4)),
-                                  Text(
-                                    'شارك رمز',
-                                    style: TextStyle(
-                                      color: const Color(0xFF666666), 
-                                      fontSize: s(12),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: appH * 0.075),
-
-                            // أزرار التواصل السفلية
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildFooterCircleButton(label: 'بنك الخرطوم', assetPath: 'assets/img/bok.png', scale: scale),
-                                _buildFooterCircleButton(label: 'موقعنا', assetPath: 'assets/img/locate.png', scale: scale),
-                                _buildFooterCircleButton(label: 'المساعدة', assetPath: 'assets/img/contact.png', scale: scale),
-                                _buildFooterCircleButton(label: 'فيس بوك', assetPath: 'assets/img/fb.png', scale: scale),
-                              ],
-                            ),
-                            SizedBox(height: s(20)),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+                    ),
+                  ),
+
+                  // كروت الإدخال (رقم الحساب وكلمة المرور)
+                  // بوضع bottom: -21، سينزل كرت كلمة المرور (والذي ارتفاعه 42)
+                  // أسفل الخط الأحمر بمقدار النصف (21px)، مما يحقق نقطة المنتصف تماماً!
+                  Positioned(
+                    bottom: -(inputCardHeight / 2),
+                    left: 18.0,
+                    right: 18.0,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // حقل رقم الحساب
+                        _buildInputCard(
+                          labelText: 'رقم الحساب',
+                          controller: _accountController,
+                          iconPath: 'assets/img/ic_account_circle_grey.png',
+                          fallbackIcon: Icons.person_outline,
+                          keyboardType: TextInputType.number,
+                        ),
+                        
+                        const SizedBox(height: 18), // تباعد دقيق
+
+                        // حقل كلمة المرور (هذا الحقل سيقع منتصفه على الحد الفاصل)
+                        _buildInputCard(
+                          labelText: 'كلمة المرور',
+                          controller: _passwordController,
+                          iconPath: 'assets/img/ic_lock_grey.png',
+                          fallbackIcon: Icons.lock_outline,
+                          isPassword: true,
+                          isPasswordVisible: _isPasswordVisible,
+                          toggleVisibility: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              // 2. المنطقة السفلية (الأزرار البيضاء)
+              // إضافة مسافة لتعويض خروج الكروت عن الـ Stack (21px) + مسافة جمالية (40px)
+              const SizedBox(height: (inputCardHeight / 2) + 40),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                child: Column(
+                  children: [
+                    // زر تسجيل الدخول الأخضر
+                    _buildPrimaryButton(
+                      text: 'تسجيل الدخول',
+                      imagePath: 'assets/img/green_btn.png',
+                      onTap: () {
+                        // منطق تسجيل الدخول هنا (ربط مع قاعدة البيانات)
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // الأزرار الثانوية (هل نسيت - تصفح) الحمراء
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildSecondaryButton(
+                            text: 'هل نسيت ؟',
+                            imagePath: 'assets/img/red_btn.png',
+                            onTap: () {},
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: _buildSecondaryButton(
+                            text: 'تصفح بنكك',
+                            imagePath: 'assets/img/red_btn.png',
+                            onTap: () {},
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  // دالة بناء حقول الإدخال لتطابق المحاذاة بدقة
-  Widget _buildNativeInputBox({
-    required String label,
-    required String iconAsset,
-    required Widget child,
-    required double scale,
-    VoidCallback? onIconTap,
-  }) {
-    double s(double value) => value * scale;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(right: s(14), left: s(12), top: s(10), bottom: s(8)),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(s(6)), // حواف ناعمة للكرت
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // القسم الأيمن: النصوص
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: const Color(0xFF959595), // لون رمادي باهت للعنوان
-                    fontSize: s(12.5), 
-                    fontWeight: FontWeight.w400,
-                    height: 1.3, // تباعد الأسطر عند النزول لسطرين
-                  ),
-                ),
-                SizedBox(height: s(4)),
-                child, // حقل الإدخال
-              ],
-            ),
-          ),
-          SizedBox(width: s(12)),
-          // القسم الأيسر: الأيقونة
-          GestureDetector(
-            onTap: onIconTap,
-            child: Image.asset(
-              iconAsset, 
-              width: s(26), 
-              height: s(26), 
-              fit: BoxFit.contain,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // الأزرار الدائرية بالأسفل
-  Widget _buildFooterCircleButton({required String label, required String assetPath, required double scale}) {
-    double s(double value) => value * scale;
-    return Column(
-      children: [
-        Container(
-          width: s(54),
-          height: s(54),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 4, offset: const Offset(0, 2))
+              
+              const SizedBox(height: 40), // مسافة سفلية نهائية
             ],
           ),
-          child: ClipOval(
-            child: Padding(
-              padding: EdgeInsets.all(s(1.0)),
-              child: Image.asset(assetPath, fit: BoxFit.cover),
+        ),
+      ),
+    );
+  }
+
+  // بناء كروت الإدخال مع التسمية الخارجية والارتفاع المضغوط
+  Widget _buildInputCard({
+    required String labelText,
+    required TextEditingController controller,
+    required String iconPath,
+    required IconData fallbackIcon,
+    TextInputType keyboardType = TextInputType.text,
+    bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? toggleVisibility,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // نص التسمية (رقم الحساب / كلمة المرور)
+        Padding(
+          padding: const EdgeInsets.only(right: 6.0, bottom: 6.0),
+          child: Text(
+            labelText,
+            style: const TextStyle(
+              color: Color(0xfff5f5f5), // لون التسميات في المنطقة الحمراء أبيض مائل للرمادي
+              fontSize: labelFontSize,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'Cairo', // أو Rubik
             ),
           ),
         ),
-        SizedBox(height: s(6)),
-        Text(
-          label,
-          style: TextStyle(
-            color: const Color(0xFF666666), 
-            fontSize: s(12.5), 
-            fontWeight: FontWeight.w500,
+        
+        // الكرت الأبيض المضغوط (42px)
+        Container(
+          height: inputCardHeight,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: const Color(0xffdcdcdc), width: 1.2),
+            borderRadius: BorderRadius.circular(borderRadiusValue),
+            // ظل خفيف جداً يبرز الكرت
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
+            ],
           ),
-        )
+          child: Row(
+            children: [
+              const SizedBox(width: 12),
+              // أيقونة الحقل الملونة بالرمادي
+              Image.asset(
+                iconPath,
+                width: 22, height: 22,
+                color: const Color(0xff757575),
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: const Color(0xff757575), size: 22),
+              ),
+              const SizedBox(width: 10),
+              
+              // الحقل النصي
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  obscureText: isPassword && !isPasswordVisible,
+                  // إجبار الأرقام لتكون من اليسار لليمين لسهولة القراءة
+                  textDirection: TextDirection.ltr,
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    color: Color(0xff444444), // رمادي داكن للنص المدخل
+                    fontSize: inputFontSize,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Cairo',
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(vertical: 10), // لضبط تمركز النص داخل الكرت المضغوط
+                  ),
+                ),
+              ),
+              
+              // أيقونة إظهار/إخفاء كلمة المرور (إن وجدت)
+              if (isPassword)
+                InkWell(
+                  onTap: toggleVisibility,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Image.asset(
+                      'assets/img/ic_visibility_grey.png', // استخدم أيقونتك هنا
+                      width: 22, height: 22,
+                      color: const Color(0xff757575),
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(isPasswordVisible ? Icons.visibility : Icons.visibility_off, color: const Color(0xff757575), size: 22),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  // بناء زر تسجيل الدخول الأخضر الرئيسي
+  Widget _buildPrimaryButton({required String text, required String imagePath, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(borderRadiusValue),
+      child: Container(
+        height: 50, // ارتفاع الزر الرئيسي
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          // دمج لون خلفية احتياطي في حال عدم تحميل الصورة
+          color: const Color(0xff368e1c), 
+          image: DecorationImage(image: AssetImage(imagePath), fit: BoxFit.fill),
+          borderRadius: BorderRadius.circular(borderRadiusValue),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
+        ),
+      ),
+    );
+  }
+
+  // بناء الأزرار الثانوية الحمراء
+  Widget _buildSecondaryButton({required String text, required String imagePath, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(borderRadiusValue),
+      child: Container(
+        height: 48,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0xffd33234), // لون خلفية احتياطي
+          image: DecorationImage(image: AssetImage(imagePath), fit: BoxFit.fill),
+          borderRadius: BorderRadius.circular(borderRadiusValue),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
+        ),
+      ),
     );
   }
 }
