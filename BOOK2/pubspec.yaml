@@ -42,4 +42,4 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/appicon.png"
+  image_path: "assets/icons/favicon.png"
