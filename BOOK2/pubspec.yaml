@@ -24,7 +24,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: "^0.13.1" # أضف هذا السطر
+  flutter_launcher_icons: "^0.13.1"
 
 flutter:
   uses-material-design: true
@@ -38,8 +38,8 @@ flutter:
     - family: Rubik
       fonts:
         - asset: assets/fonts/Rubik-Regular.ttf
-        flutter_launcher_icons:
+
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icons/favicon.png" # تأكد من كتابة مسار واسم صورتك بدقة
-  # إذا كانت صورتك داخل مجلد img، اكتبها هكذا: "assets/img/appicon.png"
+  image_path: "assets/appicon.png"
