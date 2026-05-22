@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/firebase_service.dart';
 import '../services/session_service.dart';
 import '../services/app_state.dart';
@@ -13,7 +14,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final id = TextEditingController();
   final pass = TextEditingController();
-
   bool loading = false;
   bool _obscurePassword = true;
 
@@ -24,26 +24,24 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // منطق الربط وقاعدة البيانات محفوظ كما هو
   Future<void> login() async {
     if (loading) return;
 
     if (!AppState.firebaseReady) {
-      return toast('توقف الاتصال بالخادم');
+      return toast('توقف الاتصال بالخادم، لا يمكن تسجيل الدخول الآن');
     }
 
     final account = id.text.trim();
     final password = pass.text.trim();
 
-    if (account.isEmpty || password.isEmpty) {
-      return toast('يرجى ملء كافة البيانات');
-    }
+    if (account.isEmpty) return toast('يرجى إدخال رقم المعرف');
+    if (password.isEmpty) return toast('يرجى إدخال كلمة المرور');
 
+    FocusScope.of(context).unfocus();
     setState(() => loading = true);
 
     try {
       final acc = await FirebaseService.login(account, password);
-
       if (!mounted) return;
 
       if (acc == null) {
@@ -51,28 +49,23 @@ class _LoginPageState extends State<LoginPage> {
         toast('بيانات الدخول غير صحيحة');
       } else {
         await SessionService.save(acc);
-
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
+        if (mounted) Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (_) {
-      if (mounted) {
-        toast('تعذر الاتصال بالخادم');
-      }
+      if (mounted) toast('تعذر الاتصال بالخادم، ابقَ في صفحة تسجيل الدخول');
     } finally {
-      if (mounted) {
-        setState(() => loading = false);
-      }
+      if (mounted) setState(() => loading = false);
     }
   }
 
   void toast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        duration: const Duration(milliseconds: 1500),
         content: Text(
           message,
           textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14),
         ),
       ),
     );
@@ -80,426 +73,343 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Color(0xFFE31E24),
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ));
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(
-          children: [
-            Column(
-              children: [
-                SizedBox(
-                  height: screenHeight * 0.36,
-                  child: Container(
-                    color: const Color(0xffed1c24),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xfff4f4f4),
-                  ),
-                ),
-              ],
-            ),
+        backgroundColor: const Color(0xFFF4F5F7),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final appW = constraints.maxWidth.clamp(0.0, 430.0);
+            final appH = constraints.maxHeight;
+            final scale = appW / 360.0;
+            double s(double value) => value * scale;
 
-            SafeArea(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 56),
-                child: Column(
+            return Center(
+              child: SizedBox(
+                width: appW,
+                height: appH,
+                child: Stack(
                   children: [
-                    const SizedBox(height: 20),
-
-                    _buildTopHeader(),
-
-                    const SizedBox(height: 84),
-
-                    _buildInputCard(
-                      label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
-                      controller: id,
-                      icon: 'loginmanicon.png',
-                      isPass: false,
-                      example: '3024821',
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _buildInputCard(
-                      label: 'ادخل كلمة المرور',
-                      controller: pass,
-                      icon: _obscurePassword
-                          ? 'loginpiniconold.png'
-                          : 'loginpinicon.png',
-                      isPass: true,
-                      example: '',
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    _buildPrimaryButton(),
-
-                    const SizedBox(height: 34),
-
-                    _buildFooterLinks(),
-
-                    const SizedBox(height: 56),
-
-                    _buildBottomContactRow(),
-
-                    const SizedBox(height: 28),
-                  ],
-                ),
-              ),
-            ),
-
-            if (loading)
-              Container(
-                color: Colors.black.withOpacity(0.12),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xffed1c24),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopHeader() {
-    return SizedBox(
-      height: 126,
-      child: Stack(
-        children: [
-          Positioned(
-            top: 0,
-            right: -6,
-            child: Image.asset(
-              'assets/img/power.png',
-              width: 48,
-              height: 48,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.power_settings_new,
-                color: Colors.white,
-                size: 48,
-              ),
-            ),
-          ),
-
-          Center(
-            child: Image.asset(
-              'assets/img/bankak_logo_big.png',
-              width: 176,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Image.asset(
-                'assets/img/white_logo_n.png',
-                width: 150,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-            ),
-          ),
-
-          Positioned(
-            top: 2,
-            left: -4,
-            child: Image.asset(
-              'assets/img/dehaze_24.png',
-              width: 43,
-              height: 43,
-              color: Colors.white,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.menu,
-                color: Colors.white,
-                size: 43,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputCard({
-    required String label,
-    required TextEditingController controller,
-    required String icon,
-    required bool isPass,
-    required String example,
-  }) {
-    return Container(
-      height: 76,
-      decoration: BoxDecoration(
-        color: const Color(0xfff7f7f7),
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(
-          color: const Color(0xffb9b9b9),
-          width: 1.0,
-        ),
-      ),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                right: 18,
-                left: 8,
-                top: 8,
-                bottom: 6,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    label,
-                    textAlign: TextAlign.right,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xff8f8f8f),
-                      fontSize: 14.5,
-                      height: 1.05,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-
-                  const SizedBox(height: 2),
-
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      obscureText: isPass && _obscurePassword,
-                      keyboardType: isPass
-                          ? TextInputType.visiblePassword
-                          : TextInputType.number,
-                      textAlign: TextAlign.right,
-                      textDirection: TextDirection.ltr,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400,
-                        height: 1.0,
+                    // المساحة الحمراء العلوية
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: appH * 0.42, // Adjusted based on visual estimation
+                      child: Container(
+                        color: const Color(0xFFE31E24),
                       ),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.only(top: 2),
-                        hintText: isPass ? '**********' : example,
-                        hintTextDirection: TextDirection.ltr,
-                        hintStyle: const TextStyle(
-                          color: Color(0xff4f4f4f),
-                          fontSize: 17,
-                          fontWeight: FontWeight.w400,
+                    ),
+
+                    // محتوى الواجهة الكاملة
+                    SafeArea(
+                      bottom: false,
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: EdgeInsets.symmetric(horizontal: s(24)),
+                        child: Column(
+                          children: [
+                            // أيقونة تغيير اللغة أعلى اليمين
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 10.0, left: 10.0), // Adjusted padding
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8), // Slightly rounded corners
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 3,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'A ع',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 14, // Adjusted font size
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            
+                            SizedBox(height: appH * 0.01), // Fine-tuned spacing
+
+                            // الشعار الرئيسي
+                            Image.asset(
+                              'assets/img/bankak_logo_big.png', // Placeholder, ensure this path is correct
+                              width: appW * 0.48,
+                              height: appH * 0.12,
+                              fit: BoxFit.contain,
+                            ),
+
+                            SizedBox(height: appH * 0.04), // Fine-tuned spacing
+
+                            // حقل إدخال رقم المعرف
+                            _buildNativeInputBox(
+                              label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
+                              iconAsset: 'assets/img/loginmanicon.png', // Placeholder
+                              scale: scale,
+                              child: TextField(
+                                controller: id,
+                                keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.next,
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(fontSize: 16, color: Color(0xFF333333), fontWeight: FontWeight.w600),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  hintText: '3024821',
+                                  hintStyle: TextStyle(color: Colors.black26, fontSize: 16),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 14), // Fine-tuned spacing
+
+                            // حقل إدخال كلمة المرور
+                            _buildNativeInputBox(
+                              label: 'ادخل كلمة المرور',
+                              iconAsset: _obscurePassword ? 'assets/img/loginpinicon.png' : 'assets/img/loginpiniconold.png', // Placeholder
+                              scale: scale,
+                              onIconTap: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                              child: TextField(
+                                controller: pass,
+                                keyboardType: TextInputType.visiblePassword,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) => login(),
+                                obscureText: _obscurePassword,
+                                obscuringCharacter: '*',
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(fontSize: 18, color: Color(0xFF333333), letterSpacing: 3.0), // Adjusted letter spacing for '*' to match image
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 26), // Fine-tuned spacing
+
+                            // زر تسجيل الدخول
+                            GestureDetector(
+                              onTap: loading ? null : login,
+                              child: Container(
+                                width: double.infinity,
+                                height: s(52),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xffe53935), Color(0xffb71c1c)], // Exact colors from image analysis
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                  border: Border.all(color: const Color(0xff8e0000), width: 1.2),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 3),
+                                    )
+                                  ],
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      height: s(26), // Half the button height for gloss effect
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(8.5)), // Slightly less than button radius
+                                          gradient: LinearGradient(
+                                            colors: [Colors.white.withOpacity(0.35), Colors.transparent], // Gloss effect
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    loading
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                          )
+                                        : const Text(
+                                            'تسجيل الدخول',
+                                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                          ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 22), // Fine-tuned spacing
+
+                            // روابط التسجيل
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {},
+                                  child: const Text(
+                                    'لا تستطيع تسجيل الدخول؟',
+                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {},
+                                  child: const Text(
+                                    'تسجيل جديد؟',
+                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 18), // Fine-tuned spacing
+
+                            // أيقونة شارك رمز
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center, // Centered for QR code and text
+                                children: [
+                                  Image.asset(
+                                    'assets/img/slidscanandpay.png', // Placeholder
+                                    width: 48,
+                                    height: 48,
+                                    fit: BoxFit.contain,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'شارك رمز',
+                                    style: TextStyle(color: Color(0xFF757575), fontSize: 12),
+                                  )
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(height: appH * 0.05), // Fine-tuned spacing
+
+                            // أزرار شريط التواصل السفلي
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildFooterCircleButton(label: 'بنك الخرطوم', assetPath: 'assets/img/bok.png'), // Placeholder
+                                _buildFooterCircleButton(label: 'موقعنا', assetPath: 'assets/img/locate.png'), // Placeholder
+                                _buildFooterCircleButton(label: 'المساعدة', assetPath: 'assets/img/contact.png'), // Placeholder
+                                _buildFooterCircleButton(label: 'فيس بوك', assetPath: 'assets/img/fb.png'), // Placeholder
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          GestureDetector(
-            onTap: isPass
-                ? () => setState(() => _obscurePassword = !_obscurePassword)
-                : null,
-            child: SizedBox(
-              width: 74,
-              height: double.infinity,
-              child: Center(
-                child: Image.asset(
-                  'assets/img/$icon',
-                  width: 34,
-                  height: 34,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Icon(
-                    isPass
-                        ? (_obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined)
-                        : Icons.person_outline,
-                    color: const Color(0xff5c5c5c),
-                    size: 32,
-                  ),
+                  ],
                 ),
               ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNativeInputBox({
+    required String label,
+    required String iconAsset,
+    required Widget child,
+    required double scale,
+    VoidCallback? onIconTap,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black12, width: 0.8),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 3, offset: const Offset(0, 2))
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start, // Align label to start
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 11.5, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 2),
+                child,
+              ],
             ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: onIconTap,
+            child: Image.asset(iconAsset, width: 28, height: 28, fit: BoxFit.contain),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPrimaryButton() {
-    return GestureDetector(
-      onTap: login,
-      child: SizedBox(
-        height: 56,
-        width: double.infinity,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Image.asset(
-              'assets/img/green_btn.png',
-              width: double.infinity,
-              height: 56,
-              fit: BoxFit.fill,
-              errorBuilder: (_, __, ___) => Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xffffa3a3),
-                      Color(0xffef2b2b),
-                      Color(0xffe11212),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Color(0xffb82020),
-                    width: 1.2,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x33000000),
-                      blurRadius: 4,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const Text(
-              'تسجيل الدخول',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 25,
-                fontWeight: FontWeight.w400,
-                height: 1.0,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooterLinks() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'تسجيل جديد؟',
-          style: TextStyle(
-            color: Color(0xff777777),
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'لاتستطيع تسجيل الدخول؟',
-              style: TextStyle(
-                color: Color(0xff777777),
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            Image.asset(
-              'assets/img/slidscanandpay.png',
-              width: 58,
-              height: 58,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.qr_code_2,
-                color: Color(0xffed1c24),
-                size: 58,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            const Text(
-              'شارك رمز',
-              style: TextStyle(
-                color: Color(0xff777777),
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBottomContactRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _footerItem('بنك الخرطوم', 'bok.png'),
-        _footerItem('موقعنا', 'locate.png'),
-        _footerItem('المساعدة', 'contact.png'),
-        _footerItem('فيس بوك', 'fb.png'),
-      ],
-    );
-  }
-
-  Widget _footerItem(String label, String img) {
+  Widget _buildFooterCircleButton({required String label, required String assetPath}) {
     return Column(
       children: [
         Container(
-          width: 66,
-          height: 66,
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          width: 54,
+          height: 54,
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
+            color: Colors.white,
             boxShadow: [
-              BoxShadow(
-                color: Color(0x22000000),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
+              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 4, offset: const Offset(0, 2))
             ],
           ),
-          padding: const EdgeInsets.all(4),
-          child: Image.asset(
-            'assets/img/$img',
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(
-              Icons.circle,
-              color: Color(0xff777777),
-              size: 40,
+          child: ClipOval(
+            child: Padding(
+              padding: const EdgeInsets.all(1.0),
+              child: Image.asset(assetPath, fit: BoxFit.cover),
             ),
           ),
         ),
-
         const SizedBox(height: 8),
-
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xff777777),
-            fontWeight: FontWeight.w400,
-          ),
-        ),
+          style: const TextStyle(color: Color(0xFF616161), fontSize: 12.5, fontWeight: FontWeight.w500),
+        )
       ],
     );
   }
