@@ -96,23 +96,14 @@ class _LoginPageState extends State<LoginPage> {
                 height: appH,
                 child: Stack(
                   children: [
-                    // المساحة الحمراء العلوية مع التدرج
+                    // المساحة الحمراء العلوية
                     Positioned(
                       top: 0,
                       left: 0,
                       right: 0,
-                      height: appH * 0.45,
+                      height: appH * 0.42,
                       child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFFE31E24),
-                              Color(0xFFB71C1C),
-                            ],
-                          ),
-                        ),
+                        color: const Color(0xFFE31E24),
                       ),
                     ),
 
@@ -121,15 +112,16 @@ class _LoginPageState extends State<LoginPage> {
                       bottom: false,
                       child: SingleChildScrollView(
                         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: EdgeInsets.symmetric(horizontal: s(24)),
                         child: Column(
                           children: [
-                            // 1. أيقونة اللغة ع/A في أعلى اليمين
+                            // أيقونة تغيير اللغة أعلى اليمين (arab_lang_icon.png)
                             Align(
                               alignment: Alignment.topRight,
                               child: Padding(
-                                padding: EdgeInsets.only(top: s(10), left: s(15)),
+                                padding: const EdgeInsets.only(top: 10.0, left: 10.0),
                                 child: Image.asset(
-                                  'assets/img/chlang.png',
+                                  'assets/img/arab_lang_icon.png',
                                   width: s(38),
                                   height: s(38),
                                   fit: BoxFit.contain,
@@ -151,171 +143,156 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             
-                            SizedBox(height: s(15)),
+                            SizedBox(height: appH * 0.01),
 
-                            // 2. الشعار الرئيسي
+                            // الشعار الرئيسي
                             Image.asset(
                               'assets/img/bankak_logo_big.png',
-                              width: appW * 0.55,
-                              height: s(110),
+                              width: appW * 0.48,
+                              height: appH * 0.12,
                               fit: BoxFit.contain,
                             ),
 
-                            SizedBox(height: s(35)),
+                            SizedBox(height: appH * 0.04),
 
-                            // 3. حقل إدخال رقم المعرف
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: s(25)),
-                              child: _buildInputBox(
-                                label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
-                                icon: 'assets/img/loginmanicon.png',
-                                scale: scale,
-                                child: TextField(
-                                  controller: id,
-                                  keyboardType: TextInputType.number,
-                                  textInputAction: TextInputAction.next,
-                                  textAlign: TextAlign.right,
-                                  style: TextStyle(fontSize: s(18), color: const Color(0xFF333333), fontWeight: FontWeight.w500),
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    hintText: '3024821',
-                                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: s(18)),
-                                  ),
+                            // حقل إدخال رقم المعرف
+                            _buildNativeInputBox(
+                              label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
+                              iconAsset: 'assets/img/loginmanicon.png',
+                              scale: scale,
+                              child: TextField(
+                                controller: id,
+                                keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.next,
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(fontSize: 16, color: Color(0xFF333333), fontWeight: FontWeight.w600),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  hintText: '3024821',
+                                  hintStyle: TextStyle(color: Colors.black26, fontSize: 16),
                                 ),
                               ),
                             ),
 
-                            SizedBox(height: s(12)),
+                            const SizedBox(height: 14),
 
-                            // 4. حقل إدخال كلمة المرور
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: s(25)),
-                              child: _buildInputBox(
-                                label: 'ادخل كلمة المرور',
-                                icon: _obscurePassword ? 'assets/img/loginfingview.png' : 'assets/img/loginfingview.png',
-                                scale: scale,
-                                onIconTap: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                                child: TextField(
-                                  controller: pass,
-                                  keyboardType: TextInputType.visiblePassword,
-                                  textInputAction: TextInputAction.done,
-                                  onSubmitted: (_) => login(),
-                                  obscureText: _obscurePassword,
-                                  obscuringCharacter: '*',
-                                  textAlign: TextAlign.right,
-                                  style: TextStyle(fontSize: s(20), color: const Color(0xFF333333), letterSpacing: s(2)),
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    hintText: '*********',
-                                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: s(20), letterSpacing: s(2)),
-                                  ),
+                            // حقل إدخال كلمة المرور
+                            _buildNativeInputBox(
+                              label: 'ادخل كلمة المرور',
+                              iconAsset: _obscurePassword ? 'assets/img/loginpinicon.png' : 'assets/img/loginpiniconold.png',
+                              scale: scale,
+                              onIconTap: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                              child: TextField(
+                                controller: pass,
+                                keyboardType: TextInputType.visiblePassword,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) => login(),
+                                obscureText: _obscurePassword,
+                                obscuringCharacter: '*',
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(fontSize: 18, color: Color(0xFF333333), letterSpacing: 3.0),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
                                 ),
                               ),
                             ),
 
-                            SizedBox(height: s(25)),
+                            const SizedBox(height: 26),
 
-                            // 5. زر تسجيل الدخول (استخدام الصورة)
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: s(25)),
-                              child: GestureDetector(
-                                onTap: loading ? null : login,
-                                child: Image.asset(
-                                  'assets/img/button.png',
-                                  width: double.infinity,
-                                  height: s(55),
-                                  fit: BoxFit.fill,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: double.infinity,
-                                    height: s(55),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      gradient: const LinearGradient(
-                                        colors: [Color(0xFFE31E24), Color(0xFFB71C1C)],
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                      ),
-                                    ),
-                                    child: const Center(
-                                      child: Text('تسجيل الدخول', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                                    ),
+                            // زر تسجيل الدخول (button.png)
+                            GestureDetector(
+                              onTap: loading ? null : login,
+                              child: Container(
+                                width: double.infinity,
+                                height: s(55),
+                                decoration: BoxDecoration(
+                                  image: const DecorationImage(
+                                    image: AssetImage('assets/img/button.png'),
+                                    fit: BoxFit.fill,
                                   ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: loading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                        )
+                                      : const Text(
+                                          'تسجيل الدخول',
+                                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                        ),
                                 ),
                               ),
                             ),
 
-                            SizedBox(height: s(25)),
+                            const SizedBox(height: 22),
 
-                            // 6. روابط التسجيل (عكس الاتجاه لتطابق الصورة)
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: s(25)),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {},
-                                    child: Text(
-                                      'تسجيل جديد؟',
-                                      style: TextStyle(color: Colors.grey.shade600, fontSize: s(15), fontWeight: FontWeight.w400),
-                                    ),
+                            // روابط التسجيل
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {},
+                                  child: const Text(
+                                    'لا تستطيع تسجيل الدخول؟',
+                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
                                   ),
-                                  GestureDetector(
-                                    onTap: () {},
-                                    child: Text(
-                                      'لاتستطيع تسجيل الدخول؟',
-                                      style: TextStyle(color: Colors.grey.shade600, fontSize: s(15), fontWeight: FontWeight.w400),
-                                    ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {},
+                                  child: const Text(
+                                    'تسجيل جديد؟',
+                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
 
-                            SizedBox(height: s(20)),
+                            const SizedBox(height: 18),
 
-                            // 7. شارك رمز
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: s(25)),
-                              child: Row(
+                            // أيقونة شارك رمز
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Image.asset(
                                     'assets/img/slidscanandpay.png',
-                                    width: s(35),
-                                    height: s(35),
+                                    width: 48,
+                                    height: 48,
                                     fit: BoxFit.contain,
                                   ),
-                                  SizedBox(width: s(10)),
-                                  Text(
+                                  const SizedBox(height: 4),
+                                  const Text(
                                     'شارك رمز',
-                                    style: TextStyle(color: Colors.grey.shade600, fontSize: s(14)),
+                                    style: TextStyle(color: Color(0xFF757575), fontSize: 12),
                                   )
                                 ],
                               ),
                             ),
 
-                            SizedBox(height: appH * 0.15),
+                            SizedBox(height: appH * 0.05),
 
-                            // 8. أزرار التواصل السفلي
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: s(20)),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildFooterButton(scale, 'assets/img/newbokirada.png', 'بنك الخرطوم'),
-                                  _buildFooterButton(scale, 'assets/img/newmishwar.png', 'مواقعنا'),
-                                  _buildFooterButton(scale, 'assets/img/newcanar.png', 'المساعدة'),
-                                  _buildFooterButton(scale, 'assets/img/linkedin.png', 'فيس بوك'),
-                                ],
-                              ),
+                            // أزرار شريط التواصل السفلي
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildSocialIcon('فيس بوك', 'assets/img/logfacebookicon.png', scale),
+                                _buildSocialIcon('المساعدة', 'assets/img/logcallcentericon.png', scale),
+                                _buildSocialIcon('مواقعنا', 'assets/img/loglocationicon.png', scale),
+                                _buildSocialIcon('بنك الخرطوم', 'assets/img/logbokicon.png', scale),
+                              ],
                             ),
-                            SizedBox(height: s(20)),
                           ],
                         ),
                       ),
@@ -330,85 +307,70 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildInputBox({
+  Widget _buildNativeInputBox({
     required String label,
-    required String icon,
+    required String iconAsset,
     required double scale,
     required Widget child,
     VoidCallback? onIconTap,
   }) {
-    double s(double value) => value * scale;
+    double s(double v) => v * scale;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(s(8)),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: s(8), right: s(50)),
+            padding: EdgeInsets.only(top: s(8), right: s(12)),
             child: Text(
               label,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: s(12)),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: s(11), fontWeight: FontWeight.w500),
             ),
           ),
-          Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: s(12), vertical: s(8)),
-                child: GestureDetector(
+          Padding(
+            padding: EdgeInsets.only(bottom: s(8), left: s(12), right: s(12)),
+            child: Row(
+              children: [
+                GestureDetector(
                   onTap: onIconTap,
-                  child: Image.asset(
-                    icon,
-                    width: s(28),
-                    height: s(28),
-                    fit: BoxFit.contain,
-                  ),
+                  child: Image.asset(iconAsset, width: s(24), height: s(24), fit: BoxFit.contain),
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(left: s(15)),
-                  child: child,
-                ),
-              ),
-            ],
+                SizedBox(width: s(10)),
+                Expanded(child: child),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFooterButton(double scale, String asset, String label) {
-    double s(double value) => value * scale;
+  Widget _buildSocialIcon(String label, String iconAsset, double scale) {
+    double s(double v) => v * scale;
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          asset,
-          width: s(45),
-          height: s(45),
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Container(
-            width: s(45),
-            height: s(45),
-            decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle),
+        Container(
+          width: s(42),
+          height: s(42),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+          ),
+          child: Center(
+            child: Image.asset(iconAsset, width: s(42), height: s(42), fit: BoxFit.contain),
           ),
         ),
-        SizedBox(height: s(5)),
+        const SizedBox(height: 6),
         Text(
           label,
-          style: TextStyle(color: Colors.grey.shade600, fontSize: s(11)),
+          style: TextStyle(color: const Color(0xFF757575), fontSize: s(10), fontWeight: FontWeight.w500),
         ),
       ],
     );
