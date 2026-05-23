@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                               child: Padding(
                                 padding: const EdgeInsets.only(top: 10.0, left: 10.0),
                                 child: Image.asset(
-                                  'assets/img/chlang.png',
+                                  'assets/img/arab_lang_icon.png',
                                   width: s(38),
                                   height: s(38),
                                   fit: BoxFit.contain,
@@ -275,10 +275,10 @@ class _LoginPageState extends State<LoginPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildSocialIcon('بنك الخرطوم', 'assets/img/logbokicon.png', scale),
-                                _buildSocialIcon('مواقعنا', 'assets/img/loglocationicon.png', scale),
-                                _buildSocialIcon('المساعدة', 'assets/img/logcallcentericon.png', scale),
-                                _buildSocialIcon('فيس بوك', 'assets/img/logfacebookicon.png', scale),
+                                _buildSocialIcon('بنك الخرطوم', 'assets/img/bok.png', scale),
+                                _buildSocialIcon('مواقعنا', 'assets/img/locate.png', scale),
+                                _buildSocialIcon('المساعدة', 'assets/img/contact.png', scale),
+                                _buildSocialIcon('فيس بوك', 'assets/img/fb.png', scale),
                               ],
                             ),
                           ],
