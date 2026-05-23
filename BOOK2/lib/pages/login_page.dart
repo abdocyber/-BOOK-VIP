@@ -96,14 +96,23 @@ class _LoginPageState extends State<LoginPage> {
                 height: appH,
                 child: Stack(
                   children: [
-                    // المساحة الحمراء العلوية
+                    // المساحة الحمراء العلوية مع التدرج
                     Positioned(
                       top: 0,
                       left: 0,
                       right: 0,
-                      height: appH * 0.42, // Adjusted based on visual estimation
+                      height: appH * 0.45,
                       child: Container(
-                        color: const Color(0xFFE31E24),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0xFFE31E24),
+                              Color(0xFFB71C1C),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
 
@@ -112,35 +121,29 @@ class _LoginPageState extends State<LoginPage> {
                       bottom: false,
                       child: SingleChildScrollView(
                         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: EdgeInsets.symmetric(horizontal: s(24)),
                         child: Column(
                           children: [
-                            // أيقونة تغيير اللغة أعلى اليمين
+                            // 1. أيقونة اللغة ع/A في أعلى اليمين
                             Align(
                               alignment: Alignment.topRight,
                               child: Padding(
-                                padding: const EdgeInsets.only(top: 10.0, left: 10.0), // Adjusted padding
-                                child: Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8), // Slightly rounded corners
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 3,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'A ع',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 14, // Adjusted font size
-                                        fontWeight: FontWeight.bold,
+                                padding: EdgeInsets.only(top: s(10), left: s(15)),
+                                child: Image.asset(
+                                  'assets/img/chlang.png',
+                                  width: s(38),
+                                  height: s(38),
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: s(38),
+                                    height: s(38),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Center(
+                                      child: Text('A\nع', 
+                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, height: 1.0),
+                                        textAlign: TextAlign.center,
                                       ),
                                     ),
                                   ),
@@ -148,185 +151,171 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             
-                            SizedBox(height: appH * 0.01), // Fine-tuned spacing
+                            SizedBox(height: s(15)),
 
-                            // الشعار الرئيسي
+                            // 2. الشعار الرئيسي
                             Image.asset(
-                              'assets/img/bankak_logo_big.png', // Placeholder, ensure this path is correct
-                              width: appW * 0.48,
-                              height: appH * 0.12,
+                              'assets/img/bankak_logo_big.png',
+                              width: appW * 0.55,
+                              height: s(110),
                               fit: BoxFit.contain,
                             ),
 
-                            SizedBox(height: appH * 0.04), // Fine-tuned spacing
+                            SizedBox(height: s(35)),
 
-                            // حقل إدخال رقم المعرف
-                            _buildNativeInputBox(
-                              label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
-                              iconAsset: 'assets/img/loginmanicon.png', // Placeholder
-                              scale: scale,
-                              child: TextField(
-                                controller: id,
-                                keyboardType: TextInputType.number,
-                                textInputAction: TextInputAction.next,
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(fontSize: 16, color: Color(0xFF333333), fontWeight: FontWeight.w600),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                  hintText: '3024821',
-                                  hintStyle: TextStyle(color: Colors.black26, fontSize: 16),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 14), // Fine-tuned spacing
-
-                            // حقل إدخال كلمة المرور
-                            _buildNativeInputBox(
-                              label: 'ادخل كلمة المرور',
-                              iconAsset: _obscurePassword ? 'assets/img/loginpinicon.png' : 'assets/img/loginpiniconold.png', // Placeholder
-                              scale: scale,
-                              onIconTap: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                              child: TextField(
-                                controller: pass,
-                                keyboardType: TextInputType.visiblePassword,
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: (_) => login(),
-                                obscureText: _obscurePassword,
-                                obscuringCharacter: '*',
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(fontSize: 18, color: Color(0xFF333333), letterSpacing: 3.0), // Adjusted letter spacing for '*' to match image
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 26), // Fine-tuned spacing
-
-                            // زر تسجيل الدخول
-                            GestureDetector(
-                              onTap: loading ? null : login,
-                              child: Container(
-                                width: double.infinity,
-                                height: s(52),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xffe53935), Color(0xffb71c1c)], // Exact colors from image analysis
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
+                            // 3. حقل إدخال رقم المعرف
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: s(25)),
+                              child: _buildInputBox(
+                                label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
+                                icon: 'assets/img/loginmanicon.png',
+                                scale: scale,
+                                child: TextField(
+                                  controller: id,
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.next,
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(fontSize: s(18), color: const Color(0xFF333333), fontWeight: FontWeight.w500),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    hintText: '3024821',
+                                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: s(18)),
                                   ),
-                                  border: Border.all(color: const Color(0xff8e0000), width: 1.2),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 3),
-                                    )
-                                  ],
                                 ),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Positioned(
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      height: s(26), // Half the button height for gloss effect
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(8.5)), // Slightly less than button radius
-                                          gradient: LinearGradient(
-                                            colors: [Colors.white.withOpacity(0.35), Colors.transparent], // Gloss effect
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                          ),
-                                        ),
+                              ),
+                            ),
+
+                            SizedBox(height: s(12)),
+
+                            // 4. حقل إدخال كلمة المرور
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: s(25)),
+                              child: _buildInputBox(
+                                label: 'ادخل كلمة المرور',
+                                icon: _obscurePassword ? 'assets/img/loginfingview.png' : 'assets/img/loginfingview.png',
+                                scale: scale,
+                                onIconTap: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                                child: TextField(
+                                  controller: pass,
+                                  keyboardType: TextInputType.visiblePassword,
+                                  textInputAction: TextInputAction.done,
+                                  onSubmitted: (_) => login(),
+                                  obscureText: _obscurePassword,
+                                  obscuringCharacter: '*',
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(fontSize: s(20), color: const Color(0xFF333333), letterSpacing: s(2)),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    hintText: '*********',
+                                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: s(20), letterSpacing: s(2)),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: s(25)),
+
+                            // 5. زر تسجيل الدخول (استخدام الصورة)
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: s(25)),
+                              child: GestureDetector(
+                                onTap: loading ? null : login,
+                                child: Image.asset(
+                                  'assets/img/button.png',
+                                  width: double.infinity,
+                                  height: s(55),
+                                  fit: BoxFit.fill,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: double.infinity,
+                                    height: s(55),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFFE31E24), Color(0xFFB71C1C)],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
                                       ),
                                     ),
-                                    loading
-                                        ? const SizedBox(
-                                            height: 20,
-                                            width: 20,
-                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                                          )
-                                        : const Text(
-                                            'تسجيل الدخول',
-                                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                                          ),
-                                  ],
+                                    child: const Center(
+                                      child: Text('تسجيل الدخول', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
 
-                            const SizedBox(height: 22), // Fine-tuned spacing
+                            SizedBox(height: s(25)),
 
-                            // روابط التسجيل
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: const Text(
-                                    'لا تستطيع تسجيل الدخول؟',
-                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
+                            // 6. روابط التسجيل (عكس الاتجاه لتطابق الصورة)
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: s(25)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Text(
+                                      'تسجيل جديد؟',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: s(15), fontWeight: FontWeight.w400),
+                                    ),
                                   ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: const Text(
-                                    'تسجيل جديد؟',
-                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Text(
+                                      'لاتستطيع تسجيل الدخول؟',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: s(15), fontWeight: FontWeight.w400),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
 
-                            const SizedBox(height: 18), // Fine-tuned spacing
+                            SizedBox(height: s(20)),
 
-                            // أيقونة شارك رمز
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center, // Centered for QR code and text
+                            // 7. شارك رمز
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: s(25)),
+                              child: Row(
                                 children: [
                                   Image.asset(
-                                    'assets/img/slidscanandpay.png', // Placeholder
-                                    width: 48,
-                                    height: 48,
+                                    'assets/img/slidscanandpay.png',
+                                    width: s(35),
+                                    height: s(35),
                                     fit: BoxFit.contain,
                                   ),
-                                  const SizedBox(height: 4),
-                                  const Text(
+                                  SizedBox(width: s(10)),
+                                  Text(
                                     'شارك رمز',
-                                    style: TextStyle(color: Color(0xFF757575), fontSize: 12),
+                                    style: TextStyle(color: Colors.grey.shade600, fontSize: s(14)),
                                   )
                                 ],
                               ),
                             ),
 
-                            SizedBox(height: appH * 0.05), // Fine-tuned spacing
+                            SizedBox(height: appH * 0.15),
 
-                            // أزرار شريط التواصل السفلي
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildFooterCircleButton(label: 'بنك الخرطوم', assetPath: 'assets/img/bok.png'), // Placeholder
-                                _buildFooterCircleButton(label: 'موقعنا', assetPath: 'assets/img/locate.png'), // Placeholder
-                                _buildFooterCircleButton(label: 'المساعدة', assetPath: 'assets/img/contact.png'), // Placeholder
-                                _buildFooterCircleButton(label: 'فيس بوك', assetPath: 'assets/img/fb.png'), // Placeholder
-                              ],
+                            // 8. أزرار التواصل السفلي
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: s(20)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildFooterButton(scale, 'assets/img/newbokirada.png', 'بنك الخرطوم'),
+                                  _buildFooterButton(scale, 'assets/img/newmishwar.png', 'مواقعنا'),
+                                  _buildFooterButton(scale, 'assets/img/newcanar.png', 'المساعدة'),
+                                  _buildFooterButton(scale, 'assets/img/linkedin.png', 'فيس بوك'),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 20),
+                            SizedBox(height: s(20)),
                           ],
                         ),
                       ),
@@ -341,75 +330,86 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildNativeInputBox({
+  Widget _buildInputBox({
     required String label,
-    required String iconAsset,
-    required Widget child,
+    required String icon,
     required double scale,
+    required Widget child,
     VoidCallback? onIconTap,
   }) {
+    double s(double value) => value * scale;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black12, width: 0.8),
+        borderRadius: BorderRadius.circular(s(8)),
+        border: Border.all(color: Colors.grey.shade300, width: 1),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 3, offset: const Offset(0, 2))
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // Align label to start
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 11.5, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 2),
-                child,
-              ],
+          Padding(
+            padding: EdgeInsets.only(top: s(8), right: s(50)),
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: s(12)),
             ),
           ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: onIconTap,
-            child: Image.asset(iconAsset, width: 28, height: 28, fit: BoxFit.contain),
+          Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: s(12), vertical: s(8)),
+                child: GestureDetector(
+                  onTap: onIconTap,
+                  child: Image.asset(
+                    icon,
+                    width: s(28),
+                    height: s(28),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(left: s(15)),
+                  child: child,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFooterCircleButton({required String label, required String assetPath}) {
+  Widget _buildFooterButton(double scale, String asset, String label) {
+    double s(double value) => value * scale;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 4, offset: const Offset(0, 2))
-            ],
-          ),
-          child: ClipOval(
-            child: Padding(
-              padding: const EdgeInsets.all(1.0),
-              child: Image.asset(assetPath, fit: BoxFit.cover),
-            ),
+        Image.asset(
+          asset,
+          width: s(45),
+          height: s(45),
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Container(
+            width: s(45),
+            height: s(45),
+            decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: s(5)),
         Text(
           label,
-          style: const TextStyle(color: Color(0xFF616161), fontSize: 12.5, fontWeight: FontWeight.w500),
-        )
+          style: TextStyle(color: Colors.grey.shade600, fontSize: s(11)),
+        ),
       ],
     );
   }
