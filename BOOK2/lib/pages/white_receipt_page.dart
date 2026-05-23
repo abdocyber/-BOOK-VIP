@@ -38,16 +38,32 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     return '$v' == 'success' || '$v'.isEmpty ? 'نجاح' : '$v';
   }
 
+  void _showSoon() {
+    setState(() => showToast = true);
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (mounted) setState(() => showToast = false);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('هذه الميزة قريباً!'))
+    );
+  }
+
+  void _shareTx(Map<String, dynamic> d) {
+    final id = '${d['operationNumber'] ?? d['id'] ?? '20018909627'}';
+    final amount = _fmtMoney(d['amount'] ?? 9900.00);
+    final to = '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '0123 0252 2939 0001'}';
+    final text = 'تفاصيل المعاملة\nرقم العملية: $id\nالمبلغ: $amount\nإلى: $to';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text, textAlign: TextAlign.center)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final d = _data(context);
-    final appW = MediaQuery.of(context).size.width.clamp(0.0, 430.0);
-    final scale = appW / 360.0;
-    double s(double value) => value * scale;
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Color(0xFFE31E24),
       statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
     ));
 
     final rows = <_ReceiptRow>[
@@ -68,9 +84,10 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
         backgroundColor: Colors.white,
         body: Column(
           children: [
-            // 1. الهيدر الأحمر العلوي
+            // شريط التطبيق العلوي (الأحمر)
             Container(
-              height: s(75),
+              height: 68,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -80,167 +97,142 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
               child: SafeArea(
                 bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: s(16)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Image.asset('assets/img/logout_icon.png', width: s(26), height: s(26), color: Colors.white),
-                      Image.asset('assets/img/bankak_logo_big.png', width: s(105), fit: BoxFit.contain),
-                      SizedBox(width: s(26)), 
-                    ],
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Icon(Icons.menu, color: Colors.white, size: 26),
+                    Image.asset('assets/img/bankak_logo_big.png', width: 95, fit: BoxFit.contain),
+                    const SizedBox(width: 26),
+                  ],
                 ),
               ),
             ),
 
-            // 2. شريط تفاصيل المعاملة وزر رجوع
+            // شريط تفاصيل المعاملة وزر الرجوع (استخدام back.png)
             Container(
-              height: s(56),
-              color: const Color(0xfff5f5f5),
+              height: 56,
+              color: const Color(0xfff8f8f8),
               child: Stack(
                 children: [
-                  Center(
+                  const Center(
                     child: Text(
                       'تفاصيل المعاملة',
-                      style: TextStyle(color: const Color(0xff1a1a1a), fontSize: s(17.5), fontWeight: FontWeight.w400, fontFamily: 'Rubik'),
+                      style: TextStyle(color: Color(0xff2b2b2b), fontSize: 16.5, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
                     ),
                   ),
                   Positioned(
-                    left: s(10),
-                    top: s(9),
+                    left: 14, // Adjusted to match typical back button position in RTL
+                    top: 8,
                     child: InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: Image.asset('assets/img/back.png', width: s(72), height: s(40), fit: BoxFit.contain),
+                      onTap: () {
+                        if (Navigator.canPop(context)) Navigator.pop(context);
+                      },
+                      child: Image.asset(
+                        'assets/img/back.png',
+                        width: 70,
+                        height: 40,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // 3. الجدول بتفاصيل المعاملة (Full Width)
+            // الجدول الممتد لعرض الشاشة بالكامل
             Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Color(0xffcccccc), width: 0.2),
+              child: Container(
+                color: const Color(0xFFF4F5F7),
+                child: SingleChildScrollView(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        top: BorderSide(color: Color(0xffbcbcbc), width: 0.5),
+                        bottom: BorderSide(color: Color(0xffbcbcbc), width: 0.5),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    children: rows.map((r) => Container(
-                      height: s(46),
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Color(0xffcccccc), width: 0.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: s(15)),
-                              child: Text(
-                                r.value,
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  color: Colors.black, 
-                                  fontSize: s(14.5), 
-                                  fontWeight: FontWeight.w400, 
-                                  fontFamily: 'Rubik'
-                                ),
-                              ),
-                            ),
+                    child: Column(
+                      children: rows.asMap().entries.map((entry) {
+                        final isLast = entry.key == rows.length - 1;
+                        final r = entry.value;
+
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 42),
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffdcdcdc), width: 0.5)),
                           ),
-                          Expanded(
-                            flex: 4,
-                            child: Padding(
-                              padding: EdgeInsets.only(right: s(15)),
-                              child: Text(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
                                 r.label,
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  color: const Color(0xff666666), 
-                                  fontSize: s(14.5), 
-                                  fontWeight: FontWeight.w500, 
-                                  fontFamily: 'Rubik'
+                                style: const TextStyle(color: Color(0xff555555), fontWeight: FontWeight.bold, fontSize: 14.5, fontFamily: 'Rubik'),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  r.value.isEmpty ? 'N/A' : r.value,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.left,
+                                  style: const TextStyle(color: Color(0xff333333), fontWeight: FontWeight.w600, fontSize: 14.0, fontFamily: 'Rubik'),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )).toList(),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
             ),
 
-            // 4. أزرار الإجراءات باستخدام الأيقونات الأصلية
+            // أزرار الإجراءات
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: s(16), vertical: s(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Expanded(
-                    child: _ActionButton(
-                      title: 'تذكير',
-                      icon: 'assets/img/notify_bg.png', // Placeholder for actual icon if found, else use Icon
-                      iconData: Icons.notifications_none,
-                      onTap: () {},
-                    ),
-                  ),
-                  SizedBox(width: s(12)),
-                  Expanded(
-                    child: _ActionButton(
-                      title: 'تحويل خاطئ',
-                      icon: 'assets/img/block_icon.png',
-                      iconData: Icons.block,
-                      onTap: () {},
-                    ),
-                  ),
+                  Expanded(child: _ActionButton(title: 'تحويل خاطئ', icon: 'block_icon.png', onTap: _showSoon)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _ActionButton(title: 'تذكير', icon: 'notification_white.png', onTap: _showSoon)),
                 ],
               ),
             ),
 
-            // 5. خيارات المشاركة باستخدام الأيقونات الأصلية
+            // شريط التذييل الثلاثي
             Container(
-              height: s(40),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xffeeeeee), width: 1)),
-              ),
+              height: 36,
+              decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Color(0xffdcdcdc), width: 1))),
               child: Row(
                 children: [
-                  _FooterOpt(title: 'مشاركة', iconAsset: 'assets/img/sharegray.png', onTap: () {}),
-                  _vLine(),
-                  _FooterOpt(title: 'طباعة', iconAsset: 'assets/img/printgray.png', onTap: () {}),
-                  _vLine(),
-                  _FooterOpt(title: 'تحميل', iconAsset: 'assets/img/downloadgray.png', onTap: () {}),
+                  _OptionItem(title: 'مشاركة', icon: 'sharegray.png', onTap: () => _shareTx(d)),
+                  const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
+                  _OptionItem(title: 'طباعة', icon: 'printgray.png', onTap: _showSoon),
+                  const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
+                  _OptionItem(title: 'تحميل', icon: 'downloadgray.png', onTap: _showSoon),
                 ],
               ),
             ),
 
-            // 6. التذييل
+            // شريط الحقوق السفلي
             Container(
-              height: s(32),
-              width: double.infinity,
+              height: 30,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xffe0e3e5), Color(0xffc5c9cc)],
+                  colors: [Color(0xffe0e3e5), Color(0xffc5c9cc), Color(0xffe4e5e6)],
                 ),
               ),
-              child: Text(
+              child: const Text(
                 '© 2024 بنك الخرطوم|بنكك حساب',
-                style: TextStyle(
-                  color: const Color(0xff444444), 
-                  fontSize: s(12.5), 
-                  fontFamily: 'Rubik',
-                  fontWeight: FontWeight.w500
-                ),
+                style: TextStyle(color: Color(0xff222222), fontSize: 12, fontFamily: 'Rubik', fontWeight: FontWeight.w500),
               ),
             ),
           ],
@@ -248,8 +240,6 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
       ),
     );
   }
-
-  Widget _vLine() => Container(width: 1, height: 20, color: const Color(0xffeeeeee));
 }
 
 class _ReceiptRow {
@@ -260,71 +250,57 @@ class _ReceiptRow {
 
 class _ActionButton extends StatelessWidget {
   final String title;
-  final String? icon;
-  final IconData iconData;
+  final String icon;
   final VoidCallback onTap;
-  const _ActionButton({required this.title, this.icon, required this.iconData, required this.onTap});
+  const _ActionButton({required this.title, required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.of(context).size.width.clamp(0.0, 430.0) / 360.0;
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 42 * scale,
+        height: 42,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xffd33234), width: 1.5),
+          color: Colors.white,
+          border: Border.all(color: const Color(0xffd33234), width: 2.0),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null && icon!.contains('block'))
-              Image.asset(icon!, width: 20 * scale, height: 20 * scale, color: const Color(0xffd33234))
-            else
-              Icon(iconData, color: const Color(0xffd33234), size: 20 * scale),
+            Text(title, style: const TextStyle(color: Color(0xffd33234), fontSize: 14.5, fontWeight: FontWeight.bold, fontFamily: 'Rubik')),
             const SizedBox(width: 8),
-            Text(
-              title, 
-              style: TextStyle(
-                color: const Color(0xffd33234), 
-                fontSize: 15 * scale, 
-                fontWeight: FontWeight.w500, 
-                fontFamily: 'Rubik'
-              )
-            ),
+            Icon(_getIconForActionButton(icon), size: 18, color: const Color(0xffd33234)),
           ],
         ),
       ),
     );
   }
+
+  IconData _getIconForActionButton(String iconName) {
+    if (iconName.contains('block')) return Icons.block;
+    return Icons.notifications_none;
+  }
 }
 
-class _FooterOpt extends StatelessWidget {
+class _OptionItem extends StatelessWidget {
   final String title;
-  final String iconAsset;
+  final String icon;
   final VoidCallback onTap;
-  const _FooterOpt({required this.title, required this.iconAsset, required this.onTap});
+  const _OptionItem({required this.title, required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.of(context).size.width.clamp(0.0, 430.0) / 360.0;
     return Expanded(
       child: InkWell(
         onTap: onTap,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(iconAsset, width: 18 * scale, height: 18 * scale, fit: BoxFit.contain),
+            Image.asset('assets/img/$icon', width: 16, height: 16, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.share, size: 16, color: Colors.grey)),
             const SizedBox(width: 6),
-            Text(
-              title, 
-              style: TextStyle(
-                color: Colors.grey.shade600, 
-                fontSize: 13 * scale, 
-                fontFamily: 'Rubik'
-              )
-            ),
+            Text(title, style: const TextStyle(color: Color(0xff666666), fontSize: 13, fontFamily: 'Rubik')),
           ],
         ),
       ),
