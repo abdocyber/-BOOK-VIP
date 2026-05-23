@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:math' as math;
 
 class WhiteReceiptPage extends StatefulWidget {
   const WhiteReceiptPage({super.key});
@@ -127,11 +128,15 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                       onTap: () {
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
-                      child: Image.asset(
-                        'assets/img/back.png',
-                        width: 70,
-                        height: 40,
-                        fit: BoxFit.contain,
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.rotationY(math.pi),
+                        child: Image.asset(
+                          'assets/img/back.png',
+                          width: 70,
+                          height: 40,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
@@ -149,8 +154,8 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       border: Border(
-                        top: BorderSide(color: Color(0xffcccccc), width: 1.0), // زيادة السمك
-                        bottom: BorderSide(color: Color(0xffcccccc), width: 1.0), // زيادة السمك
+                        top: BorderSide(color: Color(0xffcccccc), width: 1.6), // زيادة سمك حدود الجدول
+                        bottom: BorderSide(color: Color(0xffcccccc), width: 1.6), // زيادة سمك حدود الجدول
                       ),
                     ),
                     child: Column(
@@ -163,7 +168,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffe0e0e0), width: 1.0)), // زيادة السمك واللون الرمادي
+                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffd0d0d0), width: 1.4)), // زيادة سمك حدود الصفوف
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -179,7 +184,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.left,
-                                  style: const TextStyle(color: Color(0xff333333), fontWeight: FontWeight.w600, fontSize: 14.0, fontFamily: 'Rubik'),
+                                  style: const TextStyle(color: Color(0xff666666), fontWeight: FontWeight.w600, fontSize: 14.0, fontFamily: 'Rubik'),
                                 ),
                               ),
                             ],
@@ -210,11 +215,11 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Color(0xffdcdcdc), width: 1))),
               child: Row(
                 children: [
-                  _OptionItem(title: 'تحميل', icon: 'downloadgray.png', onTap: _showSoon),
+                  _OptionItem(title: 'مشاركة', icon: 'sharegray.png', onTap: () => _shareTx(d)),
                   const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
                   _OptionItem(title: 'طباعة', icon: 'printgray.png', onTap: _showSoon),
                   const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
-                  _OptionItem(title: 'مشاركة', icon: 'sharegray.png', onTap: () => _shareTx(d)),
+                  _OptionItem(title: 'تحميل', icon: 'downloadgray.png', onTap: _showSoon),
                 ],
               ),
             ),
