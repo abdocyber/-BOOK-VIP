@@ -1,302 +1,189 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../services/firebase_service.dart';
 import '../services/session_service.dart';
-import '../services/app_state.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final id = TextEditingController();
-  final pass = TextEditingController();
-  bool loading = false;
-  bool _obscurePassword = true;
-
-  @override
-  void dispose() {
-    id.dispose();
-    pass.dispose();
-    super.dispose();
-  }
-
-  // منطق تسجيل الدخول محفوظ كما هو لضمان عمل قاعدة البيانات
-  Future<void> login() async {
-    if (loading) return;
-
-    if (!AppState.firebaseReady) {
-      return toast('توقف الاتصال بالخادم، لا يمكن تسجيل الدخول الآن');
-    }
-
-    final account = id.text.trim();
-    final password = pass.text.trim();
-
-    if (account.isEmpty) return toast('يرجى إدخال رقم المعرف');
-    if (password.isEmpty) return toast('يرجى إدخال كلمة المرور');
-
-    FocusScope.of(context).unfocus();
-    setState(() => loading = true);
-
-    try {
-      final acc = await FirebaseService.login(account, password);
-      if (!mounted) return;
-
-      if (acc == null) {
-        pass.clear();
-        toast('بيانات الدخول غير صحيحة');
-      } else {
-        await SessionService.save(acc);
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
-      }
-    } catch (_) {
-      if (mounted) toast('تعذر الاتصال بالخادم، ابقَ في صفحة تسجيل الدخول');
-    } finally {
-      if (mounted) setState(() => loading = false);
-    }
-  }
-
-  void toast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(milliseconds: 1500),
-        content: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14),
-        ),
-      ),
-    );
-  }
+  // الألوان الرسمية المعتمدة والمطابقة تماماً للصورة المرجعية
+  static const Color pageBg = Color(0xfff5f5f5); // الخلفية الرمادية الفاتحة والناعمة للتطبيق
+  static const Color titleText = Color(0xff1a1a1a); // تعديل لون الخط إلى الأسود الداكن المطابق للأصل
+  static const Color greetingText = Color(0xff2b2b2b); // لون نص الترحيب العلوي
+  static const Color headerTop = Color(0xffe31e24); // اللون الأحمر الصافي المشرق بأعلى الهيدر
+  static const Color headerBottom = Color(0xffb80006); // اللون الأحمر الداكن بأسفل الهيدر لتأثير التدرج
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Color(0xFFE31E24),
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
-    ));
+    // جلب اسم المستخدم من الـ Session الخاص بك ليعمل بدون مشاكل
+    final name = SessionService.current?.fullName ?? 'Abdelrahman Hydar'; //
+
+    // مصفوفة العناصر مع الحفاظ على نفس أسماء أيقونات الـ grid والمسارات الخاصة بك
+    final items = <_HomeItem>[
+      const _HomeItem('grid_3.png', 'تحويلات', '/transfer'), //
+      const _HomeItem('grid_2.png', 'دفع\nفواتير', ''), //
+      const _HomeItem('grid_1.png', 'تفاصيل\nالحساب', '/account'), //
+
+      const _HomeItem('grid_6.png', 'طلب الودائع\nالإستثمارية', ''), //
+      const _HomeItem('grid_5.png', 'بنككPAY', ''), //
+      const _HomeItem('grid_4.png', 'سحب\nبدون بطاقة', ''), //
+
+      const _HomeItem('grid_9.png', 'إدارة البطاقات', ''), //
+      const _HomeItem('grid_8.png', 'المعاملات\nالسابقة', '/transactions'), //
+      const _HomeItem('grid_7.png', 'إدارة\nالمستفيدين', ''), //
+
+      const _HomeItem('grid_12.png', 'الضبط', ''), //
+      const _HomeItem('grid_11.png', 'أمر دفع دائم', ''), //
+      const _HomeItem('grid_10.png', 'طلبات', ''), //
+
+      const _HomeItem('grid_13.png', 'التجارة الإلكترونية', ''), //
+      const _HomeItem('grid_14.png', 'خدمات العملات\nالأجنبية', ''), //
+    ];
 
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: TextDirection.rtl, //
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F5F7),
+        backgroundColor: pageBg, //
         body: LayoutBuilder(
-          builder: (context, constraints) {
-            final appW = constraints.maxWidth.clamp(0.0, 430.0);
-            final appH = constraints.maxHeight;
-            final scale = appW / 360.0;
-            double s(double value) => value * scale;
+          builder: (context, c) {
+            // معالجة الأبعاد وعوامل القياس لتناسب شاشات الأجهزة بالملي كالأصل تماماً
+            final appW = c.maxWidth.clamp(0.0, 430.0); //
+            final appH = c.maxHeight; //
+            final scale = appW / 360.0; //
+
+            double s(double value) => value * scale; //
 
             return Center(
               child: SizedBox(
-                width: appW,
-                height: appH,
-                child: Stack(
+                width: appW, //
+                height: appH, //
+                child: Column(
                   children: [
-                    // المساحة الحمراء العلوية
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: appH * 0.42,
-                      child: Container(
-                        color: const Color(0xFFE31E24),
+                    // 1. الهيدر العلوي المحدث بالترتيب الصحيح (الجرس يمين، الطاقة يسار)
+                    Container(
+                      height: s(78), // ارتفاع الهيدر المتناسق لاحتواء الأيقونات والشعار
+                      padding: EdgeInsets.symmetric(horizontal: s(16)), //
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [headerTop, headerBottom], //
+                        ),
+                      ),
+                      child: SafeArea(
+                        bottom: false, //
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween, //
+                          children: [
+                            // في بيئة RTL: أول عنصر في الـ Row يظهر في أقصى اليمين (جرس الإشعارات)
+                            InkWell(
+                              onTap: () {
+                                Navigator.pushNamed(context, '/notify'); //
+                              },
+                              child: Image.asset(
+                                'assets/img/notification_icon.png', //
+                                width: s(26), //
+                                height: s(26), //
+                                fit: BoxFit.contain, //
+                              ),
+                            ),
+                            
+                            // شعار بنكك الرئيسي متمركز بالمنتصف تماماً
+                            Image.asset(
+                              'assets/img/bankak_logo_big.png', //
+                              width: s(105), //
+                              height: s(48), //
+                              fit: BoxFit.contain, //
+                            ),
+                            
+                            // في بيئة RTL: آخر عنصر في الـ Row يظهر في أقصى اليسار (زر تسجيل الخروج/الطاقة)
+                            InkWell(
+                              onTap: () async {
+                                await SessionService.logout(); //
+                                if (context.mounted) {
+                                  Navigator.pushReplacementNamed(context, '/login'); //
+                                }
+                              },
+                              child: Image.asset(
+                                'assets/img/logout_icon.png', //
+                                width: s(26), //
+                                height: s(26), //
+                                fit: BoxFit.contain, //
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
-                    // محتوى الواجهة الكاملة
-                    SafeArea(
-                      bottom: false,
+                    // 2. شريط التحية الفرعي
+                    Container(
+                      width: double.infinity, //
+                      padding: EdgeInsets.only(top: s(14), right: s(16), left: s(16), bottom: s(8)), //
+                      color: pageBg, //
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start, //
+                        crossAxisAlignment: CrossAxisAlignment.center, //
+                        children: [
+                          Text(
+                            'مساء الخير، ', //
+                            style: TextStyle(
+                              fontFamily: 'Rubik', //
+                              color: greetingText, //
+                              fontSize: s(14.0), //
+                              fontWeight: FontWeight.w400, //
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              name, //
+                              maxLines: 1, //
+                              overflow: TextOverflow.ellipsis, //
+                              textDirection: TextDirection.ltr, //
+                              style: TextStyle(
+                                fontFamily: 'Rubik', //
+                                color: greetingText, //
+                                fontSize: s(15.0), //
+                                fontWeight: FontWeight.bold, //
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 3. شبكة الأيقونات المتطابقة هندسياً بالبكسل مع الأبعاد الجديدة المربعة للزر
+                    Expanded(
                       child: SingleChildScrollView(
-                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: EdgeInsets.symmetric(horizontal: s(24)),
-                        child: Column(
-                          children: [
-                            // 1. تحريك أيقونة تغيير اللغة للأسفل
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: Padding(
-                                padding: EdgeInsets.only(top: s(35), right: s(5)),
-                                child: Image.asset(
-                                  'assets/img/arab_lang_icon.png',
-                                  width: s(38),
-                                  height: s(38),
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: s(38),
-                                    height: s(38),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Center(
-                                      child: Text('A\nع', 
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, height: 1.0),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            
-                            SizedBox(height: appH * 0.01),
+                        physics: const BouncingScrollPhysics(), //
+                        padding: EdgeInsets.only(bottom: s(20)), //
+                        child: SizedBox(
+                          height: s(580), //
+                          child: Stack(
+                            children: [
+                              // الصف الأول
+                              _buildSymmetricalItem(context, items[0], s(268), s(10), scale), //
+                              _buildSymmetricalItem(context, items[1], s(148), s(10), scale), //
+                              _buildSymmetricalItem(context, items[2], s(28), s(10), scale), //
 
-                            // الشعار الرئيسي
-                            Image.asset(
-                              'assets/img/bankak_logo_big.png',
-                              width: appW * 0.48,
-                              height: appH * 0.12,
-                              fit: BoxFit.contain,
-                            ),
+                              // الصف الثاني
+                              _buildSymmetricalItem(context, items[3], s(268), s(124), scale), //
+                              _buildSymmetricalItem(context, items[4], s(148), s(124), scale), //
+                              _buildSymmetricalItem(context, items[5], s(28), s(124), scale), //
 
-                            SizedBox(height: appH * 0.04),
+                              // الصف الثالث
+                              _buildSymmetricalItem(context, items[6], s(268), s(238), scale), //
+                              _buildSymmetricalItem(context, items[7], s(148), s(238), scale), //
+                              _buildSymmetricalItem(context, items[8], s(28), s(238), scale), //
 
-                            // حقل إدخال رقم المعرف (تم نقل الأيقونة لليسار)
-                            _buildNativeInputBox(
-                              label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
-                              iconAsset: 'assets/img/loginmanicon.png',
-                              scale: scale,
-                              child: TextField(
-                                controller: id,
-                                keyboardType: TextInputType.number,
-                                textInputAction: TextInputAction.next,
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(fontSize: 16, color: Color(0xFF333333), fontWeight: FontWeight.w600),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                  hintText: '3024821',
-                                  hintStyle: TextStyle(color: Colors.black26, fontSize: 16),
-                                ),
-                              ),
-                            ),
+                              // الصف الرابع
+                              _buildSymmetricalItem(context, items[9], s(268), s(352), scale), //
+                              _buildSymmetricalItem(context, items[10], s(148), s(352), scale), //
+                              _buildSymmetricalItem(context, items[11], s(28), s(352), scale), //
 
-                            const SizedBox(height: 14),
-
-                            // حقل إدخال كلمة المرور (تم نقل الأيقونة لليسار)
-                            _buildNativeInputBox(
-                              label: 'ادخل كلمة المرور',
-                              iconAsset: _obscurePassword ? 'assets/img/loginpinicon.png' : 'assets/img/loginpiniconold.png',
-                              scale: scale,
-                              onIconTap: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                              child: TextField(
-                                controller: pass,
-                                keyboardType: TextInputType.visiblePassword,
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: (_) => login(),
-                                obscureText: _obscurePassword,
-                                obscuringCharacter: '*',
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(fontSize: 18, color: Color(0xFF333333), letterSpacing: 3.0),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 26),
-
-                            // زر تسجيل الدخول (button.png)
-                            GestureDetector(
-                              onTap: loading ? null : login,
-                              child: Container(
-                                width: double.infinity,
-                                height: s(55),
-                                decoration: BoxDecoration(
-                                  image: const DecorationImage(
-                                    image: AssetImage('assets/img/button.png'),
-                                    fit: BoxFit.fill,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: loading
-                                      ? const SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                                        )
-                                      : const Text(
-                                          'تسجيل الدخول',
-                                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                                        ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 22),
-
-                            // 2. عكس اتجاه الروابط (تسجيل جديد يمين ، لا تستطيع تسجيل الدخول يسار)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: const Text(
-                                    'تسجيل جديد؟',
-                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: const Text(
-                                    'لا تستطيع تسجيل الدخول؟',
-                                    style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 18),
-
-                            // أيقونة شارك رمز
-                            Align(
-                              alignment: Alignment.centerLeft, // تم محاذاتها بناءً على التنسيق المطلوب
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/img/slidscanandpay.png',
-                                    width: 48,
-                                    height: 48,
-                                    fit: BoxFit.contain,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'شارك رمز',
-                                    style: TextStyle(color: Color(0xFF757575), fontSize: 12),
-                                  )
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: appH * 0.05),
-
-                            // 3. أزرار شريط التواصل السفلي تم إضافتها وضبطها
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildSocialIcon('فيس بوك', 'assets/img/logfacebookicon.png', scale),
-                                _buildSocialIcon('المساعدة', 'assets/img/logcallcentericon.png', scale),
-                                _buildSocialIcon('مواقعنا', 'assets/img/loglocationicon.png', scale),
-                                _buildSocialIcon('بنك الخرطوم', 'assets/img/logbokicon.png', scale),
-                              ],
-                            ),
-                            
-                            const SizedBox(height: 20),
-                          ],
+                              // الصف الخامس (تموضع دقيق لليسار والمنتصف كالأصل)
+                              _buildSymmetricalItem(context, items[12], s(28), s(466), scale), //
+                              _buildSymmetricalItem(context, items[13], s(148), s(466), scale), //
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -310,73 +197,87 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // 4. تم عكس ترتيب العناصر داخل هذا الـ Widget لتكون الأيقونة على اليسار والنص على اليمين
-  Widget _buildNativeInputBox({
-    required String label,
-    required String iconAsset,
-    required double scale,
-    required Widget child,
-    VoidCallback? onIconTap,
-  }) {
-    double s(double v) => v * scale;
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(s(8)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: s(8), right: s(12)),
-            child: Text(
-              label,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: s(11), fontWeight: FontWeight.w500),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(bottom: s(8), left: s(12), right: s(12)),
-            child: Row(
-              children: [
-                Expanded(child: child), // حقل الإدخال أصبح على اليمين (في بيئة RTL)
-                SizedBox(width: s(10)),
-                GestureDetector(
-                  onTap: onIconTap,
-                  child: Image.asset(iconAsset, width: s(24), height: s(24), fit: BoxFit.contain),
-                ), // الأيقونة أصبحت على اليسار
-              ],
-            ),
-          ),
-        ],
+  Widget _buildSymmetricalItem(BuildContext context, _HomeItem item, double left, double top, double scale) {
+    return Positioned(
+      left: left, //
+      top: top, //
+      child: _GridItem(
+        item: item, //
+        scale: scale, //
       ),
     );
   }
+}
 
-  Widget _buildSocialIcon(String label, String iconAsset, double scale) {
-    double s(double v) => v * scale;
-    return Column(
-      children: [
-        Container(
-          width: s(42),
-          height: s(42),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-          ),
-          child: Center(
-            child: Image.asset(iconAsset, width: s(42), height: s(42), fit: BoxFit.contain),
-          ),
+class _GridItem extends StatelessWidget {
+  final _HomeItem item;
+  final double scale;
+
+  const _GridItem({
+    required this.item,
+    required this.scale,
+  });
+
+  double s(double value) => value * scale; //
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: item.route.isEmpty
+          ? null
+          : () {
+              Navigator.pushNamed(context, item.route); //
+            },
+      borderRadius: BorderRadius.circular(12), //
+      child: SizedBox(
+        width: s(76), //
+        child: Column(
+          mainAxisSize: MainAxisSize.min, //
+          crossAxisAlignment: CrossAxisAlignment.center, //
+          children: [
+            // تعديل أبعاد صورة الأيقونة لتصبح مربعة تماماً (الطول = الارتفاع = 64)
+            Image.asset(
+              'assets/img/${item.icon}', //
+              width: s(76), // العرض الحالي
+              height: s(76), // زيادة الارتفاع ليتطابق مع العرض تماماً ويصبح مربعاً
+              fit: BoxFit.fill, //
+            ),
+
+            SizedBox(height: s(7)), // تباعد متناسق بين الأيقونة والنص
+
+            // النص التوضيحي المكتوب أسفل الأزرار بالخط والحجم واللون الأسود الداكن المطابق تماماً
+            SizedBox(
+              width: s(96), //
+              child: Text(
+                item.title, //
+                textAlign: TextAlign.center, //
+                maxLines: 3, //
+                overflow: TextOverflow.visible, //
+                style: TextStyle(
+                  fontFamily: 'Rubik', //
+                  fontSize: s(13.8), //
+                  fontWeight: FontWeight.w500, // خط أقل سماكة
+                  color: HomePage.titleText, // تطبيق اللون الأسود الداكن الجديد
+                  height: 1.15, //
+                  letterSpacing: 0, //
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(color: const Color(0xFF757575), fontSize: s(10), fontWeight: FontWeight.w500),
-        ),
-      ],
+      ),
     );
   }
+}
+
+class _HomeItem {
+  final String icon; //
+  final String title; //
+  final String route; //
+
+  const _HomeItem(
+    this.icon, //
+    this.title, //
+    this.route, //
+  );
 }
