@@ -115,30 +115,16 @@ class _LoginPageState extends State<LoginPage> {
                         padding: EdgeInsets.symmetric(horizontal: s(24)),
                         child: Column(
                           children: [
-                            // أيقونة تغيير اللغة أعلى اليمين (arab_lang_icon.png)
+                            // أيقونة تغيير اللغة (chlang.png)
                             Align(
                               alignment: Alignment.topRight,
                               child: Padding(
                                 padding: const EdgeInsets.only(top: 10.0, left: 10.0),
                                 child: Image.asset(
-                                  'assets/img/arab_lang_icon.png',
+                                  'assets/img/chlang.png',
                                   width: s(38),
                                   height: s(38),
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: s(38),
-                                    height: s(38),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Center(
-                                      child: Text('A\nع', 
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, height: 1.0),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
                                 ),
                               ),
                             ),
@@ -155,11 +141,12 @@ class _LoginPageState extends State<LoginPage> {
 
                             SizedBox(height: appH * 0.04),
 
-                            // حقل إدخال رقم المعرف
+                            // حقل إدخال رقم المعرف (عكس اتجاه الأيقونة لليسار)
                             _buildNativeInputBox(
                               label: 'أدخل رقم المعرف (رقم الحساب أو 249-رقم الموبايل)',
                               iconAsset: 'assets/img/loginmanicon.png',
                               scale: scale,
+                              iconOnLeft: true, // الأيقونة على اليسار
                               child: TextField(
                                 controller: id,
                                 keyboardType: TextInputType.number,
@@ -178,11 +165,12 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 14),
 
-                            // حقل إدخال كلمة المرور
+                            // حقل إدخال كلمة المرور (عكس اتجاه الأيقونة لليسار)
                             _buildNativeInputBox(
                               label: 'ادخل كلمة المرور',
-                              iconAsset: _obscurePassword ? 'assets/img/loginpinicon.png' : 'assets/img/loginpiniconold.png',
+                              iconAsset: 'assets/img/loginfingview.png',
                               scale: scale,
+                              iconOnLeft: true, // الأيقونة على اليسار
                               onIconTap: () {
                                 setState(() {
                                   _obscurePassword = !_obscurePassword;
@@ -207,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 26),
 
-                            // زر تسجيل الدخول (button.png)
+                            // زر تسجيل الدخول
                             GestureDetector(
                               onTap: loading ? null : login,
                               child: Container(
@@ -237,21 +225,21 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 22),
 
-                            // روابط التسجيل
+                            // روابط التسجيل (عكس الاتجاه)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 GestureDetector(
                                   onTap: () {},
                                   child: const Text(
-                                    'لا تستطيع تسجيل الدخول؟',
+                                    'تسجيل جديد؟',
                                     style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
                                   ),
                                 ),
                                 GestureDetector(
                                   onTap: () {},
                                   child: const Text(
-                                    'تسجيل جديد؟',
+                                    'لا تستطيع تسجيل الدخول؟',
                                     style: TextStyle(color: Color(0xFF757575), fontSize: 13.5, fontWeight: FontWeight.w500),
                                   ),
                                 ),
@@ -281,16 +269,16 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
 
-                            SizedBox(height: appH * 0.05),
+                            SizedBox(height: appH * 0.1), // تحريك للأسفل
 
-                            // أزرار شريط التواصل السفلي
+                            // أزرار شريط التواصل السفلي (استخدام الصور الأصلية)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildSocialIcon('فيس بوك', 'assets/img/logfacebookicon.png', scale),
-                                _buildSocialIcon('المساعدة', 'assets/img/logcallcentericon.png', scale),
-                                _buildSocialIcon('مواقعنا', 'assets/img/loglocationicon.png', scale),
                                 _buildSocialIcon('بنك الخرطوم', 'assets/img/logbokicon.png', scale),
+                                _buildSocialIcon('مواقعنا', 'assets/img/loglocationicon.png', scale),
+                                _buildSocialIcon('المساعدة', 'assets/img/logcallcentericon.png', scale),
+                                _buildSocialIcon('فيس بوك', 'assets/img/logfacebookicon.png', scale),
                               ],
                             ),
                           ],
@@ -312,6 +300,7 @@ class _LoginPageState extends State<LoginPage> {
     required String iconAsset,
     required double scale,
     required Widget child,
+    bool iconOnLeft = false,
     VoidCallback? onIconTap,
   }) {
     double s(double v) => v * scale;
@@ -338,12 +327,18 @@ class _LoginPageState extends State<LoginPage> {
             padding: EdgeInsets.only(bottom: s(8), left: s(12), right: s(12)),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: onIconTap,
-                  child: Image.asset(iconAsset, width: s(24), height: s(24), fit: BoxFit.contain),
-                ),
-                SizedBox(width: s(10)),
+                if (!iconOnLeft) ...[
+                  Image.asset(iconAsset, width: s(24), height: s(24), fit: BoxFit.contain),
+                  SizedBox(width: s(10)),
+                ],
                 Expanded(child: child),
+                if (iconOnLeft) ...[
+                  SizedBox(width: s(10)),
+                  GestureDetector(
+                    onTap: onIconTap,
+                    child: Image.asset(iconAsset, width: s(24), height: s(24), fit: BoxFit.contain),
+                  ),
+                ],
               ],
             ),
           ),
@@ -356,17 +351,7 @@ class _LoginPageState extends State<LoginPage> {
     double s(double v) => v * scale;
     return Column(
       children: [
-        Container(
-          width: s(42),
-          height: s(42),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-          ),
-          child: Center(
-            child: Image.asset(iconAsset, width: s(42), height: s(42), fit: BoxFit.contain),
-          ),
-        ),
+        Image.asset(iconAsset, width: s(42), height: s(42), fit: BoxFit.contain),
         const SizedBox(height: 6),
         Text(
           label,
