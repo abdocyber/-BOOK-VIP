@@ -70,7 +70,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
           children: [
             // 1. الهيدر الأحمر العلوي
             Container(
-              height: s(78),
+              height: s(75),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -85,9 +85,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // أيقونة القائمة (Menu)
                       Image.asset('assets/img/logout_icon.png', width: s(26), height: s(26), color: Colors.white),
-                      // الشعار
                       Image.asset('assets/img/bankak_logo_big.png', width: s(105), fit: BoxFit.contain),
                       SizedBox(width: s(26)), 
                     ],
@@ -98,19 +96,19 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
 
             // 2. شريط تفاصيل المعاملة وزر رجوع
             Container(
-              height: s(58),
+              height: s(56),
               color: const Color(0xfff5f5f5),
               child: Stack(
                 children: [
                   Center(
                     child: Text(
                       'تفاصيل المعاملة',
-                      style: TextStyle(color: const Color(0xff1a1a1a), fontSize: s(18), fontWeight: FontWeight.w400, fontFamily: 'Rubik'),
+                      style: TextStyle(color: const Color(0xff1a1a1a), fontSize: s(17.5), fontWeight: FontWeight.w400, fontFamily: 'Rubik'),
                     ),
                   ),
                   Positioned(
-                    left: s(12),
-                    top: s(10),
+                    left: s(10),
+                    top: s(9),
                     child: InkWell(
                       onTap: () => Navigator.pop(context),
                       child: Image.asset('assets/img/back.png', width: s(72), height: s(40), fit: BoxFit.contain),
@@ -128,19 +126,17 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   decoration: const BoxDecoration(
                     border: Border(
                       top: BorderSide(color: Color(0xffcccccc), width: 0.2),
-                      bottom: BorderSide(color: Color(0xffcccccc), width: 0.2),
                     ),
                   ),
                   child: Column(
                     children: rows.map((r) => Container(
-                      height: s(48), // ارتفاع الصف المطابق للصورة
+                      height: s(46),
                       width: double.infinity,
                       decoration: const BoxDecoration(
                         border: Border(bottom: BorderSide(color: Color(0xffcccccc), width: 0.2)),
                       ),
                       child: Row(
                         children: [
-                          // القيم على اليسار
                           Expanded(
                             flex: 6,
                             child: Padding(
@@ -150,14 +146,13 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                                 textAlign: TextAlign.left,
                                 style: TextStyle(
                                   color: Colors.black, 
-                                  fontSize: s(15), 
+                                  fontSize: s(14.5), 
                                   fontWeight: FontWeight.w400, 
                                   fontFamily: 'Rubik'
                                 ),
                               ),
                             ),
                           ),
-                          // العناوين على اليمين
                           Expanded(
                             flex: 4,
                             child: Padding(
@@ -167,7 +162,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
                                   color: const Color(0xff666666), 
-                                  fontSize: s(15), 
+                                  fontSize: s(14.5), 
                                   fontWeight: FontWeight.w500, 
                                   fontFamily: 'Rubik'
                                 ),
@@ -182,7 +177,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
             ),
 
-            // 4. أزرار الإجراءات (تذكير، تحويل خاطئ)
+            // 4. أزرار الإجراءات باستخدام الأيقونات الأصلية
             Padding(
               padding: EdgeInsets.symmetric(horizontal: s(16), vertical: s(12)),
               child: Row(
@@ -190,14 +185,16 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   Expanded(
                     child: _ActionButton(
                       title: 'تذكير',
+                      icon: 'assets/img/notify_bg.png', // Placeholder for actual icon if found, else use Icon
                       iconData: Icons.notifications_none,
                       onTap: () {},
                     ),
                   ),
-                  SizedBox(width: s(14)),
+                  SizedBox(width: s(12)),
                   Expanded(
                     child: _ActionButton(
                       title: 'تحويل خاطئ',
+                      icon: 'assets/img/block_icon.png',
                       iconData: Icons.block,
                       onTap: () {},
                     ),
@@ -206,27 +203,27 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
               ),
             ),
 
-            // 5. خيارات المشاركة (مشاركة، طباعة، تحميل)
+            // 5. خيارات المشاركة باستخدام الأيقونات الأصلية
             Container(
-              height: s(42),
+              height: s(40),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(top: BorderSide(color: Color(0xffeeeeee), width: 1)),
               ),
               child: Row(
                 children: [
-                  _FooterOpt(title: 'مشاركة', icon: Icons.share_outlined, onTap: () {}),
+                  _FooterOpt(title: 'مشاركة', iconAsset: 'assets/img/sharegray.png', onTap: () {}),
                   _vLine(),
-                  _FooterOpt(title: 'طباعة', icon: Icons.print_outlined, onTap: () {}),
+                  _FooterOpt(title: 'طباعة', iconAsset: 'assets/img/printgray.png', onTap: () {}),
                   _vLine(),
-                  _FooterOpt(title: 'تحميل', icon: Icons.file_download_outlined, onTap: () {}),
+                  _FooterOpt(title: 'تحميل', iconAsset: 'assets/img/downloadgray.png', onTap: () {}),
                 ],
               ),
             ),
 
-            // 6. التذييل (حقوق الملكية)
+            // 6. التذييل
             Container(
-              height: s(34),
+              height: s(32),
               width: double.infinity,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
@@ -240,7 +237,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 '© 2024 بنك الخرطوم|بنكك حساب',
                 style: TextStyle(
                   color: const Color(0xff444444), 
-                  fontSize: s(13), 
+                  fontSize: s(12.5), 
                   fontFamily: 'Rubik',
                   fontWeight: FontWeight.w500
                 ),
@@ -252,7 +249,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     );
   }
 
-  Widget _vLine() => Container(width: 1, height: 22, color: const Color(0xffeeeeee));
+  Widget _vLine() => Container(width: 1, height: 20, color: const Color(0xffeeeeee));
 }
 
 class _ReceiptRow {
@@ -263,9 +260,10 @@ class _ReceiptRow {
 
 class _ActionButton extends StatelessWidget {
   final String title;
+  final String? icon;
   final IconData iconData;
   final VoidCallback onTap;
-  const _ActionButton({required this.title, required this.iconData, required this.onTap});
+  const _ActionButton({required this.title, this.icon, required this.iconData, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -273,21 +271,24 @@ class _ActionButton extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        height: 44 * scale,
+        height: 42 * scale,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xffd33234), width: 1.8),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xffd33234), width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(iconData, color: const Color(0xffd33234), size: 22 * scale),
+            if (icon != null && icon!.contains('block'))
+              Image.asset(icon!, width: 20 * scale, height: 20 * scale, color: const Color(0xffd33234))
+            else
+              Icon(iconData, color: const Color(0xffd33234), size: 20 * scale),
             const SizedBox(width: 8),
             Text(
               title, 
               style: TextStyle(
                 color: const Color(0xffd33234), 
-                fontSize: 16 * scale, 
+                fontSize: 15 * scale, 
                 fontWeight: FontWeight.w500, 
                 fontFamily: 'Rubik'
               )
@@ -301,9 +302,9 @@ class _ActionButton extends StatelessWidget {
 
 class _FooterOpt extends StatelessWidget {
   final String title;
-  final IconData icon;
+  final String iconAsset;
   final VoidCallback onTap;
-  const _FooterOpt({required this.title, required this.icon, required this.onTap});
+  const _FooterOpt({required this.title, required this.iconAsset, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -314,13 +315,13 @@ class _FooterOpt extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.grey.shade600, size: 20 * scale),
+            Image.asset(iconAsset, width: 18 * scale, height: 18 * scale, fit: BoxFit.contain),
             const SizedBox(width: 6),
             Text(
               title, 
               style: TextStyle(
                 color: Colors.grey.shade600, 
-                fontSize: 14 * scale, 
+                fontSize: 13 * scale, 
                 fontFamily: 'Rubik'
               )
             ),
