@@ -84,33 +84,36 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
         backgroundColor: Colors.white,
         body: Column(
           children: [
-            // شريط التطبيق العلوي
-            Container(
-              height: 68,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xffe31e24), Color(0xffb80006)],
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(Icons.menu, color: Colors.white, size: 26),
-                    Image.asset(
-  'assets/img/white_logo_n.png',
-  width: 116,
-  height: 46,
-  fit: BoxFit.contain,
+           // شريط التطبيق العلوي
+Container(
+  height: 68,
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  decoration: const BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xffe31e24), Color(0xffb80006)],
+    ),
+  ),
+  child: SafeArea(
+    bottom: false,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Icon(Icons.menu, color: Colors.white, size: 26),
+
+        Image.asset(
+          'assets/img/white_logo_n.png',
+          width: 140,
+          height: 50,
+          fit: BoxFit.contain,
+        ),
+
+        const SizedBox(width: 26),
+      ],
+    ),
+  ),
 ),
-                  ],
-                ),
-              ),
-            ),
 
             // شريط تفاصيل المعاملة وزر الرجوع
             Container(
