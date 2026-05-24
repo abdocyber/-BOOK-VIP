@@ -133,9 +133,14 @@ class _SendToPageState extends State<SendToPage> {
     }
 
     final current = SessionService.current;
-    final from = current?.accountNo.trim() ?? '';
+final from = current?.accountNo.trim() ?? '';
 
-    if (from.isEmpty) {
+final fullToAccount =
+    (receiver?.accountNo.trim().isNotEmpty ?? false)
+        ? receiver!.accountNo.trim()
+        : to;
+
+if (from.isEmpty) {
       if (!mounted) return;
 
       Navigator.pushReplacementNamed(
@@ -164,7 +169,7 @@ class _SendToPageState extends State<SendToPage> {
       await _saveTransferIconReceipt(
         receipt: receipt,
         fromAccount: from,
-        toAccount: to,
+        toAccount: fullToAccount,
         transferAmount: a,
         noteText: noteText,
         phoneText: phoneText,
