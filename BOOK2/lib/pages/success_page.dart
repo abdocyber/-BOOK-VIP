@@ -23,7 +23,7 @@ class _SuccessPageState extends State<SuccessPage> {
   Map<String, dynamic> _getTxData(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is Map) return arg.cast<String, dynamic>();
-    
+
     if (arg != null) {
       try {
         final dynamic dynamicArg = arg;
@@ -46,7 +46,7 @@ class _SuccessPageState extends State<SuccessPage> {
 };
       } catch (_) {}
     }
-    
+
     // لا نستخدم بيانات افتراضية ثابتة حتى لا تظهر قيم غير صحيحة
     return const <String, dynamic>{};
   }
@@ -60,6 +60,7 @@ class _SuccessPageState extends State<SuccessPage> {
     return '';
   }
 
+  // ====== تنسيق رقم الحساب لـ 16 رقم مع فراغات (يبدأ بـ 0123) ======
   String _accountText(List<dynamic> values) {
     final raw = _firstNonEmpty(values);
     if (raw.isEmpty) return '';
@@ -68,13 +69,26 @@ class _SuccessPageState extends State<SuccessPage> {
 
     if (digitsOnly.length >= 16) {
       final account = digitsOnly.substring(0, 16);
-      return account.replaceAllMapped(
+      // التأكد من أنه يبدأ بـ 0123
+      String finalAccount = account;
+      if (!finalAccount.startsWith('0123')) {
+        finalAccount = '0123' + finalAccount.substring(4, 16);
+      }
+      return finalAccount.replaceAllMapped(
         RegExp(r'.{4}'),
         (match) => '${match.group(0)} ',
       ).trim();
     }
 
-    return raw;
+    // إذا كان أقل من 16 رقم، نكمل بأصفار ونضيف 0123
+    String padded = digitsOnly.padLeft(16, '0');
+    if (!padded.startsWith('0123')) {
+      padded = '0123' + padded.substring(4, 16);
+    }
+    return padded.replaceAllMapped(
+      RegExp(r'.{4}'),
+      (match) => '${match.group(0)} ',
+    ).trim();
   }
 
   String _phoneText(List<dynamic> values) {
@@ -175,11 +189,12 @@ class _SuccessPageState extends State<SuccessPage> {
   @override
   Widget build(BuildContext context) {
     final d = _getTxData(context);
-    
+
     final screenW = MediaQuery.of(context).size.width;
     final okButtonWidth = screenW * 0.2555;
     final okButtonHeight = okButtonWidth * 0.62;
 
+    // ====== ترتيب الصفوف بنفس ترتيب الصورة ======
     final rows = [
       ['رقم العملية', '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? ''}'],
       ['التاريخ و الزمن', '${d['createdAt'] ?? d['date'] ?? ''}'],
@@ -219,7 +234,7 @@ class _SuccessPageState extends State<SuccessPage> {
                             child: Column(
                               children: [
                                 const SizedBox(height: 55),
-                                
+
                                 // علامة الصح البيضاء الدائرية
                                 Container(
                                   width: 125,
@@ -232,14 +247,14 @@ class _SuccessPageState extends State<SuccessPage> {
                                     errorBuilder: (_, __, ___) => const Icon(Icons.check, color: Color(0xff1f982d), size: 70),
                                   ),
                                 ),
-                                
+
                                 const SizedBox(height: 16),
 
                                 const Text(
                                   'تحويلات',
                                   style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
                                 ),
-                                
+
                                 const SizedBox(height: 20),
 
                                 // الجدول
@@ -288,42 +303,42 @@ class _SuccessPageState extends State<SuccessPage> {
                                   ),
                                 ),
 
-                                // ======= تعديل زر موافق ليتطابق مع الـ CSS وتركيز النص في المنتصف بالملي =======
+                                // ======= زر موافق =======
                                 Padding(
-  padding: const EdgeInsets.only(top: 40),
-  child: Center(
-    child: InkWell(
-      onTap: () {
-        Navigator.pushReplacementNamed(context, '/sendto');
-      },
-      borderRadius: BorderRadius.circular(9),
-      child: SizedBox(
-        width: okButtonWidth,
-        height: okButtonHeight,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Image.asset(
-              'assets/img/sucessbutton.png',
-              width: okButtonWidth,
-              height: okButtonHeight,
-              fit: BoxFit.fill,
-            ),
-            const Text(
-              'موافق',
-              style: TextStyle(
-                color: Color(0xffeef7ee),
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Rubik',
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  ),
-),
+                                  padding: const EdgeInsets.only(top: 40),
+                                  child: Center(
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.pushReplacementNamed(context, '/sendto');
+                                      },
+                                      borderRadius: BorderRadius.circular(9),
+                                      child: SizedBox(
+                                        width: okButtonWidth,
+                                        height: okButtonHeight,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Image.asset(
+                                              'assets/img/sucessbutton.png',
+                                              width: okButtonWidth,
+                                              height: okButtonHeight,
+                                              fit: BoxFit.fill,
+                                            ),
+                                            const Text(
+                                              'موافق',
+                                              style: TextStyle(
+                                                color: Color(0xffeef7ee),
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                fontFamily: 'Rubik',
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                                 // ===========================================================================
 
                                 const Spacer(),
@@ -393,7 +408,7 @@ class _SuccessPageState extends State<SuccessPage> {
                         ),
                       ],
                     ),
-                    
+
                     if (showPrintSoon)
                       Positioned(
                         bottom: 60,
