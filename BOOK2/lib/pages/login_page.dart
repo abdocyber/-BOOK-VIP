@@ -152,13 +152,13 @@ class _LoginPageState extends State<LoginPage> {
                                 keyboardType: TextInputType.number,
                                 textInputAction: TextInputAction.next,
                                 textAlign: TextAlign.right,
-                                style: const TextStyle(fontSize: 16, color: Color(0xFF333333), fontWeight: FontWeight.w600),
+                                style: const TextStyle(fontSize: 16, color: Color(0xFF333333), fontWeight: FontWeight.w400),
                                 decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   isDense: true,
                                   contentPadding: EdgeInsets.zero,
-                                  hintText: '3024821',
-                                  hintStyle: TextStyle(color: Colors.black26, fontSize: 16),
+                                  hintText: '2777277',
+                                  hintStyle: TextStyle(color: Colors.black26, fontSize: 14, fontWeight: FontWeight.w400),
                                 ),
                               ),
                             ),
@@ -171,6 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                               iconAsset: 'assets/img/loginfingview.png',
                               scale: scale,
                               iconOnLeft: true, // الأيقونة على اليسار
+                              useEyeIcon: true,
                               onIconTap: () {
                                 setState(() {
                                   _obscurePassword = !_obscurePassword;
@@ -301,6 +302,8 @@ class _LoginPageState extends State<LoginPage> {
     required double scale,
     required Widget child,
     bool iconOnLeft = false,
+    bool useEyeIcon = false,
+    double borderWidth = 0.45,
     VoidCallback? onIconTap,
   }) {
     double s(double v) => v * scale;
@@ -308,7 +311,7 @@ class _LoginPageState extends State<LoginPage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0x66000000), width: 0.45),
+        border: Border.all(color: const Color(0x66000000), width: borderWidth),
         borderRadius: BorderRadius.circular(s(8)),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
@@ -337,7 +340,17 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(width: s(10)),
                   GestureDetector(
                     onTap: onIconTap,
-                    child: Image.asset(iconAsset, width: s(24), height: s(24), fit: BoxFit.contain),
+                    child: SizedBox(
+                      width: s(24),
+                      height: s(24),
+                      child: useEyeIcon
+                          ? Icon(
+                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              color: const Color(0xFF777777),
+                              size: s(24),
+                            )
+                          : Image.asset(iconAsset, fit: BoxFit.contain),
+                    ),
                   ),
                 ],
               ],
