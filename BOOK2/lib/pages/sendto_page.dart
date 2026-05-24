@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../main.dart';
 import '../models/account.dart';
@@ -52,6 +53,76 @@ class _SendToPageState extends State<SendToPage> {
     }
   }
 
+  Object? _pickReceiptValue(List<Object? Function()> getters) {
+    for (final getter in getters) {
+      try {
+        final value = getter();
+        if (value != null && '$value'.trim().isNotEmpty) return value;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  Future<void> _saveTransferIconReceipt({
+    required ReceiptData receipt,
+    required String fromAccount,
+    required String toAccount,
+    required double transferAmount,
+    required String noteText,
+    required String phoneText,
+  }) async {
+    final dynamic r = receipt;
+
+    final operationNumber = '${_pickReceiptValue([
+          () => r.operationNumber,
+          () => r.id,
+          () => r.transactionId,
+        ]) ?? DateTime.now().millisecondsSinceEpoch}';
+
+    final createdAt = '${_pickReceiptValue([
+          () => r.createdAt,
+          () => r.date,
+        ]) ?? DateTime.now().toIso8601String()}';
+
+    final receiverName = '${_pickReceiptValue([
+          () => r.receiverName,
+          () => r.accountName,
+          () => receiver?.fullName,
+        ]) ?? 'مستلم'}';
+
+    final cleanNote = noteText.trim().isEmpty ? 'N/A' : noteText.trim();
+    final cleanPhone = phoneText.trim().isEmpty ? 'N/A' : phoneText.trim();
+
+    await FirebaseFirestore.instance
+        .collection('transfericon')
+        .doc(operationNumber)
+        .set({
+          'operationNumber': operationNumber,
+          'id': operationNumber,
+          'transactionId': operationNumber,
+          'createdAt': createdAt,
+          'date': createdAt,
+          'createdAtServer': FieldValue.serverTimestamp(),
+          'amount': transferAmount,
+          'from': fromAccount,
+          'accountFrom': fromAccount,
+          'fromAccount': fromAccount,
+          'to': toAccount,
+          'accountTo': toAccount,
+          'toAccount': toAccount,
+          'receiverName': receiverName,
+          'accountName': receiverName,
+          'phone': cleanPhone,
+          'mobile': cleanPhone,
+          'note': cleanNote,
+          'comment': cleanNote,
+          'status': 'success',
+          'operationType': 'تحويل إلى حساب آخر',
+          'title': 'تحويل إلى حساب آخر',
+          'type': 'transfer',
+        }, SetOptions(merge: true));
+  }
+
   Future<void> submit() async {
     final rawAmount = amount.text.trim().replaceAll(',', '');
     final a = double.tryParse(rawAmount) ?? 0;
@@ -79,12 +150,24 @@ class _SendToPageState extends State<SendToPage> {
     }
 
     try {
+      final noteText = note.text.trim().isEmpty ? 'N/A' : note.text.trim();
+      final phoneText = phone.text.trim().isEmpty ? 'N/A' : phone.text.trim();
+
       final ReceiptData receipt = await FirebaseService.transfer(
         fromAccount: from,
         toAccount: to,
         amount: a,
-        note: note.text.trim().isEmpty ? 'N/A' : note.text.trim(),
-        phone: phone.text.trim().isEmpty ? 'N/A' : phone.text.trim(),
+        note: noteText,
+        phone: phoneText,
+      );
+
+      await _saveTransferIconReceipt(
+        receipt: receipt,
+        fromAccount: from,
+        toAccount: to,
+        transferAmount: a,
+        noteText: noteText,
+        phoneText: phoneText,
       );
 
       if (!mounted) return;
@@ -325,11 +408,11 @@ class _SendToPageState extends State<SendToPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                _redButton('تأكيد', submit),
                                 _redButton(
                                   'إلغاء',
                                   () => safeBack(context, '/transfer_bank'),
                                 ),
-                                _redButton('تأكيد', submit),
                               ],
                             ),
                           ),
