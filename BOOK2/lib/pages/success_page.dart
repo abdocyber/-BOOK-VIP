@@ -141,7 +141,7 @@ class _SuccessPageState extends State<SuccessPage> {
     
     final screenW = MediaQuery.of(context).size.width;
     final okButtonWidth = screenW * 0.2555;
-    final okButtonHeight = okButtonWidth * 0.451;
+    final okButtonHeight = okButtonWidth * 0.62;
 
     final rows = [
       ['رقم العملية', '${d['operationNumber'] ?? '20019741802'}'],
