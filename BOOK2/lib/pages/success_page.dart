@@ -258,26 +258,29 @@ class _SuccessPageState extends State<SuccessPage> {
                                         Navigator.pushReplacementNamed(context, '/sendto');
                                       },
                                       borderRadius: BorderRadius.circular(9),
-                                      child: Container(
-                                        width: 96, // width: 96px
-                                        height: 44, // height: 44px
-                                        alignment: Alignment.center, // النص في السنتر تماماً عمودياً وأفقياً
-                                        decoration: BoxDecoration(
-                                          image: const DecorationImage(
-                                            image: AssetImage('assets/img/sucessbutton.png'), // استخدام الأيقونة من الملف
-                                            fit: BoxFit.fill,
-                                          ),
-                                          border: Border.all(color: const Color(0xffd8f0dc), width: 1.3), // border: 1.3px solid #d8f0dc;
-                                          borderRadius: BorderRadius.circular(9), // border-radius: 9px;
-                                        ),
-                                        child: const Text(
-                                          'موافق',
-                                          style: TextStyle(
-                                            color: Color(0xffeef7ee), // color: #eef7ee;
-                                            fontSize: 15, // font-size: 15px;
-                                            fontWeight: FontWeight.w700, // font-weight: 700;
-                                            fontFamily: 'Rubik',
-                                          ),
+                                      child: SizedBox(
+                                        width: 96, // نفس عرض صورة زر موافق
+                                        height: 44, // نفس ارتفاع صورة زر موافق
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Image.asset(
+                                              'assets/img/sucessbutton.png',
+                                              width: 96,
+                                              height: 44,
+                                              fit: BoxFit.fill,
+                                            ),
+                                            const Text(
+                                              'موافق',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: Color(0xffeef7ee),
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                fontFamily: 'Rubik',
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
