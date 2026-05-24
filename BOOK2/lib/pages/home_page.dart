@@ -59,13 +59,13 @@ class HomePage extends StatelessWidget {
                   children: [
                     // 1. الهيدر العلوي المحدث بالترتيب الصحيح (الجرس يمين، الطاقة يسار)
                     Container(
-                      height: s(78), // ارتفاع الهيدر المتناسق لاحتواء الأيقونات والشعار
+                      height: 72, // ارتفاع الشريط العلوي مطابق للكود المطلوب
                       padding: EdgeInsets.symmetric(horizontal: s(16)), //
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [headerTop, headerBottom], //
+                          colors: [Color(0xffff0000), Color(0xffca1e24)], //
                         ),
                       ),
                       child: SafeArea(
@@ -88,9 +88,8 @@ class HomePage extends StatelessWidget {
                             
                             // شعار بنكك الرئيسي متمركز بالمنتصف تماماً
                             Image.asset(
-                              'assets/img/bankak_logo_big.png', //
-                              width: s(105), //
-                              height: s(48), //
+                              'assets/img/white_logo_n.png', //
+                              width: s(120), //
                               fit: BoxFit.contain, //
                             ),
                             
