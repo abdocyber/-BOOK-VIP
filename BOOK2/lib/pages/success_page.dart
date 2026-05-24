@@ -61,21 +61,34 @@ class _SuccessPageState extends State<SuccessPage> {
   }
 
   String _accountText(List<dynamic> values) {
-  final raw = _firstNonEmpty(values);
-  if (raw.isEmpty) return '';
+    final raw = _firstNonEmpty(values);
+    if (raw.isEmpty) return '';
 
-  final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
 
-  if (digitsOnly.length >= 16) {
-    final account = digitsOnly.substring(0, 16);
-    return account.replaceAllMapped(
-      RegExp(r'.{4}'),
-      (match) => '${match.group(0)} ',
-    ).trim();
+    if (digitsOnly.length >= 16) {
+      final account = digitsOnly.substring(0, 16);
+      return account.replaceAllMapped(
+        RegExp(r'.{4}'),
+        (match) => '${match.group(0)} ',
+      ).trim();
+    }
+
+    return raw;
   }
 
-  return raw;
-}
+  String _phoneText(List<dynamic> values) {
+    final raw = _firstNonEmpty(values);
+    if (raw.isEmpty) return 'N/A';
+
+    final clean = raw.trim();
+
+    if (clean == '249' || clean == '+249' || clean == '00249') {
+      return 'N/A';
+    }
+
+    return clean;
+  }
 
   // تنسيق المبلغ المالي بوضع الفواصل
   String _formatAmount(dynamic v) {
@@ -173,7 +186,7 @@ class _SuccessPageState extends State<SuccessPage> {
       ['من حساب', _accountText([d['fromAccount'], d['accountFrom'], d['from']])],
       ['الى حساب', _accountText([d['toAccount'], d['accountTo'], d['to']])],
       ['إسم المرسل اليه', '${d['receiverName'] ?? d['accountName'] ?? ''}'],
-      ['رقم الموبايل', '${d['phone'] ?? d['mobile'] ?? 'N/A'}'],
+      ['رقم الموبايل', _phoneText([d['phone'], d['mobile']])],
       ['التعليق', '${d['note'] ?? d['comment'] ?? 'N/A'}'],
       ['المبلغ', _formatAmount(d['amount'] ?? 0)],
     ];
