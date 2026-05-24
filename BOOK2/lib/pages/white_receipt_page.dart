@@ -156,16 +156,16 @@ Expanded(
           final isTallRow = r.label == 'إسم المرسل اليه';
 
           return Container(
-            height: isTallRow ? 82 : 79,
+            height: isTallRow ? 58 : 52,
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
                 color: const Color(0xff989793),
-                width: 1.4,
+                width: 1.25,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(7),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -176,7 +176,7 @@ Expanded(
                   style: const TextStyle(
                     color: Color(0xff555555),
                     fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
+                    fontSize: 15.0,
                     fontFamily: 'Rubik',
                   ),
                 ),
@@ -190,7 +190,7 @@ Expanded(
                     style: const TextStyle(
                       color: Color(0xff5f5f5f),
                       fontWeight: FontWeight.w500,
-                      fontSize: 18.0,
+                      fontSize: 16.0,
                       fontFamily: 'Rubik',
                     ),
                   ),
