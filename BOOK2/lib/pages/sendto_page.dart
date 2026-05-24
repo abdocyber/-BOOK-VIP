@@ -70,6 +70,7 @@ class _SendToPageState extends State<SendToPage> {
     required double transferAmount,
     required String noteText,
     required String phoneText,
+    required String receiverName,
   }) async {
     final dynamic r = receipt;
 
@@ -84,11 +85,7 @@ class _SendToPageState extends State<SendToPage> {
           () => r.date,
         ]) ?? DateTime.now().toIso8601String()}';
 
-    final receiverName =
-        (receiver?.fullName.trim().isNotEmpty ?? false)
-            ? receiver!.fullName.trim()
-            : 'مستلم';
-
+    final cleanReceiverName = receiverName.trim().isEmpty ? 'مستلم' : receiverName.trim();
     final cleanNote = noteText.trim().isEmpty ? 'N/A' : noteText.trim();
     final cleanPhone = phoneText.trim().isEmpty ? 'N/A' : phoneText.trim();
 
@@ -103,14 +100,14 @@ class _SendToPageState extends State<SendToPage> {
           'date': createdAt,
           'createdAtServer': FieldValue.serverTimestamp(),
           'amount': transferAmount,
-          'from': fullFromAccount,
-          'accountFrom': fullFromAccount,
-          'fromAccount': fullFromAccount,
+          'from': fromAccount,
+          'accountFrom': fromAccount,
+          'fromAccount': fromAccount,
           'to': toAccount,
           'accountTo': toAccount,
           'toAccount': toAccount,
-          'receiverName': receiverName,
-          'accountName': receiverName,
+          'receiverName': cleanReceiverName,
+          'accountName': cleanReceiverName,
           'phone': cleanPhone,
           'mobile': cleanPhone,
           'note': cleanNote,
@@ -134,19 +131,13 @@ class _SendToPageState extends State<SendToPage> {
     final current = SessionService.current;
 
     final fullFromAccount =
-        (current?.accountNo.trim().isNotEmpty ?? false)
-            ? current!.accountNo.trim()
-            : '';
+        (current?.accountNo.trim().isNotEmpty ?? false) ? current!.accountNo.trim() : '';
 
     final fullToAccount =
-        (receiver?.accountNo.trim().isNotEmpty ?? false)
-            ? receiver!.accountNo.trim()
-            : to;
+        (receiver?.accountNo.trim().isNotEmpty ?? false) ? receiver!.accountNo.trim() : to;
 
     final fullReceiverName =
-        (receiver?.fullName.trim().isNotEmpty ?? false)
-            ? receiver!.fullName.trim()
-            : 'مستلم';
+        (receiver?.fullName.trim().isNotEmpty ?? false) ? receiver!.fullName.trim() : 'مستلم';
 
     if (fullFromAccount.isEmpty) {
       if (!mounted) return;
@@ -181,6 +172,7 @@ class _SendToPageState extends State<SendToPage> {
         transferAmount: a,
         noteText: noteText,
         phoneText: phoneText,
+        receiverName: fullReceiverName,
       );
 
       if (!mounted) return;
@@ -305,8 +297,7 @@ class _SendToPageState extends State<SendToPage> {
                         right: 18,
                         bottom: 18,
                         child: IconButton(
-                          onPressed: () =>
-                              Navigator.pushReplacementNamed(context, '/home'),
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
                           icon: const Icon(
                             Icons.menu,
                             color: Colors.white,
@@ -422,8 +413,7 @@ class _SendToPageState extends State<SendToPage> {
                                 _inputRow(
                                   'dropdownarr.png',
                                   null,
-                                  initial:
-                                      SessionService.current?.referenceNo ??
+                                  initial: SessionService.current?.referenceNo ??
                                       SessionService.current?.accountNo ??
                                       '',
                                   label: 'اختر الحساب',
