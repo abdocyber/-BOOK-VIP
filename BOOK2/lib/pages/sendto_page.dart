@@ -132,19 +132,23 @@ class _SendToPageState extends State<SendToPage> {
     }
 
     final current = SessionService.current;
-    final from = current?.accountNo.trim() ?? '';
 
-    final fullToAccount =
-        (receiver?.accountNo.trim().isNotEmpty ?? false)
-            ? receiver!.accountNo.trim()
-            : to;
+final fullFromAccount =
+    (current?.accountNo.trim().isNotEmpty ?? false)
+        ? current!.accountNo.trim()
+        : '';
 
-    final fullReceiverName =
-        (receiver?.fullName.trim().isNotEmpty ?? false)
-            ? receiver!.fullName.trim()
-            : 'مستلم';
+final fullToAccount =
+    (receiver?.accountNo.trim().isNotEmpty ?? false)
+        ? receiver!.accountNo.trim()
+        : to;
 
-    if (from.isEmpty) {
+final fullReceiverName =
+    (receiver?.fullName.trim().isNotEmpty ?? false)
+        ? receiver!.fullName.trim()
+        : 'مستلم';
+
+    if (fullFromAccount.isEmpty) {
       if (!mounted) return;
 
       Navigator.pushReplacementNamed(
@@ -163,8 +167,8 @@ class _SendToPageState extends State<SendToPage> {
       final phoneText = phone.text.trim().isEmpty ? 'N/A' : phone.text.trim();
 
       final ReceiptData receipt = await FirebaseService.transfer(
-        fromAccount: from,
-        toAccount: to,
+        fromAccount: fullFromAccount,
+        toAccount: fullToAccount,
         amount: a,
         note: noteText,
         phone: phoneText,
@@ -172,7 +176,7 @@ class _SendToPageState extends State<SendToPage> {
 
       await _saveTransferIconReceipt(
         receipt: receipt,
-        fromAccount: from,
+        fromAccount: fullFromAccount,
         toAccount: fullToAccount,
         transferAmount: a,
         noteText: noteText,
