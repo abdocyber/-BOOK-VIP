@@ -146,54 +146,60 @@ Container(
               ),
             ),
 
-            // الجدول الممتد لعرض الشاشة بالكامل مع حدود رمادية سميكة
+            // الجدول الممتد لعرض الشاشة بالكامل بنفس أبعاد وحواف الصورة المرجعية
             Expanded(
               child: Container(
                 color: const Color(0xFFF4F5F7),
                 child: SingleChildScrollView(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        top: BorderSide(color: Color(0xffcccccc), width: 1.5), // زيادة سمك حدود الجدول
-                        bottom: BorderSide(color: Color(0xffcccccc), width: 1.5), // زيادة سمك حدود الجدول
-                      ),
-                    ),
-                    child: Column(
-                      children: rows.asMap().entries.map((entry) {
-                        final isLast = entry.key == rows.length - 1;
-                        final r = entry.value;
+                  child: Column(
+                    children: rows.asMap().entries.map((entry) {
+                      final r = entry.value;
+                      final isTallRow = r.label == 'إسم المرسل اليه';
 
-                        return Container(
-                          constraints: const BoxConstraints(minHeight: 45),
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xff989793), width: 1.4)), // زيادة سمك حدود الصفوف
+                      return Container(
+                        width: double.infinity,
+                        height: isTallRow ? 82 : 78,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: const Color(0xff989793),
+                            width: 1.4,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                r.label,
-                                style: const TextStyle(color: Color(0xff555555), fontWeight: FontWeight.bold, fontSize: 14.5, fontFamily: 'Rubik'),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              r.label,
+                              style: const TextStyle(
+                                color: Color(0xff555555),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14.5,
+                                fontFamily: 'Rubik',
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(
-                                  r.value.isEmpty ? 'N/A' : r.value,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.left,
-                                  style: const TextStyle(color: Color(0xff5f5f5f), fontWeight: FontWeight.w500, fontSize: 14.0, fontFamily: 'Rubik'),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                r.value.isEmpty ? 'N/A' : r.value,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.left,
+                                style: const TextStyle(
+                                  color: Color(0xff5f5f5f),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14.0,
+                                  fontFamily: 'Rubik',
                                 ),
                               ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
               ),
