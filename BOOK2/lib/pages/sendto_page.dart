@@ -53,6 +53,108 @@ class _SendToPageState extends State<SendToPage> {
     }
   }
 
+  // ====== تنسيق رقم الحساب لـ 16 رقم مع فراغات ======
+  String _formatAccount16(String account) {
+    final digitsOnly = account.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (digitsOnly.length >= 16) {
+      final acc16 = digitsOnly.substring(0, 16);
+      return acc16.replaceAllMapped(
+        RegExp(r'.{4}'),
+        (match) => '${match.group(0)} ',
+      ).trim();
+    }
+
+    // إكمال بأصفار إذا أقل من 16
+    final padded = digitsOnly.padLeft(16, '0');
+    return padded.replaceAllMapped(
+      RegExp(r'.{4}'),
+      (match) => '${match.group(0)} ',
+    ).trim();
+  }
+
+  // ====== توليد رقم الحساب المرسل بتنسيق 0123 XXXX XXXX XXXX ======
+  String _generateSenderAccount16(String accountNo, String referenceNo) {
+    // أولاً: نحاول استخدام accountNo إذا كان 16 رقم
+    String digitsOnly = accountNo.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (digitsOnly.length >= 16) {
+      // إذا كان يبدأ بـ 0123 نستخدمه مباشرة
+      if (digitsOnly.startsWith('0123')) {
+        return digitsOnly.substring(0, 16);
+      }
+      // إذا لم يبدأ بـ 0123، نستبدل البداية
+      return '0123' + digitsOnly.substring(4, 16);
+    }
+
+    // إذا كان أقل من 16 رقم، نستخدم referenceNo
+    String refDigits = referenceNo.replaceAll(RegExp(r'[^0-9]'), '');
+
+    // نولد: 0123 + referenceNo مكمل بأصفار حتى 16
+    String base = refDigits.padLeft(12, '0'); // 12 رقم بعد 0123
+    if (base.length > 12) {
+      base = base.substring(base.length - 12); // آخر 12 رقم
+    }
+
+    return '0123' + base;
+  }
+
+  // ====== جلب رقم الحساب المستلم الكامل 16 رقم من Firebase ======
+  Future<String> _getReceiverAccount16(String referenceOrShort) async {
+    final cleanRef = referenceOrShort.replaceAll(RegExp(r'[^0-9]'), '');
+
+    // إذا كان بالفعل 16 رقم ويبدأ بـ 0123
+    if (cleanRef.length >= 16 && cleanRef.startsWith('0123')) {
+      return cleanRef.substring(0, 16);
+    }
+
+    try {
+      // البحث في Firebase بالرقم المرجعي
+      final doc = await FirebaseFirestore.instance
+          .collection('accounts')
+          .where('referenceNo', isEqualTo: cleanRef)
+          .limit(1)
+          .get();
+
+      if (doc.docs.isNotEmpty) {
+        final data = doc.docs.first.data();
+        final accountNo = data['accountNo']?.toString() ?? '';
+        final digitsOnly = accountNo.replaceAll(RegExp(r'[^0-9]'), '');
+
+        if (digitsOnly.length >= 16) {
+          if (digitsOnly.startsWith('0123')) {
+            return digitsOnly.substring(0, 16);
+          }
+          return '0123' + digitsOnly.substring(4, 16);
+        }
+
+        // إذا كان accountNo قصير، نولد منه
+        final refNo = data['referenceNo']?.toString() ?? cleanRef;
+        return _generateSenderAccount16(accountNo, refNo);
+      }
+
+      // البحث بحقل accountNo إذا كان يحتوي الرقم
+      final doc2 = await FirebaseFirestore.instance
+          .collection('accounts')
+          .where('accountNo', isGreaterThanOrEqualTo: cleanRef)
+          .where('accountNo', isLessThan: cleanRef + 'z')
+          .limit(1)
+          .get();
+
+      if (doc2.docs.isNotEmpty) {
+        final data = doc2.docs.first.data();
+        final accountNo = data['accountNo']?.toString() ?? '';
+        final refNo = data['referenceNo']?.toString() ?? cleanRef;
+        return _generateSenderAccount16(accountNo, refNo);
+      }
+    } catch (e) {
+      debugPrint('Error fetching receiver account 16: $e');
+    }
+
+    // fallback: توليد من الرقم المُرسل
+    return _generateSenderAccount16('', cleanRef);
+  }
+
   Object? _pickReceiptValue(List<Object? Function()> getters) {
     for (final getter in getters) {
       try {
@@ -130,28 +232,64 @@ class _SendToPageState extends State<SendToPage> {
 
     final current = SessionService.current;
 
-    final fullFromAccount =
-        (current?.accountNo.trim().isNotEmpty ?? false) ? current!.accountNo.trim() : '';
+    // ====== توليد 16 رقم للحساب المرسل (يبدأ بـ 0123) ======
+    String fullFromAccount = '';
+    if (current != null) {
+      fullFromAccount = _generateSenderAccount16(
+        current.accountNo ?? '',
+        current.referenceNo ?? '',
+      );
+    }
 
-    final fullToAccount =
-        (receiver?.accountNo.trim().isNotEmpty ?? false) ? receiver!.accountNo.trim() : to;
+    // ====== جلب 16 رقم للحساب المستلم من Firebase ======
+    String fullToAccount = '';
+    if (receiver != null) {
+      fullToAccount = _generateSenderAccount16(
+        receiver!.accountNo ?? '',
+        receiver!.referenceNo ?? to,
+      );
+    } else {
+      fullToAccount = await _getReceiverAccount16(to);
+    }
 
     final fullReceiverName =
         (receiver?.fullName.trim().isNotEmpty ?? false) ? receiver!.fullName.trim() : 'مستلم';
 
-    if (fullFromAccount.isEmpty) {
+    // ====== التحقق النهائي ======
+    if (fullFromAccount.length != 16 || !fullFromAccount.startsWith('0123')) {
       if (!mounted) return;
-
       Navigator.pushReplacementNamed(
         context,
         '/error',
         arguments: {
-          'message': 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى',
+          'message': 'رقم حساب المرسل غير صحيح (يجب 16 رقم يبدأ بـ 0123)',
           'retryRoute': '/login',
         },
       );
       return;
     }
+
+    if (fullToAccount.length != 16 || !fullToAccount.startsWith('0123')) {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(
+        context,
+        '/error',
+        arguments: {
+          'message': 'رقم حساب المستلم غير صحيح (يجب 16 رقم يبدأ بـ 0123)',
+          'retryRoute': '/sendto',
+          'to': to,
+        },
+      );
+      return;
+    }
+
+    // ====== طباعة للتأكد ======
+    debugPrint('=== ✅ ACCOUNTS 16 DIGITS VERIFIED ===');
+    debugPrint('From Account (16): $fullFromAccount');
+    debugPrint('From Formatted: ${_formatAccount16(fullFromAccount)}');
+    debugPrint('To Account (16): $fullToAccount');
+    debugPrint('To Formatted: ${_formatAccount16(fullToAccount)}');
+    debugPrint('=====================================');
 
     try {
       final noteText = note.text.trim().isEmpty ? 'N/A' : note.text.trim();
@@ -389,7 +527,13 @@ class _SendToPageState extends State<SendToPage> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _info('رقم الحساب', receiver?.referenceNo ?? to),
+                                // ====== عرض 16 رقم مُنسق ======
+                                _info('رقم الحساب', _formatAccount16(
+                                  _generateSenderAccount16(
+                                    receiver?.accountNo ?? '',
+                                    receiver?.referenceNo ?? to,
+                                  )
+                                )),
                                 _info('الاسم', receiver?.fullName ?? 'مستلم'),
                                 _info(
                                   'نوع الحساب',
@@ -413,9 +557,12 @@ class _SendToPageState extends State<SendToPage> {
                                 _inputRow(
                                   'dropdownarr.png',
                                   null,
-                                  initial: SessionService.current?.referenceNo ??
-                                      SessionService.current?.accountNo ??
-                                      '',
+                                  initial: _formatAccount16(
+                                    _generateSenderAccount16(
+                                      SessionService.current?.accountNo ?? '',
+                                      SessionService.current?.referenceNo ?? '',
+                                    )
+                                  ),
                                   label: 'اختر الحساب',
                                 ),
                                 _line(),
