@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../models/receipt.dart'; // تأكد من مطابقة مسار الموديل في مشروعك
 
 class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
@@ -139,6 +138,9 @@ class _SuccessPageState extends State<SuccessPage> {
   @override
   Widget build(BuildContext context) {
     final d = _getTxData(context);
+    
+    final screenW = MediaQuery.of(context).size.width;
+  final screenH = MediaQuery.of(context).size.height;
 
     final rows = [
       ['رقم العملية', '${d['operationNumber'] ?? '20019741802'}'],
@@ -250,42 +252,40 @@ class _SuccessPageState extends State<SuccessPage> {
 
                                 // ======= تعديل زر موافق ليتطابق مع الـ CSS وتركيز النص في المنتصف بالملي =======
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 40), // margin: 40px auto 0
-                                  child: Center(
-                                    child: InkWell(
-                                      onTap: () {
-                                        // يرجع للخلف إلى صفحة sendto
-                                        Navigator.pushReplacementNamed(context, '/sendto');
-                                      },
-                                      borderRadius: BorderRadius.circular(9),
-                                      child: SizedBox(
-                                        width: 96, // نفس عرض صورة زر موافق
-                                        height: 44, // نفس ارتفاع صورة زر موافق
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Image.asset(
-                                              'assets/img/sucessbutton.png',
-                                              width: 96,
-                                              height: 44,
-                                              fit: BoxFit.fill,
-                                            ),
-                                            const Text(
-                                              'موافق',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Color(0xffeef7ee),
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                fontFamily: 'Rubik',
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+  padding: const EdgeInsets.only(top: 40),
+  child: Center(
+    child: InkWell(
+      onTap: () {
+        Navigator.pushReplacementNamed(context, '/sendto');
+      },
+      borderRadius: BorderRadius.circular(9),
+      child: SizedBox(
+        width: screenW * 0.258,
+        height: screenH * 0.052,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              'assets/img/sucessbutton.png',
+              width: screenW * 0.258,
+              height: screenH * 0.052,
+              fit: BoxFit.fill,
+            ),
+            const Text(
+              'موافق',
+              style: TextStyle(
+                color: Color(0xffeef7ee),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Rubik',
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
+),
                                 // ===========================================================================
 
                                 const Spacer(),
