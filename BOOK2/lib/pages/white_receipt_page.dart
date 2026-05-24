@@ -156,7 +156,7 @@ Expanded(
           final isTallRow = r.label == 'إسم المرسل اليه';
 
           return Container(
-            height: isTallRow ? 58 : 52,
+            height: isTallRow ? 52 : 38,
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
