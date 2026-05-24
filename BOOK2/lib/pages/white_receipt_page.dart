@@ -124,7 +124,7 @@ Container(
                   const Center(
                     child: Text(
                       'تفاصيل المعاملة',
-                      style: TextStyle(color: Color(0xff2b2b2b), fontSize: 16.5, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
+                      style: TextStyle(color: Color(0xff2b2b2b), fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
                     ),
                   ),
                   Positioned(
@@ -145,65 +145,64 @@ Container(
                 ],
               ),
             ),
-
             // الجدول الممتد لعرض الشاشة بالكامل بنفس أبعاد وحواف الصورة المرجعية
-            Expanded(
-              child: Container(
-                color: const Color(0xFFF4F5F7),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: rows.asMap().entries.map((entry) {
-                      final r = entry.value;
-                      final isTallRow = r.label == 'إسم المرسل اليه';
+Expanded(
+  child: Container(
+    color: const Color(0xFFF4F5F7),
+    child: SingleChildScrollView(
+      child: Column(
+        children: rows.asMap().entries.map((entry) {
+          final r = entry.value;
+          final isTallRow = r.label == 'إسم المرسل اليه';
 
-                      return Container(
-                        width: double.infinity,
-                        height: isTallRow ? 82 : 78,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: const Color(0xff989793),
-                            width: 1.4,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              r.label,
-                              style: const TextStyle(
-                                color: Color(0xff555555),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14.5,
-                                fontFamily: 'Rubik',
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                r.value.isEmpty ? 'N/A' : r.value,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.left,
-                                style: const TextStyle(
-                                  color: Color(0xff5f5f5f),
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14.0,
-                                  fontFamily: 'Rubik',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+          return Container(
+            height: isTallRow ? 82 : 79,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(
+                color: const Color(0xff989793),
+                width: 1.4,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  r.label,
+                  style: const TextStyle(
+                    color: Color(0xff555555),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0,
+                    fontFamily: 'Rubik',
                   ),
                 ),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    r.value.isEmpty ? 'N/A' : r.value,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      color: Color(0xff5f5f5f),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 18.0,
+                      fontFamily: 'Rubik',
+                    ),
+                  ),
+                ),
+              ],
             ),
+          );
+        }).toList(),
+      ),
+    ),
+  ),
+),
 
             // أزرار الإجراءات مع زيادة سمك الإطار
             Padding(
