@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:math' as math;
 
 class WhiteReceiptPage extends StatefulWidget {
   const WhiteReceiptPage({super.key});
@@ -102,14 +101,14 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Icon(Icons.menu, color: Colors.white, size: 26),
-                    Image.asset('assets/img/bankak_logo_big.png', width: 95, fit: BoxFit.contain),
+                    Image.asset('assets/img/bankak_logo_big.png', width: 116, height: 46, fit: BoxFit.fill),
                     const SizedBox(width: 26),
                   ],
                 ),
               ),
             ),
 
-            // شريط تفاصيل المعاملة وزر الرجوع (عكس الاتجاه لليسار)
+            // شريط تفاصيل المعاملة وزر الرجوع
             Container(
               height: 56,
               color: const Color(0xfff8f8f8),
@@ -122,21 +121,17 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     ),
                   ),
                   Positioned(
-                    left: 14, // الأيقونة على اليسار كما في الصورة
+                    right: 14, // زر الرجوع على اليمين
                     top: 8,
                     child: InkWell(
                       onTap: () {
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
-                      child: Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.rotationY(math.pi),
-                        child: Image.asset(
-                          'assets/img/back.png',
-                          width: 70,
-                          height: 40,
-                          fit: BoxFit.contain,
-                        ),
+                      child: Image.asset(
+                        'assets/img/back.png',
+                        width: 70,
+                        height: 40,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
@@ -154,8 +149,8 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       border: Border(
-                        top: BorderSide(color: Color(0xffcccccc), width: 1.6), // زيادة سمك حدود الجدول
-                        bottom: BorderSide(color: Color(0xffcccccc), width: 1.6), // زيادة سمك حدود الجدول
+                        top: BorderSide(color: Color(0xffcccccc), width: 1.5), // زيادة سمك حدود الجدول
+                        bottom: BorderSide(color: Color(0xffcccccc), width: 1.5), // زيادة سمك حدود الجدول
                       ),
                     ),
                     child: Column(
@@ -168,7 +163,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffd0d0d0), width: 1.4)), // زيادة سمك حدود الصفوف
+                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffd0d0d0), width: 0.9)), // زيادة سمك حدود الصفوف
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -184,7 +179,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.left,
-                                  style: const TextStyle(color: Color(0xff666666), fontWeight: FontWeight.w600, fontSize: 14.0, fontFamily: 'Rubik'),
+                                  style: const TextStyle(color: Color(0xff666666), fontWeight: FontWeight.w500, fontSize: 14.0, fontFamily: 'Rubik'),
                                 ),
                               ),
                             ],
