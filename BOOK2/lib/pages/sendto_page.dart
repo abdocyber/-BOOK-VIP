@@ -84,11 +84,10 @@ class _SendToPageState extends State<SendToPage> {
           () => r.date,
         ]) ?? DateTime.now().toIso8601String()}';
 
-    final receiverName = '${_pickReceiptValue([
-          () => r.receiverName,
-          () => r.accountName,
-          () => receiver?.fullName,
-        ]) ?? 'مستلم'}';
+    final receiverName =
+        (receiver?.fullName.trim().isNotEmpty ?? false)
+            ? receiver!.fullName.trim()
+            : 'مستلم';
 
     final cleanNote = noteText.trim().isEmpty ? 'N/A' : noteText.trim();
     final cleanPhone = phoneText.trim().isEmpty ? 'N/A' : phoneText.trim();
@@ -133,14 +132,19 @@ class _SendToPageState extends State<SendToPage> {
     }
 
     final current = SessionService.current;
-final from = current?.accountNo.trim() ?? '';
+    final from = current?.accountNo.trim() ?? '';
 
-final fullToAccount =
-    (receiver?.accountNo.trim().isNotEmpty ?? false)
-        ? receiver!.accountNo.trim()
-        : to;
+    final fullToAccount =
+        (receiver?.accountNo.trim().isNotEmpty ?? false)
+            ? receiver!.accountNo.trim()
+            : to;
 
-if (from.isEmpty) {
+    final fullReceiverName =
+        (receiver?.fullName.trim().isNotEmpty ?? false)
+            ? receiver!.fullName.trim()
+            : 'مستلم';
+
+    if (from.isEmpty) {
       if (!mounted) return;
 
       Navigator.pushReplacementNamed(
@@ -177,10 +181,45 @@ if (from.isEmpty) {
 
       if (!mounted) return;
 
+      final dynamic r = receipt;
+
+      final operationNumber = '${_pickReceiptValue([
+            () => r.operationNumber,
+            () => r.id,
+            () => r.transactionId,
+          ]) ?? DateTime.now().millisecondsSinceEpoch}';
+
+      final createdAt = '${_pickReceiptValue([
+            () => r.createdAt,
+            () => r.date,
+          ]) ?? DateTime.now().toIso8601String()}';
+
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/success',
         (route) => false,
-        arguments: receipt,
+        arguments: {
+          'operationNumber': operationNumber,
+          'id': operationNumber,
+          'transactionId': operationNumber,
+          'createdAt': createdAt,
+          'date': createdAt,
+          'amount': a,
+          'from': from,
+          'accountFrom': from,
+          'fromAccount': from,
+          'to': fullToAccount,
+          'accountTo': fullToAccount,
+          'toAccount': fullToAccount,
+          'receiverName': fullReceiverName,
+          'accountName': fullReceiverName,
+          'phone': phoneText,
+          'mobile': phoneText,
+          'note': noteText,
+          'comment': noteText,
+          'status': 'success',
+          'operationType': 'تحويل إلى حساب آخر',
+          'title': 'تحويل إلى حساب آخر',
+        },
       );
       return;
     } catch (e) {
