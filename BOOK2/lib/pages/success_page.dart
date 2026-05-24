@@ -28,15 +28,17 @@ class _SuccessPageState extends State<SuccessPage> {
       try {
         final dynamic dynamicArg = arg;
         return {
-          'operationNumber': dynamicArg.operationNumber ?? dynamicArg.id,
-          'createdAt': dynamicArg.date ?? dynamicArg.createdAt,
-          'amount': dynamicArg.amount,
-          'from': dynamicArg.fromAccount ?? dynamicArg.from,
-          'to': dynamicArg.toAccount ?? dynamicArg.to,
-          'receiverName': dynamicArg.receiverName ?? dynamicArg.accountName,
-          'phone': dynamicArg.phone ?? dynamicArg.mobile,
-          'note': dynamicArg.note ?? dynamicArg.comment,
-        };
+  'operationNumber': dynamicArg.operationNumber ?? dynamicArg.id,
+  'createdAt': dynamicArg.date ?? dynamicArg.createdAt,
+  'amount': dynamicArg.amount,
+  'from': dynamicArg.fromAccount ?? dynamicArg.from,
+  'to': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
+  'toAccount': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
+  'accountTo': dynamicArg.accountTo ?? dynamicArg.toAccount ?? dynamicArg.to,
+  'receiverName': dynamicArg.receiverName ?? dynamicArg.accountName,
+  'phone': dynamicArg.phone ?? dynamicArg.mobile,
+  'note': dynamicArg.note ?? dynamicArg.comment,
+};
       } catch (_) {}
     }
     
@@ -147,7 +149,7 @@ class _SuccessPageState extends State<SuccessPage> {
       ['رقم العملية', '${d['operationNumber'] ?? '20019741802'}'],
       ['التاريخ و الزمن', '${d['createdAt'] ?? '21-May-2026 16:39:17'}'],
       ['من حساب', '${d['from'] ?? '0123 0302 4821 0001'}'],
-      ['الى حساب', '${d['to'] ?? '0033 0443 6676 0001'}'],
+      ['الى حساب', '${d['toAccount'] ?? d['accountTo'] ?? d['to'] ?? '0033 0443 6676 0001'}'],
       ['إسم المرسل اليه', '${d['receiverName'] ?? 'نازك عبدالقادر الطيب\nعبدالقادر'}'],
       ['رقم الموبايل', '${d['phone'] ?? 'N/A'}'],
       ['التعليق', '${d['note'] ?? 'N/A'}'],
