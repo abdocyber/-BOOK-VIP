@@ -101,8 +101,12 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Icon(Icons.menu, color: Colors.white, size: 26),
-                    Image.asset('assets/img/bankak_logo_big.png', width: 116, height: 46, fit: BoxFit.fill),
-                    const SizedBox(width: 26),
+                    Image.asset(
+  'assets/img/white_logo_n.png',
+  width: 116,
+  height: 46,
+  fit: BoxFit.contain,
+),
                   ],
                 ),
               ),
@@ -163,7 +167,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xffd0d0d0), width: 0.9)), // زيادة سمك حدود الصفوف
+                            border: Border(bottom: isLast ? BorderSide.none : const BorderSide(color: Color(0xff989793), width: 1.4)), // زيادة سمك حدود الصفوف
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -179,7 +183,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.left,
-                                  style: const TextStyle(color: Color(0xff666666), fontWeight: FontWeight.w500, fontSize: 14.0, fontFamily: 'Rubik'),
+                                  style: const TextStyle(color: Color(0xff5f5f5f), fontWeight: FontWeight.w500, fontSize: 14.0, fontFamily: 'Rubik'),
                                 ),
                               ),
                             ],
