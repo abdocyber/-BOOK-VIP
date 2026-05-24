@@ -250,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
 
                             // أيقونة شارك رمز
                             Align(
-                              alignment: Alignment.centerRight,
+                              alignment: Alignment.centerLeft,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
@@ -308,6 +308,7 @@ class _LoginPageState extends State<LoginPage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
+        border: Border.all(color: const Color(0x66000000), width: 0.45),
         borderRadius: BorderRadius.circular(s(8)),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
