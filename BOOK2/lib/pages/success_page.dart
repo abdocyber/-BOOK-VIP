@@ -36,23 +36,17 @@ class _SuccessPageState extends State<SuccessPage> {
   'toAccount': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
   'accountTo': dynamicArg.accountTo ?? dynamicArg.toAccount ?? dynamicArg.to,
   'receiverName': dynamicArg.receiverName ?? dynamicArg.accountName,
+  'accountName': dynamicArg.accountName ?? dynamicArg.receiverName,
   'phone': dynamicArg.phone ?? dynamicArg.mobile,
+  'mobile': dynamicArg.mobile ?? dynamicArg.phone,
   'note': dynamicArg.note ?? dynamicArg.comment,
+  'comment': dynamicArg.comment ?? dynamicArg.note,
 };
       } catch (_) {}
     }
     
-    // بيانات افتراضية مطابقة للصورة لتسهيل التجربة في بيئة التطوير
-    return const <String, dynamic>{
-      'operationNumber': '20019741802',
-      'createdAt': '21-May-2026 16:39:17',
-      'amount': 15000.00,
-      'from': '0123 0302 4821 0001',
-      'to': '0033 0443 6676 0001',
-      'receiverName': 'نازك عبدالقادر الطيب\nعبدالقادر',
-      'phone': 'N/A',
-      'note': 'N/A',
-    };
+    // لا نستخدم بيانات افتراضية ثابتة حتى لا تظهر قيم غير صحيحة
+    return const <String, dynamic>{};
   }
 
   // تنسيق المبلغ المالي بوضع الفواصل
@@ -146,14 +140,14 @@ class _SuccessPageState extends State<SuccessPage> {
     final okButtonHeight = okButtonWidth * 0.62;
 
     final rows = [
-      ['رقم العملية', '${d['operationNumber'] ?? '20019741802'}'],
-      ['التاريخ و الزمن', '${d['createdAt'] ?? '21-May-2026 16:39:17'}'],
-      ['من حساب', '${d['from'] ?? '0123 0302 4821 0001'}'],
-      ['الى حساب', '${d['toAccount'] ?? d['accountTo'] ?? d['to'] ?? '0033 0443 6676 0001'}'],
-      ['إسم المرسل اليه', '${d['receiverName'] ?? 'نازك عبدالقادر الطيب\nعبدالقادر'}'],
-      ['رقم الموبايل', '${d['phone'] ?? 'N/A'}'],
-      ['التعليق', '${d['note'] ?? 'N/A'}'],
-      ['المبلغ', _formatAmount(d['amount'])],
+      ['رقم العملية', '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? ''}'],
+      ['التاريخ و الزمن', '${d['createdAt'] ?? d['date'] ?? ''}'],
+      ['من حساب', '${d['from'] ?? d['fromAccount'] ?? d['accountFrom'] ?? ''}'],
+      ['الى حساب', '${d['toAccount'] ?? d['accountTo'] ?? d['to'] ?? ''}'],
+      ['إسم المرسل اليه', '${d['receiverName'] ?? d['accountName'] ?? ''}'],
+      ['رقم الموبايل', '${d['phone'] ?? d['mobile'] ?? 'N/A'}'],
+      ['التعليق', '${d['note'] ?? d['comment'] ?? 'N/A'}'],
+      ['المبلغ', _formatAmount(d['amount'] ?? 0)],
     ];
 
     return Directionality(
