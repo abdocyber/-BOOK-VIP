@@ -140,7 +140,8 @@ class _SuccessPageState extends State<SuccessPage> {
     final d = _getTxData(context);
     
     final screenW = MediaQuery.of(context).size.width;
-  final screenH = MediaQuery.of(context).size.height;
+    final okButtonWidth = screenW * 0.2555;
+    final okButtonHeight = okButtonWidth * 0.451;
 
     final rows = [
       ['رقم العملية', '${d['operationNumber'] ?? '20019741802'}'],
@@ -260,15 +261,15 @@ class _SuccessPageState extends State<SuccessPage> {
       },
       borderRadius: BorderRadius.circular(9),
       child: SizedBox(
-        width: screenW * 0.258,
-        height: screenH * 0.052,
+        width: okButtonWidth,
+        height: okButtonHeight,
         child: Stack(
           alignment: Alignment.center,
           children: [
             Image.asset(
               'assets/img/sucessbutton.png',
-              width: screenW * 0.258,
-              height: screenH * 0.052,
+              width: okButtonWidth,
+              height: okButtonHeight,
               fit: BoxFit.fill,
             ),
             const Text(
