@@ -426,10 +426,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
         arguments: d,
       ),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        padding: const EdgeInsets.all(16),
-        minHeight: 104,
-        decoration: BoxDecoration(
+  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  padding: const EdgeInsets.all(16),
+  constraints: const BoxConstraints(
+    minHeight: 104,
+  ),
+  decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
