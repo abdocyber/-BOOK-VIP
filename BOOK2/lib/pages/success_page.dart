@@ -31,7 +31,9 @@ class _SuccessPageState extends State<SuccessPage> {
   'operationNumber': dynamicArg.operationNumber ?? dynamicArg.id,
   'createdAt': dynamicArg.date ?? dynamicArg.createdAt,
   'amount': dynamicArg.amount,
-  'from': dynamicArg.fromAccount ?? dynamicArg.from,
+  'from': dynamicArg.fromAccount ?? dynamicArg.accountFrom ?? dynamicArg.from,
+  'fromAccount': dynamicArg.fromAccount ?? dynamicArg.accountFrom ?? dynamicArg.from,
+  'accountFrom': dynamicArg.accountFrom ?? dynamicArg.fromAccount ?? dynamicArg.from,
   'to': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
   'toAccount': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
   'accountTo': dynamicArg.accountTo ?? dynamicArg.toAccount ?? dynamicArg.to,
@@ -48,6 +50,32 @@ class _SuccessPageState extends State<SuccessPage> {
     // لا نستخدم بيانات افتراضية ثابتة حتى لا تظهر قيم غير صحيحة
     return const <String, dynamic>{};
   }
+
+
+  String _firstNonEmpty(List<dynamic> values) {
+    for (final value in values) {
+      final text = '$value'.trim();
+      if (value != null && text.isNotEmpty && text != 'null') return text;
+    }
+    return '';
+  }
+
+  String _accountText(List<dynamic> values) {
+  final raw = _firstNonEmpty(values);
+  if (raw.isEmpty) return '';
+
+  final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
+
+  if (digitsOnly.length >= 16) {
+    final account = digitsOnly.substring(0, 16);
+    return account.replaceAllMapped(
+      RegExp(r'.{4}'),
+      (match) => '${match.group(0)} ',
+    ).trim();
+  }
+
+  return raw;
+}
 
   // تنسيق المبلغ المالي بوضع الفواصل
   String _formatAmount(dynamic v) {
@@ -142,8 +170,8 @@ class _SuccessPageState extends State<SuccessPage> {
     final rows = [
       ['رقم العملية', '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? ''}'],
       ['التاريخ و الزمن', '${d['createdAt'] ?? d['date'] ?? ''}'],
-      ['من حساب', '${d['from'] ?? d['fromAccount'] ?? d['accountFrom'] ?? ''}'],
-      ['الى حساب', '${d['toAccount'] ?? d['accountTo'] ?? d['to'] ?? ''}'],
+      ['من حساب', _accountText([d['fromAccount'], d['accountFrom'], d['from']])],
+      ['الى حساب', _accountText([d['toAccount'], d['accountTo'], d['to']])],
       ['إسم المرسل اليه', '${d['receiverName'] ?? d['accountName'] ?? ''}'],
       ['رقم الموبايل', '${d['phone'] ?? d['mobile'] ?? 'N/A'}'],
       ['التعليق', '${d['note'] ?? d['comment'] ?? 'N/A'}'],
