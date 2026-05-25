@@ -309,7 +309,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                   child: Center(
                                     child: InkWell(
                                       onTap: () {
-                                        Navigator.pushReplacementNamed(context, '/sendto');
+                                        Navigator.pushReplacementNamed(context, '/transfer');
                                       },
                                       borderRadius: BorderRadius.circular(9),
                                       child: SizedBox(
@@ -452,51 +452,4 @@ class _SuccessPageState extends State<SuccessPage> {
   }
 
   Widget _buildSubBtn(String title, String icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Image.asset(
-            'assets/img/$icon',
-            width: 40,
-            height: 40,
-            fit: BoxFit.contain,
-            color: Colors.white,
-            errorBuilder: (_, __, ___) => const Icon(Icons.circle, color: Colors.white, size: 36),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'Rubik', fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooterOpt(String title, String icon, IconData fallback, VoidCallback onTap) {
-    return Expanded(
-      child: InkWell(
-        onTap: isProcessing ? null : onTap,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w400, fontFamily: 'Rubik'),
-            ),
-            const SizedBox(width: 8),
-            Image.asset(
-              'assets/img/$icon',
-              width: 18,
-              height: 18,
-              color: Colors.white,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(fallback, color: Colors.white, size: 18),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    return Ink
