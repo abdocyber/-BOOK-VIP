@@ -10,10 +10,10 @@ class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
 
   @override
-  State<SuccessPage> createState() => _SuccessPageState();
+  State<<SuccessPage> createState() => _SuccessPageState();
 }
 
-class _SuccessPageState extends State<SuccessPage> {
+class _SuccessPageState extends State<<SuccessPage> {
   final GlobalKey _receiptKey = GlobalKey();
   bool showPrintSoon = false;
   bool isProcessing = false;
@@ -48,7 +48,7 @@ class _SuccessPageState extends State<SuccessPage> {
     return const <String, dynamic>{};
   }
 
-  String _firstNonEmpty(List<dynamic> values) {
+  String _firstNonEmpty(List<<dynamic> values) {
     for (final value in values) {
       final text = '$value'.trim();
       if (value != null && text.isNotEmpty && text != 'null') return text;
@@ -56,7 +56,7 @@ class _SuccessPageState extends State<SuccessPage> {
     return '';
   }
 
-  String _accountText(List<dynamic> values) {
+  String _accountText(List<<dynamic> values) {
     final raw = _firstNonEmpty(values);
     if (raw.isEmpty) return '';
 
@@ -64,11 +64,7 @@ class _SuccessPageState extends State<SuccessPage> {
 
     if (digitsOnly.length >= 16) {
       final account = digitsOnly.substring(0, 16);
-      String finalAccount = account;
-      if (!finalAccount.startsWith('0123')) {
-        finalAccount = '0123' + finalAccount.substring(4, 16);
-      }
-      return finalAccount.replaceAllMapped(
+      return account.replaceAllMapped(
         RegExp(r'.{4}'),
         (match) => '${match.group(0)} ',
       ).trim();
@@ -84,7 +80,7 @@ class _SuccessPageState extends State<SuccessPage> {
     ).trim();
   }
 
-  String _phoneText(List<dynamic> values) {
+  String _phoneText(List<<dynamic> values) {
     final raw = _firstNonEmpty(values);
     if (raw.isEmpty) return 'N/A';
 
@@ -98,14 +94,14 @@ class _SuccessPageState extends State<SuccessPage> {
   }
 
   String _formatAmount(dynamic v) {
-    final double n = v is num ? v.toDouble() : double.tryParse('$v'.replaceAll(',', '')) ?? 15000.00;
+    final double n = v is num ? v.toDouble() : double.tryParse('$v'.replaceAll(',', '')) ?? 0.00;
     final fixed = n.toStringAsFixed(2);
     final parts = fixed.split('.');
     final whole = parts.first.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
     return '$whole.${parts.last}';
   }
 
-  Future<Uint8List?> _capturePng() async {
+  Future<<Uint8List?> _capturePng() async {
     try {
       RenderRepaintBoundary boundary = _receiptKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
@@ -393,30 +389,49 @@ class _SuccessPageState extends State<SuccessPage> {
 
                     if (showPrintSoon)
                       Positioned(
-                        bottom: 60,
+                        bottom: 74,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                           decoration: BoxDecoration(
                             color: const Color(0xff2b2b2b),
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(.28), blurRadius: 10, offset: const Offset(0, 4)),
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
                             ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('قريباً...', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Rubik', fontWeight: FontWeight.w500)),
+                              const Text(
+                                'قريباً...',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontFamily: 'Rubik',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                               const SizedBox(width: 10),
                               Container(
-                                width: 26,
-                                height: 26,
-                                decoration: BoxDecoration(color: const Color(0xffd33234), borderRadius: BorderRadius.circular(6)),
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xffd33234),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
                                 padding: const EdgeInsets.all(4),
                                 child: Image.asset(
-                                  'assets/img/white_logo_n.png',
+                                  'assets/img/app_icon.png', // ← أيقونة التطبيق المصغرة
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white, size: 16),
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.account_balance,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
                                 ),
                               ),
                             ],
@@ -463,18 +478,26 @@ class _SuccessPageState extends State<SuccessPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w400, fontFamily: 'Rubik'),
-            ),
-            const SizedBox(width: 8),
             Image.asset(
               'assets/img/$icon',
-              width: 18,
-              height: 18,
+              width: 20,
+              height: 20,
               color: Colors.white,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(fallback, color: Colors.white, size: 18),
+              errorBuilder: (_, __, ___) => Icon(
+                fallback,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontFamily: 'Rubik',
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
