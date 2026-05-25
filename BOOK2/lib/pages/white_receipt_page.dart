@@ -35,7 +35,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   }
 
   String _statusAr(dynamic v) {
-    return '$v' == 'success' || '$v'.isEmpty ? 'ظ†ط¬ط§ط­' : '$v';
+    return '$v' == 'success' || '$v'.isEmpty ? 'نجاح' : '$v';
   }
 
   void _showSoon() {
@@ -44,7 +44,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
       if (mounted) setState(() => showToast = false);
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ظ‡ط°ظ‡ ط§ظ„ظ…ظٹط²ط© ظ‚ط±ظٹط¨ط§ظ‹!'))
+      const SnackBar(content: Text('هذه الميزة قريباً!'))
     );
   }
 
@@ -52,7 +52,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     final id = '${d['operationNumber'] ?? d['id'] ?? '20018909275'}';
     final amount = _fmtMoney(d['amount'] ?? 100.00);
     final to = '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '1113025957200001'}';
-    final text = 'طھظپط§طµظٹظ„ ط§ظ„ظ…ط¹ط§ظ…ظ„ط©\nط±ظ‚ظ… ط§ظ„ط¹ظ…ظ„ظٹط©: $id\nط§ظ„ظ…ط¨ظ„ط؛: $amount\nط¥ظ„ظ‰: $to';
+    final text = 'تفاصيل المعاملة\nرقم العملية: $id\nالمبلغ: $amount\nإلى: $to';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text, textAlign: TextAlign.center)));
   }
 
@@ -67,15 +67,15 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
     ));
 
     final rows = <_ReceiptRow>[
-      _ReceiptRow('ط±ظ‚ظ… ط§ظ„ط¹ظ…ظ„ظٹط©', '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? '20018909275'}'),
-      _ReceiptRow('ط§ظ„طھط§ط±ظٹط® ظˆط§ظ„ظˆظ‚طھ', _fmtDate(d['createdAt'] ?? d['date'] ?? '2026-05-24T15:36:50')),
-      _ReceiptRow('ظ†ظˆط¹ ط§ظ„ط¹ظ…ظ„ظٹط©', '${d['operationType'] ?? d['title'] ?? 'طھط­ظˆظٹظ„ ط¥ظ„ظ‰ ط­ط³ط§ط¨ ط¢ط®ط±'}'),
-      _ReceiptRow('ط§ظ„ظ…ط¨ظ„ط؛', _fmtMoney(d['amount'] ?? 100.00)),
-      _ReceiptRow('ظ…ظ†', '${d['from'] ?? d['accountFrom'] ?? d['fromAccount'] ?? '1326253024820001'}'),
-      _ReceiptRow('ط¥ظ„ظ‰', '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '1113025957200001'}'),
-      _ReceiptRow('ط§ظ„ط­ط§ظ„ط©', _statusAr(d['status'] ?? 'success')),
-      _ReceiptRow('ط¥ط³ظ… ط§ظ„ظ…ط±ط³ظ„ ط§ظ„ظٹظ‡', '${d['accountName'] ?? d['receiverName'] ?? 'ط§ط­ظ…ط¯ ط¹ط¨ط¯ ط§ظ„ط±ط­ظ…ظ† ط­ط§ظ…ط¯ ط¹ط² ط§ظ„ط¯ظٹظ†'}'),
-      _ReceiptRow('ط§ظ„طھط¹ظ„ظٹظ‚', '${d['comment'] ?? d['note'] ?? 'N/A'}'),
+      _ReceiptRow('رقم العملية', '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? '20018909275'}'),
+      _ReceiptRow('التاريخ والوقت', _fmtDate(d['createdAt'] ?? d['date'] ?? '2026-05-24T15:36:50')),
+      _ReceiptRow('نوع العملية', '${d['operationType'] ?? d['title'] ?? 'تحويل إلى حساب آخر'}'),
+      _ReceiptRow('المبلغ', _fmtMoney(d['amount'] ?? 100.00)),
+      _ReceiptRow('من', '${d['from'] ?? d['accountFrom'] ?? d['fromAccount'] ?? '1326253024820001'}'),
+      _ReceiptRow('إلى', '${d['to'] ?? d['accountTo'] ?? d['toAccount'] ?? '1113025957200001'}'),
+      _ReceiptRow('الحالة', _statusAr(d['status'] ?? 'success')),
+      _ReceiptRow('إسم المرسل اليه', '${d['accountName'] ?? d['receiverName'] ?? 'احمد عبد الرحمن حامد عز الدين'}'),
+      _ReceiptRow('التعليق', '${d['comment'] ?? d['note'] ?? 'N/A'}'),
     ];
 
     return Directionality(
@@ -84,7 +84,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
         backgroundColor: Colors.white,
         body: Column(
           children: [
-           // ط´ط±ظٹط· ط§ظ„طھط·ط¨ظٹظ‚ ط§ظ„ط¹ظ„ظˆظٹ
+           // شريط التطبيق العلوي
 Container(
   height: 68,
   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -115,7 +115,7 @@ Container(
   ),
 ),
 
-            // ط´ط±ظٹط· طھظپط§طµظٹظ„ ط§ظ„ظ…ط¹ط§ظ…ظ„ط© ظˆط²ط± ط§ظ„ط±ط¬ظˆط¹
+            // شريط تفاصيل المعاملة وزر الرجوع
             Container(
               height: 56,
               color: const Color(0xfff8f8f8),
@@ -123,12 +123,12 @@ Container(
                 children: [
                   const Center(
                     child: Text(
-                      'طھظپط§طµظٹظ„ ط§ظ„ظ…ط¹ط§ظ…ظ„ط©',
+                      'تفاصيل المعاملة',
                       style: TextStyle(color: Color(0xff2b2b2b), fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
                     ),
                   ),
                   Positioned(
-                    right: 14, // ط²ط± ط§ظ„ط±ط¬ظˆط¹ ط¹ظ„ظ‰ ط§ظ„ظٹظ…ظٹظ†
+                    right: 14, // زر الرجوع على اليمين
                     top: 8,
                     child: InkWell(
                       onTap: () {
@@ -145,7 +145,7 @@ Container(
                 ],
               ),
             ),
-            // ط§ظ„ط¬ط¯ظˆظ„ ط§ظ„ظ…ظ…طھط¯ ظ„ط¹ط±ط¶ ط§ظ„ط´ط§ط´ط© ط¨ط§ظ„ظƒط§ظ…ظ„ ط¨ظ†ظپط³ ط£ط¨ط¹ط§ط¯ ظˆط­ظˆط§ظپ ط§ظ„طµظˆط±ط© ط§ظ„ظ…ط±ط¬ط¹ظٹط©
+            // الجدول الممتد لعرض الشاشة بالكامل بنفس أبعاد وحواف الصورة المرجعية
 Expanded(
   child: Container(
     color: const Color(0xFFF4F5F7),
@@ -153,17 +153,17 @@ Expanded(
       child: Column(
         children: rows.asMap().entries.map((entry) {
           final r = entry.value;
-          final isTallRow = r.label == 'ط¥ط³ظ… ط§ظ„ظ…ط±ط³ظ„ ط§ظ„ظٹظ‡';
+          final isTallRow = r.label == 'إسم المرسل اليه';
 
           return Container(
-            height: isTallRow ? 48 : 42,
+            height: isTallRow ? 52 : 38,
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
-                color: const Color(0xff9d9d9d),
-                width: 1.0,
+                color: const Color(0xff989793),
+                width: 1.25,
               ),
               borderRadius: BorderRadius.circular(7),
             ),
@@ -174,13 +174,13 @@ Expanded(
                 Text(
                   r.label,
                   style: const TextStyle(
-                    color: Color(0xff666666),
+                    color: Color(0xff555555),
                     fontWeight: FontWeight.bold,
                     fontSize: 15.0,
                     fontFamily: 'Rubik',
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     r.value.isEmpty ? 'N/A' : r.value,
@@ -188,9 +188,9 @@ Expanded(
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.left,
                     style: const TextStyle(
-                      color: Color(0xff666666),
+                      color: Color(0xff5f5f5f),
                       fontWeight: FontWeight.w500,
-                      fontSize: 15.0,
+                      fontSize: 16.0,
                       fontFamily: 'Rubik',
                     ),
                   ),
@@ -204,34 +204,34 @@ Expanded(
   ),
 ),
 
-            // ط£ط²ط±ط§ط± ط§ظ„ط¥ط¬ط±ط§ط،ط§طھ ظ…ط¹ ط²ظٹط§ط¯ط© ط³ظ…ظƒ ط§ظ„ط¥ط·ط§ط±
+            // أزرار الإجراءات مع زيادة سمك الإطار
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Expanded(child: _ActionButton(title: 'طھط°ظƒظٹط±', icon: 'notification_white.png', onTap: _showSoon)),
+                  Expanded(child: _ActionButton(title: 'تذكير', icon: 'notification_white.png', onTap: _showSoon)),
                   const SizedBox(width: 14),
-                  Expanded(child: _ActionButton(title: 'طھط­ظˆظٹظ„ ط®ط§ط·ط¦', icon: 'block_icon.png', onTap: _showSoon)),
+                  Expanded(child: _ActionButton(title: 'تحويل خاطئ', icon: 'block_icon.png', onTap: _showSoon)),
                 ],
               ),
             ),
 
-            // ط´ط±ظٹط· ط§ظ„طھط°ظٹظٹظ„ ط§ظ„ط«ظ„ط§ط«ظٹ
+            // شريط التذييل الثلاثي
             Container(
               height: 40,
               decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Color(0xffdcdcdc), width: 1))),
               child: Row(
                 children: [
-                  _OptionItem(title: 'ظ…ط´ط§ط±ظƒط©', icon: 'sharegray.png', onTap: () => _shareTx(d)),
+                  _OptionItem(title: 'مشاركة', icon: 'sharegray.png', onTap: () => _shareTx(d)),
                   const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
-                  _OptionItem(title: 'ط·ط¨ط§ط¹ط©', icon: 'printgray.png', onTap: _showSoon),
+                  _OptionItem(title: 'طباعة', icon: 'printgray.png', onTap: _showSoon),
                   const Text('|', style: TextStyle(color: Color(0xffe0e0e0))),
-                  _OptionItem(title: 'طھط­ظ…ظٹظ„', icon: 'downloadgray.png', onTap: _showSoon),
+                  _OptionItem(title: 'تحميل', icon: 'downloadgray.png', onTap: _showSoon),
                 ],
               ),
             ),
 
-            // ط´ط±ظٹط· ط§ظ„ط­ظ‚ظˆظ‚ ط§ظ„ط³ظپظ„ظٹ
+            // شريط الحقوق السفلي
             Container(
               height: 32,
               alignment: Alignment.center,
@@ -243,7 +243,7 @@ Expanded(
                 ),
               ),
               child: const Text(
-                'آ© 2024 ط¨ظ†ظƒ ط§ظ„ط®ط±ط·ظˆظ…|ط¨ظ†ظƒظƒ ط­ط³ط§ط¨',
+                '© 2024 بنك الخرطوم|بنكك حساب',
                 style: TextStyle(color: Color(0xff222222), fontSize: 12, fontFamily: 'Rubik', fontWeight: FontWeight.w500),
               ),
             ),
@@ -275,7 +275,7 @@ class _ActionButton extends StatelessWidget {
         height: 44,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: const Color(0xffd33234), width: 2.5), // ط²ظٹط§ط¯ط© ط³ظ…ظƒ ط§ظ„ظ…ط±ط¨ط¹
+          border: Border.all(color: const Color(0xffd33234), width: 2.5), // زيادة سمك المربع
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
