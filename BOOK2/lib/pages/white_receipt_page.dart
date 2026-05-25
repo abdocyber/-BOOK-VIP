@@ -87,7 +87,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
            // شريط التطبيق العلوي
 Container(
   height: 68,
-  padding: const EdgeInsets.symmetric(horizontal: 16),
+  padding: const EdgeInsets.symmetric(horizontal: 14),
   decoration: const BoxDecoration(
     gradient: LinearGradient(
       begin: Alignment.topCenter,
@@ -124,7 +124,7 @@ Container(
                   const Center(
                     child: Text(
                       'تفاصيل المعاملة',
-                      style: TextStyle(color: Color(0xff2b2b2b), fontSize: 14, fontWeight: FontWeight.w600, fontFamily: 'Rubik'),
+                      style: TextStyle(color: Color(0xff2b2b2b), fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Rubik'),
                     ),
                   ),
                   Positioned(
@@ -156,9 +156,9 @@ Expanded(
           final isTallRow = r.label == 'إسم المرسل اليه';
 
           return Container(
-            height: isTallRow ? 52 : 38,
+            height: isTallRow ? 52 : 44,
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
@@ -176,7 +176,7 @@ Expanded(
                   style: const TextStyle(
                     color: Color(0xff666666),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14.0,
+                    fontSize: 16.0,
                     fontFamily: 'Rubik',
                   ),
                 ),
@@ -189,8 +189,8 @@ Expanded(
                     textAlign: TextAlign.left,
                     style: const TextStyle(
                       color: Color(0xff666666),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 15.0,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16.0,
                       fontFamily: 'Rubik',
                     ),
                   ),
