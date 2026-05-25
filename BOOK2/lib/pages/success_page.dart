@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-
 class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
 
@@ -15,11 +14,10 @@ class SuccessPage extends StatefulWidget {
 }
 
 class _SuccessPageState extends State<SuccessPage> {
-  final GlobalKey _receiptKey = GlobalKey(); // مفتاح التقاط الشاشة للإيصال
+  final GlobalKey _receiptKey = GlobalKey();
   bool showPrintSoon = false;
   bool isProcessing = false;
 
-  // جلب البيانات من الـ Route arguments (يدعم الخرائط والكائنات تلقائياً)
   Map<String, dynamic> _getTxData(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is Map) return arg.cast<String, dynamic>();
@@ -28,29 +26,27 @@ class _SuccessPageState extends State<SuccessPage> {
       try {
         final dynamic dynamicArg = arg;
         return {
-  'operationNumber': dynamicArg.operationNumber ?? dynamicArg.id,
-  'createdAt': dynamicArg.date ?? dynamicArg.createdAt,
-  'amount': dynamicArg.amount,
-  'from': dynamicArg.fromAccount ?? dynamicArg.accountFrom ?? dynamicArg.from,
-  'fromAccount': dynamicArg.fromAccount ?? dynamicArg.accountFrom ?? dynamicArg.from,
-  'accountFrom': dynamicArg.accountFrom ?? dynamicArg.fromAccount ?? dynamicArg.from,
-  'to': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
-  'toAccount': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
-  'accountTo': dynamicArg.accountTo ?? dynamicArg.toAccount ?? dynamicArg.to,
-  'receiverName': dynamicArg.receiverName ?? dynamicArg.accountName,
-  'accountName': dynamicArg.accountName ?? dynamicArg.receiverName,
-  'phone': dynamicArg.phone ?? dynamicArg.mobile,
-  'mobile': dynamicArg.mobile ?? dynamicArg.phone,
-  'note': dynamicArg.note ?? dynamicArg.comment,
-  'comment': dynamicArg.comment ?? dynamicArg.note,
-};
+          'operationNumber': dynamicArg.operationNumber ?? dynamicArg.id,
+          'createdAt': dynamicArg.date ?? dynamicArg.createdAt,
+          'amount': dynamicArg.amount,
+          'from': dynamicArg.fromAccount ?? dynamicArg.accountFrom ?? dynamicArg.from,
+          'fromAccount': dynamicArg.fromAccount ?? dynamicArg.accountFrom ?? dynamicArg.from,
+          'accountFrom': dynamicArg.accountFrom ?? dynamicArg.fromAccount ?? dynamicArg.from,
+          'to': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
+          'toAccount': dynamicArg.toAccount ?? dynamicArg.accountTo ?? dynamicArg.to,
+          'accountTo': dynamicArg.accountTo ?? dynamicArg.toAccount ?? dynamicArg.to,
+          'receiverName': dynamicArg.receiverName ?? dynamicArg.accountName,
+          'accountName': dynamicArg.accountName ?? dynamicArg.receiverName,
+          'phone': dynamicArg.phone ?? dynamicArg.mobile,
+          'mobile': dynamicArg.mobile ?? dynamicArg.phone,
+          'note': dynamicArg.note ?? dynamicArg.comment,
+          'comment': dynamicArg.comment ?? dynamicArg.note,
+        };
       } catch (_) {}
     }
 
-    // لا نستخدم بيانات افتراضية ثابتة حتى لا تظهر قيم غير صحيحة
     return const <String, dynamic>{};
   }
-
 
   String _firstNonEmpty(List<dynamic> values) {
     for (final value in values) {
@@ -60,7 +56,6 @@ class _SuccessPageState extends State<SuccessPage> {
     return '';
   }
 
-  // ====== تنسيق رقم الحساب لـ 16 رقم مع فراغات (يبدأ بـ 0123) ======
   String _accountText(List<dynamic> values) {
     final raw = _firstNonEmpty(values);
     if (raw.isEmpty) return '';
@@ -69,7 +64,6 @@ class _SuccessPageState extends State<SuccessPage> {
 
     if (digitsOnly.length >= 16) {
       final account = digitsOnly.substring(0, 16);
-      // التأكد من أنه يبدأ بـ 0123
       String finalAccount = account;
       if (!finalAccount.startsWith('0123')) {
         finalAccount = '0123' + finalAccount.substring(4, 16);
@@ -80,7 +74,6 @@ class _SuccessPageState extends State<SuccessPage> {
       ).trim();
     }
 
-    // إذا كان أقل من 16 رقم، نكمل بأصفار ونضيف 0123
     String padded = digitsOnly.padLeft(16, '0');
     if (!padded.startsWith('0123')) {
       padded = '0123' + padded.substring(4, 16);
@@ -104,7 +97,6 @@ class _SuccessPageState extends State<SuccessPage> {
     return clean;
   }
 
-  // تنسيق المبلغ المالي بوضع الفواصل
   String _formatAmount(dynamic v) {
     final double n = v is num ? v.toDouble() : double.tryParse('$v'.replaceAll(',', '')) ?? 15000.00;
     final fixed = n.toStringAsFixed(2);
@@ -113,7 +105,6 @@ class _SuccessPageState extends State<SuccessPage> {
     return '$whole.${parts.last}';
   }
 
-  // دالة التقاط الشاشة كصورة
   Future<Uint8List?> _capturePng() async {
     try {
       RenderRepaintBoundary boundary = _receiptKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -125,7 +116,6 @@ class _SuccessPageState extends State<SuccessPage> {
     }
   }
 
-  // تشغيل زر "مشاركة"
   Future<void> _shareReceiptImage() async {
     if (isProcessing) return;
     setState(() => isProcessing = true);
@@ -144,7 +134,6 @@ class _SuccessPageState extends State<SuccessPage> {
     }
   }
 
-  // تشغيل زر "تحميل"
   Future<void> _downloadReceiptImage() async {
     if (isProcessing) return;
     setState(() => isProcessing = true);
@@ -194,7 +183,6 @@ class _SuccessPageState extends State<SuccessPage> {
     final okButtonWidth = screenW * 0.2555;
     final okButtonHeight = okButtonWidth * 0.62;
 
-    // ====== ترتيب الصفوف بنفس ترتيب الصورة ======
     final rows = [
       ['رقم العملية', '${d['operationNumber'] ?? d['id'] ?? d['transactionId'] ?? ''}'],
       ['التاريخ و الزمن', '${d['createdAt'] ?? d['date'] ?? ''}'],
@@ -235,7 +223,6 @@ class _SuccessPageState extends State<SuccessPage> {
                               children: [
                                 const SizedBox(height: 55),
 
-                                // علامة الصح البيضاء الدائرية
                                 Container(
                                   width: 125,
                                   height: 125,
@@ -257,7 +244,6 @@ class _SuccessPageState extends State<SuccessPage> {
 
                                 const SizedBox(height: 20),
 
-                                // الجدول
                                 Container(
                                   margin: const EdgeInsets.symmetric(horizontal: 16),
                                   decoration: BoxDecoration(
@@ -303,7 +289,6 @@ class _SuccessPageState extends State<SuccessPage> {
                                   ),
                                 ),
 
-                                // ======= زر موافق =======
                                 Padding(
                                   padding: const EdgeInsets.only(top: 40),
                                   child: Center(
@@ -339,12 +324,10 @@ class _SuccessPageState extends State<SuccessPage> {
                                     ),
                                   ),
                                 ),
-                                // ===========================================================================
 
                                 const Spacer(),
                                 const SizedBox(height: 30),
 
-                                // أزرار تحويل وإضافة السفلية
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 24),
                                   child: Row(
@@ -373,7 +356,6 @@ class _SuccessPageState extends State<SuccessPage> {
                   ),
                 ),
 
-                // الأشرطة السفلية الثابتة
                 Stack(
                   alignment: Alignment.bottomCenter,
                   clipBehavior: Clip.none,
@@ -432,7 +414,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                 decoration: BoxDecoration(color: const Color(0xffd33234), borderRadius: BorderRadius.circular(6)),
                                 padding: const EdgeInsets.all(4),
                                 child: Image.asset(
-                                  'assets/img/white_logo_n.png', 
+                                  'assets/img/white_logo_n.png',
                                   fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white, size: 16),
                                 ),
@@ -452,4 +434,51 @@ class _SuccessPageState extends State<SuccessPage> {
   }
 
   Widget _buildSubBtn(String title, String icon, VoidCallback onTap) {
-    return Ink
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Image.asset(
+            'assets/img/$icon',
+            width: 40,
+            height: 40,
+            fit: BoxFit.contain,
+            color: Colors.white,
+            errorBuilder: (_, __, ___) => const Icon(Icons.circle, color: Colors.white, size: 36),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'Rubik', fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterOpt(String title, String icon, IconData fallback, VoidCallback onTap) {
+    return Expanded(
+      child: InkWell(
+        onTap: isProcessing ? null : onTap,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w400, fontFamily: 'Rubik'),
+            ),
+            const SizedBox(width: 8),
+            Image.asset(
+              'assets/img/$icon',
+              width: 18,
+              height: 18,
+              color: Colors.white,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(fallback, color: Colors.white, size: 18),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
