@@ -10,10 +10,10 @@ class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
 
   @override
-  State<<SuccessPage> createState() => _SuccessPageState();
+  State<SuccessPage> createState() => _SuccessPageState();
 }
 
-class _SuccessPageState extends State<<SuccessPage> {
+class _SuccessPageState extends State<SuccessPage> {
   final GlobalKey _receiptKey = GlobalKey();
   bool showPrintSoon = false;
   bool isProcessing = false;
@@ -48,7 +48,7 @@ class _SuccessPageState extends State<<SuccessPage> {
     return const <String, dynamic>{};
   }
 
-  String _firstNonEmpty(List<<dynamic> values) {
+  String _firstNonEmpty(List<dynamic> values) {
     for (final value in values) {
       final text = '$value'.trim();
       if (value != null && text.isNotEmpty && text != 'null') return text;
@@ -56,7 +56,7 @@ class _SuccessPageState extends State<<SuccessPage> {
     return '';
   }
 
-  String _accountText(List<<dynamic> values) {
+  String _accountText(List<dynamic> values) {
     final raw = _firstNonEmpty(values);
     if (raw.isEmpty) return '';
 
@@ -80,7 +80,7 @@ class _SuccessPageState extends State<<SuccessPage> {
     ).trim();
   }
 
-  String _phoneText(List<<dynamic> values) {
+  String _phoneText(List<dynamic> values) {
     final raw = _firstNonEmpty(values);
     if (raw.isEmpty) return 'N/A';
 
@@ -101,7 +101,7 @@ class _SuccessPageState extends State<<SuccessPage> {
     return '$whole.${parts.last}';
   }
 
-  Future<<Uint8List?> _capturePng() async {
+  Future<Uint8List?> _capturePng() async {
     try {
       RenderRepaintBoundary boundary = _receiptKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
@@ -425,7 +425,7 @@ class _SuccessPageState extends State<<SuccessPage> {
                                 ),
                                 padding: const EdgeInsets.all(4),
                                 child: Image.asset(
-                                  'assets/img/app_icon.png', // ← أيقونة التطبيق المصغرة
+                                  'assets/img/app_icon.png',
                                   fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => const Icon(
                                     Icons.account_balance,
