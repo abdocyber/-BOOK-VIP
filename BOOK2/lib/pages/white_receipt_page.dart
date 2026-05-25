@@ -107,16 +107,16 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xffd33234),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   padding: const EdgeInsets.all(4),
                   child: Image.asset(
-                    'assets/img/white_logo_n.png',
+                    'assets/img/app_icon.png',
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.account_balance,
-                      color: Color(0xffd33234),
+                      color: Colors.white,
                       size: 20,
                     ),
                   ),
@@ -238,7 +238,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                 child: SafeArea(
                   bottom: false,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAxisAlignment.spaceBetween,
                     children: [
                       const Icon(Icons.menu, color: Colors.white, size: 26),
                       Image.asset(
