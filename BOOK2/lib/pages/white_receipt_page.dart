@@ -124,7 +124,7 @@ Container(
                   const Center(
                     child: Text(
                       'تفاصيل المعاملة',
-                      style: TextStyle(color: Color(0xff2b2b2b), fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
+                      style: TextStyle(color: Color(0xff2b2b2b), fontSize: 14, fontWeight: FontWeight.w600, fontFamily: 'Rubik'),
                     ),
                   ),
                   Positioned(
@@ -163,9 +163,9 @@ Expanded(
               color: Colors.white,
               border: Border.all(
                 color: const Color(0xff989793),
-                width: 1.25,
+                width: 1.0,
               ),
-              borderRadius: BorderRadius.circular(7),
+              borderRadius: BorderRadius.circular(5),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -174,9 +174,9 @@ Expanded(
                 Text(
                   r.label,
                   style: const TextStyle(
-                    color: Color(0xff555555),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15.0,
+                    color: Color(0xff666666),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14.0,
                     fontFamily: 'Rubik',
                   ),
                 ),
@@ -188,9 +188,9 @@ Expanded(
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.left,
                     style: const TextStyle(
-                      color: Color(0xff5f5f5f),
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16.0,
+                      color: Color(0xff666666),
+                      fontWeight: FontWeight.w400,
+                      fontSize: 15.0,
                       fontFamily: 'Rubik',
                     ),
                   ),
@@ -283,7 +283,7 @@ class _ActionButton extends StatelessWidget {
           children: [
             Icon(_getIconForActionButton(icon), size: 18, color: const Color(0xffd33234)),
             const SizedBox(width: 8),
-            Text(title, style: const TextStyle(color: Color(0xffd33234), fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Rubik')),
+            Text(title, style: const TextStyle(color: Color(0xffd33234), fontSize: 15, fontWeight: FontWeight.w600, fontFamily: 'Rubik')),
           ],
         ),
       ),
