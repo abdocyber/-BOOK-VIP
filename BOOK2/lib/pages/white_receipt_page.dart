@@ -262,7 +262,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     const Center(
                       child: Text(
                         'تفاصيل المعاملة',
-                        style: TextStyle(color: Color(0xff2b2b2b), fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Rubik'),
+                        style: TextStyle(color: Color(0xff2b2b2b), fontSize: 18, fontWeight: FontWeight.w300, fontFamily: 'Rubik'),
                       ),
                     ),
                     Positioned(
