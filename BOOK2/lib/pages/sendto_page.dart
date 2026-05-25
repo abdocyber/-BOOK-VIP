@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -51,6 +52,13 @@ class _SendToPageState extends State<SendToPage> {
     if (mounted) {
       setState(() => loading = false);
     }
+  }
+
+  // ====== توليد رقم العملية بتنسيق 2001978xxxx ======
+  String _generateOperationNumber() {
+    final random = Random();
+    final last4 = random.nextInt(9000) + 1000; // 1000-9999
+    return '2001978$last4';
   }
 
   // ====== تنسيق رقم الحساب لـ 16 رقم مع فراغات ======
@@ -176,11 +184,8 @@ class _SendToPageState extends State<SendToPage> {
   }) async {
     final dynamic r = receipt;
 
-    final operationNumber = '${_pickReceiptValue([
-          () => r.operationNumber,
-          () => r.id,
-          () => r.transactionId,
-        ]) ?? DateTime.now().millisecondsSinceEpoch}';
+    // ====== توليد رقم العملية بتنسيق 2001978xxxx ======
+    final operationNumber = _generateOperationNumber();
 
     final createdAt = '${_pickReceiptValue([
           () => r.createdAt,
@@ -317,11 +322,8 @@ class _SendToPageState extends State<SendToPage> {
 
       final dynamic r = receipt;
 
-      final operationNumber = '${_pickReceiptValue([
-            () => r.operationNumber,
-            () => r.id,
-            () => r.transactionId,
-          ]) ?? DateTime.now().millisecondsSinceEpoch}';
+      // ====== توليد رقم العملية بتنسيق 2001978xxxx ======
+      final operationNumber = _generateOperationNumber();
 
       final createdAt = '${_pickReceiptValue([
             () => r.createdAt,
@@ -456,7 +458,7 @@ class _SendToPageState extends State<SendToPage> {
                           child: Text(
                             'تحويل لحسابات بنك الخرطوم',
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 20,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -494,7 +496,7 @@ class _SendToPageState extends State<SendToPage> {
                     'دفع مباشر',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -513,8 +515,8 @@ class _SendToPageState extends State<SendToPage> {
                           Container(
                             margin: const EdgeInsets.only(top: 12),
                             padding: const EdgeInsets.symmetric(
-                              vertical: 22,
-                              horizontal: 25,
+                              vertical: 4,
+                              horizontal: 14,
                             ),
                             height: 235,
                             decoration: BoxDecoration(
@@ -587,9 +589,9 @@ class _SendToPageState extends State<SendToPage> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 52),
+                          const SizedBox(height: 48),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 52),
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -633,7 +635,7 @@ class _SendToPageState extends State<SendToPage> {
         const Text(
           ':',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             color: Color(0xff666666),
             fontWeight: FontWeight.bold,
           ),
@@ -644,7 +646,7 @@ class _SendToPageState extends State<SendToPage> {
             textAlign: TextAlign.right,
             style: const TextStyle(
               color: Color(0xff666666),
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -673,7 +675,7 @@ class _SendToPageState extends State<SendToPage> {
               child: Image.asset(
                 'assets/img/$icon',
                 width: 34,
-                height: 34,
+                height: 32,
                 errorBuilder: (_, __, ___) => const Icon(Icons.edit),
               ),
             ),
@@ -688,7 +690,7 @@ class _SendToPageState extends State<SendToPage> {
                         Text(
                           label,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 13,
                             color: Color(0xff777777),
                           ),
                         ),
@@ -697,7 +699,7 @@ class _SendToPageState extends State<SendToPage> {
                         child: Text(
                           initial ?? '',
                           style: const TextStyle(
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Color(0xff555555),
                           ),
@@ -715,13 +717,13 @@ class _SendToPageState extends State<SendToPage> {
                       hintText: hint ?? label,
                       hintTextDirection: TextDirection.rtl,
                       hintStyle: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         color: Color(0xff777777),
                       ),
                     ),
                   ),
           ),
-          const SizedBox(width: 18),
+          const SizedBox(width: 16),
         ],
       ),
     );
@@ -743,7 +745,7 @@ class _SendToPageState extends State<SendToPage> {
             text,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 19,
+              fontSize: 17,
               fontWeight: FontWeight.bold,
             ),
           ),
