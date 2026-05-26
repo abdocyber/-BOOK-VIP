@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../main.dart';
 
@@ -26,7 +27,16 @@ class TransferPage extends StatelessWidget {
                 ...opts.map((o) => Padding(
                       padding: const EdgeInsets.fromLTRB(17, 0, 17, 16),
                       child: InkWell(
-                        onTap: o[2].isEmpty ? null : () => Navigator.pushNamed(context, o[2]),
+                        onTap: o[2].isEmpty
+    ? null
+    : () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TransferLandingScreen(nextRoute: o[2]),
+          ),
+        );
+      },
                         child: Container(
                           height: 67,
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2), border: Border.all(color: const Color(0xffdddddd)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(.13), blurRadius: 4, offset: const Offset(0, 2))]),
@@ -36,6 +46,83 @@ class TransferPage extends StatelessWidget {
                     )),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+class TransferLandingScreen extends StatefulWidget {
+  final String nextRoute;
+
+  const TransferLandingScreen({
+    super.key,
+    required this.nextRoute,
+  });
+
+  @override
+  State<TransferLandingScreen> createState() => _TransferLandingScreenState();
+}
+
+class _TransferLandingScreenState extends State<TransferLandingScreen> {
+  int _index = 0;
+  Timer? _frameTimer;
+  Timer? _goNextTimer;
+
+  final List<String> _frames = const [
+    'assets/img/loading.png',
+    'assets/img/loading1.png',
+    'assets/img/loading2.png',
+    'assets/img/loading3.png',
+    'assets/img/loading4.png',
+    'assets/img/loading5.png',
+    'assets/img/loading6.png',
+    'assets/img/loading7.png',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _frameTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
+      if (!mounted) return;
+      setState(() {
+        _index = (_index + 1) % _frames.length;
+      });
+    });
+
+    _goNextTimer = Timer(const Duration(milliseconds: 1600), () {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, widget.nextRoute);
+    });
+  }
+
+  @override
+  void dispose() {
+    _frameTimer?.cancel();
+    _goNextTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SizedBox.expand(
+          child: Image.asset(
+            _frames[_index],
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFE31E24),
+                  strokeWidth: 2.6,
+                ),
+              );
+            },
           ),
         ),
       ),
