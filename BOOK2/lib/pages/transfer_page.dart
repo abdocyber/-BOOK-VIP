@@ -4,6 +4,7 @@ import '../main.dart';
 
 class TransferPage extends StatelessWidget {
   const TransferPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final opts = [
@@ -11,6 +12,7 @@ class TransferPage extends StatelessWidget {
       ['ftmobileacc.png', 'الدفع عبر الموبايل', ''],
       ['cardsupplementary.png', 'تحويل لبنك آخر باستخدام رقم البطاقة', ''],
     ];
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -21,29 +23,128 @@ class TransferPage extends StatelessWidget {
             color: const Color(0xfff4f4f4),
             child: Column(
               children: [
-                Container(height: 88, decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xffff0b0b), Color(0xffc91c22)])), child: Stack(children: [Center(child: Image.asset('assets/img/bankak_logo_big.png', width: 135)), Positioned(right: 18, bottom: 18, child: IconButton(onPressed: () => Navigator.pushReplacementNamed(context, '/home'), icon: const Icon(Icons.menu, color: Colors.white, size: 36)))])),
-                SizedBox(height: 72, child: Stack(children: [const Center(child: Text('تحويلات', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500))), Positioned(right: 15, top: 13, child: InkWell(onTap: () => safeBack(context, '/home'), child: Image.asset('assets/img/back.png', width: 75, height: 40)))])),
-                const SizedBox(height: 13),
-                ...opts.map((o) => Padding(
-                      padding: const EdgeInsets.fromLTRB(17, 0, 17, 16),
-                      child: InkWell(
-                        onTap: o[2].isEmpty
-    ? null
-    : () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TransferLandingScreen(nextRoute: o[2]),
-          ),
-        );
-      },
-                        child: Container(
-                          height: 67,
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2), border: Border.all(color: const Color(0xffdddddd)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(.13), blurRadius: 4, offset: const Offset(0, 2))]),
-                          child: Row(children: [const SizedBox(width: 17), Image.asset('assets/img/${o[0]}', width: 43, height: 43), Expanded(child: Text(o[1], textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, color: Colors.black))), Image.asset('assets/img/listarr.png', width: 28, height: 28), const SizedBox(width: 17)]),
+                Container(
+                  height: 88,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xffff0b0b),
+                        Color(0xffc91c22),
+                      ],
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Image.asset(
+                          'assets/img/bankak_logo_big.png',
+                          width: 135,
                         ),
                       ),
-                    )),
+                      Positioned(
+                        right: 18,
+                        bottom: 18,
+                        child: IconButton(
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                          icon: const Icon(
+                            Icons.menu,
+                            color: Colors.white,
+                            size: 36,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 72,
+                  child: Stack(
+                    children: [
+                      const Center(
+                        child: Text(
+                          'تحويلات',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 15,
+                        top: 13,
+                        child: InkWell(
+                          onTap: () => safeBack(context, '/home'),
+                          child: Image.asset(
+                            'assets/img/back.png',
+                            width: 75,
+                            height: 40,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 13),
+                ...opts.map(
+                  (o) => Padding(
+                    padding: const EdgeInsets.fromLTRB(17, 0, 17, 16),
+                    child: InkWell(
+                      onTap: o[2].isEmpty
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => TransferLandingScreen(nextRoute: o[2]),
+                                ),
+                              );
+                            },
+                      child: Container(
+                        height: 67,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(2),
+                          border: Border.all(color: const Color(0xffdddddd)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(.13),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 17),
+                            Image.asset(
+                              'assets/img/${o[0]}',
+                              width: 43,
+                              height: 43,
+                            ),
+                            Expanded(
+                              child: Text(
+                                o[1],
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            Image.asset(
+                              'assets/img/listarr.png',
+                              width: 28,
+                              height: 28,
+                            ),
+                            const SizedBox(width: 17),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -52,6 +153,7 @@ class TransferPage extends StatelessWidget {
     );
   }
 }
+
 class TransferLandingScreen extends StatefulWidget {
   final String nextRoute;
 
@@ -69,7 +171,8 @@ class _TransferLandingScreenState extends State<TransferLandingScreen> {
   Timer? _frameTimer;
   Timer? _goNextTimer;
 
-  final List<String> _frames = const [
+  // أسماء صور التحميل الصحيحة داخل assets/img ويتم عرضها بهذا الترتيب.
+  static const List<String> _frames = [
     'assets/img/loading.png',
     'assets/img/loading1.png',
     'assets/img/loading2.png',
@@ -79,6 +182,16 @@ class _TransferLandingScreenState extends State<TransferLandingScreen> {
     'assets/img/loading6.png',
     'assets/img/loading7.png',
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // تحميل الصور مسبقاً حتى لا تظهر صفحة بيضاء أثناء تبديل الفريمات.
+    for (final frame in _frames) {
+      precacheImage(AssetImage(frame), context);
+    }
+  }
 
   @override
   void initState() {
@@ -106,20 +219,32 @@ class _TransferLandingScreenState extends State<TransferLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final frame = _frames[_index];
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SizedBox.expand(
           child: Image.asset(
-            _frames[_index],
-            fit: BoxFit.cover,
+            frame,
+            key: ValueKey<String>(frame),
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.fill,
             gaplessPlayback: true,
+            filterQuality: FilterQuality.high,
             errorBuilder: (context, error, stackTrace) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFE31E24),
-                  strokeWidth: 2.6,
+              debugPrint('TRANSFER LANDING IMAGE ERROR: $frame => $error');
+              return Center(
+                child: Text(
+                  'تعذر تحميل الصورة: $frame',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFE31E24),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               );
             },
