@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -330,33 +331,37 @@ class _SendToPageState extends State<SendToPage> {
             () => r.date,
           ]) ?? DateTime.now().toIso8601String()}';
 
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/success',
-        (route) => false,
-        arguments: {
-          'operationNumber': operationNumber,
-          'id': operationNumber,
-          'transactionId': operationNumber,
-          'createdAt': createdAt,
-          'date': createdAt,
-          'amount': a,
-          'from': fullFromAccount,
-          'accountFrom': fullFromAccount,
-          'fromAccount': fullFromAccount,
-          'to': fullToAccount,
-          'accountTo': fullToAccount,
-          'toAccount': fullToAccount,
-          'receiverName': fullReceiverName,
-          'accountName': fullReceiverName,
-          'phone': phoneText,
-          'mobile': phoneText,
-          'note': noteText,
-          'comment': noteText,
-          'status': 'success',
-          'operationType': 'تحويل إلى حساب آخر',
-          'title': 'تحويل إلى حساب آخر',
-        },
-      );
+      Navigator.of(context).pushAndRemoveUntil(
+  MaterialPageRoute(
+    builder: (_) => ConfirmLandingScreen(
+      nextRoute: '/success',
+      nextArguments: {
+        'operationNumber': operationNumber,
+        'id': operationNumber,
+        'transactionId': operationNumber,
+        'createdAt': createdAt,
+        'date': createdAt,
+        'amount': a,
+        'from': fullFromAccount,
+        'accountFrom': fullFromAccount,
+        'fromAccount': fullFromAccount,
+        'to': fullToAccount,
+        'accountTo': fullToAccount,
+        'toAccount': fullToAccount,
+        'receiverName': fullReceiverName,
+        'accountName': fullReceiverName,
+        'phone': phoneText,
+        'mobile': phoneText,
+        'note': noteText,
+        'comment': noteText,
+        'status': 'success',
+        'operationType': 'تحويل إلى حساب آخر',
+        'title': 'تحويل إلى حساب آخر',
+      },
+    ),
+  ),
+  (route) => false,
+);
       return;
     } catch (e) {
       if (!mounted) return;
@@ -750,6 +755,90 @@ class _SendToPageState extends State<SendToPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+class ConfirmLandingScreen extends StatefulWidget {
+  final String nextRoute;
+  final Object? nextArguments;
+
+  const ConfirmLandingScreen({
+    super.key,
+    required this.nextRoute,
+    this.nextArguments,
+  });
+
+  @override
+  State<ConfirmLandingScreen> createState() => _ConfirmLandingScreenState();
+}
+
+class _ConfirmLandingScreenState extends State<ConfirmLandingScreen> {
+  int _index = 0;
+  Timer? _frameTimer;
+  Timer? _goNextTimer;
+
+  final List<String> _frames = const [
+    'assets/img/loading.png',
+    'assets/img/loading1.png',
+    'assets/img/loading2.png',
+    'assets/img/loading3.png',
+    'assets/img/loading4.png',
+    'assets/img/loading5.png',
+    'assets/img/loading6.png',
+    'assets/img/loading7.png',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _frameTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
+      if (!mounted) return;
+      setState(() {
+        _index = (_index + 1) % _frames.length;
+      });
+    });
+
+    _goNextTimer = Timer(const Duration(milliseconds: 1600), () {
+      if (!mounted) return;
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        widget.nextRoute,
+        (route) => false,
+        arguments: widget.nextArguments,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _frameTimer?.cancel();
+    _goNextTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SizedBox.expand(
+          child: Image.asset(
+            _frames[_index],
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFE31E24),
+                  strokeWidth: 2.6,
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
