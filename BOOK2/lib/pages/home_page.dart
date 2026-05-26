@@ -57,60 +57,9 @@ class HomePage extends StatelessWidget {
                 height: appH, //
                 child: Column(
                   children: [
-                    // 1. الهيدر العلوي المحدث بالترتيب الصحيح (الجرس يمين، الطاقة يسار)
-                    Container(
-                      height: 72, // ارتفاع الشريط العلوي مطابق للكود المطلوب
-                      padding: EdgeInsets.symmetric(horizontal: s(16)), //
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xffff0000), Color(0xffca1e24)], //
-                        ),
-                      ),
-                      child: SafeArea(
-                        bottom: false, //
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween, //
-                          children: [
-                            // في بيئة RTL: أول عنصر في الـ Row يظهر في أقصى اليمين (جرس الإشعارات)
-                            InkWell(
-                              onTap: () {
-                                Navigator.pushNamed(context, '/notify'); //
-                              },
-                              child: Image.asset(
-                                'assets/img/notification_icon.png', //
-                                width: s(26), //
-                                height: s(26), //
-                                fit: BoxFit.contain, //
-                              ),
-                            ),
-                            
-                            // شعار بنكك الرئيسي متمركز بالمنتصف تماماً
-                            Image.asset(
-                              'assets/img/white_logo_n.png', //
-                              width: s(120), //
-                              fit: BoxFit.contain, //
-                            ),
-                            
-                            // في بيئة RTL: آخر عنصر في الـ Row يظهر في أقصى اليسار (زر تسجيل الخروج/الطاقة)
-                            InkWell(
-                              onTap: () async {
-                                await SessionService.logout(); //
-                                if (context.mounted) {
-                                  Navigator.pushReplacementNamed(context, '/login'); //
-                                }
-                              },
-                              child: Image.asset(
-                                'assets/img/logout_icon.png', //
-                                width: s(26), //
-                                height: s(26), //
-                                fit: BoxFit.contain, //
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    // 1. شريط اللوجو العلوي السابق بنفس الأبعاد
+                    BankakTopLogoBar(
+                      onMenuTap: () {},
                     ),
 
                     // 2. شريط التحية الفرعي
@@ -279,4 +228,114 @@ class _HomeItem {
     this.title, //
     this.route, //
   );
+}
+
+class BankakTopLogoBar extends StatelessWidget {
+  final VoidCallback onMenuTap;
+
+  const BankakTopLogoBar({
+    super.key,
+    required this.onMenuTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width.clamp(0.0, 430.0);
+    final isMobile = w <= 520;
+
+    final topbarHeight = isMobile ? 58.0 : 65.0;
+    final brandWidth = isMobile ? 102.0 : 120.0;
+
+    final menuWidth = isMobile ? 32.0 : 38.0;
+    final menuHeight = isMobile ? 22.0 : 26.0;
+    final barWidth = isMobile ? 28.0 : 34.0;
+
+    return Container(
+      height: topbarHeight,
+      padding: EdgeInsets.only(bottom: isMobile ? 4 : 5),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xfff50c0c),
+            Color(0xffd71920),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Image.asset(
+              'assets/img/white_logo_n.png',
+              width: brandWidth,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Image.asset(
+                'assets/img/bankak_logo_big.png',
+                width: brandWidth,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          Positioned(
+            right: isMobile ? 12 : 14,
+            bottom: 12,
+            child: InkWell(
+              onTap: onMenuTap,
+              child: _MenuIcon(
+                width: menuWidth,
+                height: menuHeight,
+                barWidth: barWidth,
+                barHeight: 3,
+                gap: isMobile ? 8 : 10,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuIcon extends StatelessWidget {
+  final double width;
+  final double height;
+  final double barWidth;
+  final double barHeight;
+  final double gap;
+
+  const _MenuIcon({
+    required this.width,
+    required this.height,
+    required this.barWidth,
+    required this.barHeight,
+    required this.gap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        children: [
+          Positioned(right: 0, top: 0, child: _bar()),
+          Positioned(right: 0, top: gap, child: _bar()),
+          Positioned(right: 0, top: gap * 2, child: _bar()),
+        ],
+      ),
+    );
+  }
+
+  Widget _bar() {
+    return Container(
+      width: barWidth,
+      height: barHeight,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(3),
+      ),
+    );
+  }
 }
