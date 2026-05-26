@@ -70,6 +70,15 @@ class BankakApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'بنكك',
+      builder: (context, child) {
+        return SafeArea(
+          top: true,
+          bottom: false,
+          left: false,
+          right: false,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       theme: ThemeData(
         fontFamily: 'Rubik',
         useMaterial3: false,
