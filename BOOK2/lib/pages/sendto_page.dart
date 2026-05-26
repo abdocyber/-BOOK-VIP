@@ -778,7 +778,8 @@ class _ConfirmLandingScreenState extends State<ConfirmLandingScreen> {
   Timer? _frameTimer;
   Timer? _goNextTimer;
 
-  final List<String> _frames = const [
+  // أسماء صور التحميل الصحيحة داخل assets/img ويتم عرضها بهذا الترتيب.
+  static const List<String> _frames = [
     'assets/img/loading.png',
     'assets/img/loading1.png',
     'assets/img/loading2.png',
@@ -788,6 +789,16 @@ class _ConfirmLandingScreenState extends State<ConfirmLandingScreen> {
     'assets/img/loading6.png',
     'assets/img/loading7.png',
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // تحميل الصور مسبقاً حتى لا تظهر صفحة بيضاء أثناء تبديل الفريمات.
+    for (final frame in _frames) {
+      precacheImage(AssetImage(frame), context);
+    }
+  }
 
   @override
   void initState() {
@@ -820,20 +831,32 @@ class _ConfirmLandingScreenState extends State<ConfirmLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final frame = _frames[_index];
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SizedBox.expand(
           child: Image.asset(
-            _frames[_index],
-            fit: BoxFit.cover,
+            frame,
+            key: ValueKey<String>(frame),
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.fill,
             gaplessPlayback: true,
+            filterQuality: FilterQuality.high,
             errorBuilder: (context, error, stackTrace) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFE31E24),
-                  strokeWidth: 2.6,
+              debugPrint('CONFIRM LANDING IMAGE ERROR: $frame => $error');
+              return Center(
+                child: Text(
+                  'تعذر تحميل الصورة: $frame',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFE31E24),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               );
             },
