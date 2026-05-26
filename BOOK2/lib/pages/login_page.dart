@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/firebase_service.dart';
@@ -16,6 +17,49 @@ class _LoginPageState extends State<LoginPage> {
   final pass = TextEditingController();
   bool loading = false;
   bool _obscurePassword = true;
+  
+class LoginLandingScreen extends StatefulWidget {
+  const LoginLandingScreen({super.key});
+
+  @override
+  State<LoginLandingScreen> createState() => _LoginLandingScreenState();
+}
+
+
+  @override
+  void dispose() {
+    _frameTimer?.cancel();
+    _goHomeTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SizedBox.expand(
+            child: Image.asset(
+              _frames[_index],
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              errorBuilder: (context, error, stackTrace) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFFE31E24),
+                    strokeWidth: 2.6,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
   @override
   void dispose() {
@@ -49,7 +93,14 @@ class _LoginPageState extends State<LoginPage> {
         toast('بيانات الدخول غير صحيحة');
       } else {
         await SessionService.save(acc);
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
+        if (mounted) {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const LoginLandingScreen(),
+    ),
+  );
+}
       }
     } catch (_) {
       if (mounted) toast('تعذر الاتصال بالخادم، ابقَ في صفحة تسجيل الدخول');
@@ -375,3 +426,41 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+class _LoginLandingScreenState extends State<LoginLandingScreen> {
+  int _index = 0;
+  Timer? _frameTimer;
+  Timer? _goHomeTimer;
+
+  final List<String> _frames = const [
+    'assets/img/loggingin1.png',
+    'assets/img/loggingin2.png',
+    'assets/img/loggingin3.png',
+    'assets/img/loggingin4.png',
+    'assets/img/loggingin5.png',
+    'assets/img/loggingin6.png',
+    'assets/img/loggingin7.png',
+    'assets/img/loggingin8.png',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ));
+
+    _frameTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
+      if (!mounted) return;
+      setState(() {
+        _index = (_index + 1) % _frames.length;
+      });
+    });
+
+    _goHomeTimer = Timer(const Duration(milliseconds: 1700), () {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    });
+  }
