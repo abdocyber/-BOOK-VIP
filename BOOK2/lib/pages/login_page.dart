@@ -17,49 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   final pass = TextEditingController();
   bool loading = false;
   bool _obscurePassword = true;
-  
-class LoginLandingScreen extends StatefulWidget {
-  const LoginLandingScreen({super.key});
-
-  @override
-  State<LoginLandingScreen> createState() => _LoginLandingScreenState();
-}
-
-
-  @override
-  void dispose() {
-    _frameTimer?.cancel();
-    _goHomeTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: SizedBox.expand(
-            child: Image.asset(
-              _frames[_index],
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-              errorBuilder: (context, error, stackTrace) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFFE31E24),
-                    strokeWidth: 2.6,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
   @override
   void dispose() {
@@ -94,13 +51,13 @@ class LoginLandingScreen extends StatefulWidget {
       } else {
         await SessionService.save(acc);
         if (mounted) {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const LoginLandingScreen(),
-    ),
-  );
-}
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LoginLandingScreen(),
+            ),
+          );
+        }
       }
     } catch (_) {
       if (mounted) toast('تعذر الاتصال بالخادم، ابقَ في صفحة تسجيل الدخول');
@@ -426,6 +383,14 @@ class LoginLandingScreen extends StatefulWidget {
     );
   }
 }
+
+class LoginLandingScreen extends StatefulWidget {
+  const LoginLandingScreen({super.key});
+
+  @override
+  State<LoginLandingScreen> createState() => _LoginLandingScreenState();
+}
+
 class _LoginLandingScreenState extends State<LoginLandingScreen> {
   int _index = 0;
   Timer? _frameTimer;
@@ -464,3 +429,37 @@ class _LoginLandingScreenState extends State<LoginLandingScreen> {
       Navigator.pushReplacementNamed(context, '/home');
     });
   }
+
+  @override
+  void dispose() {
+    _frameTimer?.cancel();
+    _goHomeTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SizedBox.expand(
+          child: Image.asset(
+            _frames[_index],
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFE31E24),
+                  strokeWidth: 2.6,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
