@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -17,6 +18,20 @@ class _SuccessPageState extends State<SuccessPage> {
   final GlobalKey _receiptKey = GlobalKey();
   bool showPrintSoon = false;
   bool isProcessing = false;
+
+  static const SystemUiOverlayStyle _successOverlayStyle = SystemUiOverlayStyle(
+    statusBarColor: Color(0xff6ab62d),
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.black,
+    systemNavigationBarIconBrightness: Brightness.light,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(_successOverlayStyle);
+  }
 
   Map<String, dynamic> _getTxData(BuildContext context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
@@ -190,9 +205,11 @@ class _SuccessPageState extends State<SuccessPage> {
       ['المبلغ', _formatAmount(d['amount'] ?? 0)],
     ];
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _successOverlayStyle,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
         backgroundColor: const Color(0xff2d8d1e),
         body: RepaintBoundary(
           key: _receiptKey,
@@ -443,6 +460,7 @@ class _SuccessPageState extends State<SuccessPage> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
