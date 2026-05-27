@@ -25,8 +25,14 @@ class _QrScannerPageState extends State<QrScannerPage> {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      final bool result = await controller.analyzeImage(image.path);
-      if (!result && mounted) {
+      final BarcodeCapture? result = await controller.analyzeImage(image.path);
+      final String? code = result?.barcodes.isNotEmpty == true
+          ? result!.barcodes.first.rawValue
+          : null;
+
+      if (code != null && code.isNotEmpty) {
+        _navigateToTransfer(code);
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('لم يتم العثور على رمز QR في الصورة')),
         );
