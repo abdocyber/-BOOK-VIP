@@ -430,25 +430,28 @@ class _LoginLandingScreenState extends State<LoginLandingScreen> {
   Timer? _frameTimer;
   Timer? _goHomeTimer;
 
-  // أسماء الصور الصحيحة الموجودة داخل assets/img ويتم عرضها بهذا الترتيب.
-  static const List<String> _frames = [
-    'assets/img/loggingin1.png',
-    'assets/img/loggingin2.png',
-    'assets/img/loggingin3.png',
-    'assets/img/loggingin4.png',
-    'assets/img/loggingin5.png',
-    'assets/img/loggingin6.png',
-    'assets/img/loggingin7.png',
-    'assets/img/loggingin8.png',
+  // تم وضع الاسمين المحتملين للصور حتى لا تظهر شاشة بيضاء إذا كان اسم الملفات
+  // في assets مكتوب logining بدل loggingin.
+  static const List<List<String>> _frames = [
+    ['assets/img/loggingin1.png', 'assets/img/logining1.png'],
+    ['assets/img/loggingin2.png', 'assets/img/logining2.png'],
+    ['assets/img/loggingin3.png', 'assets/img/logining3.png'],
+    ['assets/img/loggingin4.png', 'assets/img/logining4.png'],
+    ['assets/img/loggingin5.png', 'assets/img/logining5.png'],
+    ['assets/img/loggingin6.png', 'assets/img/logining6.png'],
+    ['assets/img/loggingin7.png', 'assets/img/logining7.png'],
+    ['assets/img/loggingin8.png', 'assets/img/logining8.png'],
   ];
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // تحميل الصور مسبقاً حتى لا تظهر شاشة بيضاء أثناء تبديل الفريمات.
-    for (final frame in _frames) {
-      precacheImage(AssetImage(frame), context);
+    // تحميل الصور مسبقاً بدون إجبار التطبيق على التوقف إذا كان أحد المسارات غير موجود.
+    for (final frameGroup in _frames) {
+      for (final frame in frameGroup) {
+        precacheImage(AssetImage(frame), context).catchError((_) {});
+      }
     }
   }
 
@@ -460,6 +463,8 @@ class _LoginLandingScreenState extends State<LoginLandingScreen> {
       statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ));
 
     _frameTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
@@ -484,36 +489,102 @@ class _LoginLandingScreenState extends State<LoginLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final frame = _frames[_index];
+    final frames = _frames[_index];
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SizedBox.expand(
-          child: Image.asset(
-            frame,
-            key: ValueKey<String>(frame),
-            width: double.infinity,
-            height: double.infinity,
-            fit: BoxFit.fill,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.high,
-            errorBuilder: (context, error, stackTrace) {
-              debugPrint('LOGIN LANDING IMAGE ERROR: $frame => $error');
-              return Center(
-                child: Text(
-                  'تعذر تحميل الصورة: $frame',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFE31E24),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              );
-            },
+          child: _LandingFrameImage(
+            frames: frames,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LandingFrameImage extends StatelessWidget {
+  final List<String> frames;
+  final int index;
+
+  const _LandingFrameImage({
+    required this.frames,
+    this.index = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (index >= frames.length) {
+      return const _LandingFallback();
+    }
+
+    final frame = frames[index];
+
+    return Image.asset(
+      frame,
+      key: ValueKey<String>(frame),
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      filterQuality: FilterQuality.high,
+      errorBuilder: (context, error, stackTrace) {
+        return _LandingFrameImage(
+          frames: frames,
+          index: index + 1,
+        );
+      },
+    );
+  }
+}
+
+class _LandingFallback extends StatelessWidget {
+  const _LandingFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: const Color(0xFFE31E24),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/img/bankak_logo_big.png',
+              width: 185,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Text(
+                'بنكك',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 34),
+            const SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'جاري تسجيل الدخول...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );
