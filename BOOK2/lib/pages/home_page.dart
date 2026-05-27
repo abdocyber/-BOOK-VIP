@@ -59,7 +59,16 @@ class HomePage extends StatelessWidget {
                   children: [
                     // 1. شريط اللوجو العلوي السابق بنفس الأبعاد
                     BankakTopLogoBar(
-                      onMenuTap: () {},
+                      onNotificationTap: () {
+                        Navigator.pushNamed(context, '/notify');
+                      },
+                      onExitTap: () {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/login',
+                          (route) => false,
+                        );
+                      },
                     ),
 
                     // 2. شريط التحية الفرعي
@@ -231,11 +240,13 @@ class _HomeItem {
 }
 
 class BankakTopLogoBar extends StatelessWidget {
-  final VoidCallback onMenuTap;
+  final VoidCallback onNotificationTap;
+  final VoidCallback onExitTap;
 
   const BankakTopLogoBar({
     super.key,
-    required this.onMenuTap,
+    required this.onNotificationTap,
+    required this.onExitTap,
   });
 
   @override
@@ -246,9 +257,8 @@ class BankakTopLogoBar extends StatelessWidget {
     final topbarHeight = isMobile ? 58.0 : 65.0;
     final brandWidth = isMobile ? 102.0 : 120.0;
 
-    final menuWidth = isMobile ? 32.0 : 38.0;
-    final menuHeight = isMobile ? 22.0 : 26.0;
-    final barWidth = isMobile ? 28.0 : 34.0;
+    final iconBox = isMobile ? 42.0 : 46.0;
+    final iconSize = isMobile ? 30.0 : 34.0;
 
     return Container(
       height: topbarHeight,
@@ -278,18 +288,28 @@ class BankakTopLogoBar extends StatelessWidget {
               ),
             ),
           ),
+
+          // زر الإشعارات مكان أيقونة القائمة القديمة - نفس موضع اليمين
           Positioned(
-            right: isMobile ? 12 : 14,
-            bottom: 12,
-            child: InkWell(
-              onTap: onMenuTap,
-              child: _MenuIcon(
-                width: menuWidth,
-                height: menuHeight,
-                barWidth: barWidth,
-                barHeight: 3,
-                gap: isMobile ? 8 : 10,
-              ),
+            right: isMobile ? 10 : 12,
+            bottom: 7,
+            child: _HeaderIconButton(
+              icon: Icons.notifications_none,
+              boxSize: iconBox,
+              iconSize: iconSize,
+              onTap: onNotificationTap,
+            ),
+          ),
+
+          // زر الخروج في الجهة اليسرى مثل الصورة المرجعية
+          Positioned(
+            left: isMobile ? 10 : 12,
+            bottom: 7,
+            child: _HeaderIconButton(
+              icon: Icons.power_settings_new,
+              boxSize: iconBox,
+              iconSize: iconSize,
+              onTap: onExitTap,
             ),
           ),
         ],
@@ -298,43 +318,34 @@ class BankakTopLogoBar extends StatelessWidget {
   }
 }
 
-class _MenuIcon extends StatelessWidget {
-  final double width;
-  final double height;
-  final double barWidth;
-  final double barHeight;
-  final double gap;
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final double boxSize;
+  final double iconSize;
+  final VoidCallback onTap;
 
-  const _MenuIcon({
-    required this.width,
-    required this.height,
-    required this.barWidth,
-    required this.barHeight,
-    required this.gap,
+  const _HeaderIconButton({
+    required this.icon,
+    required this.boxSize,
+    required this.iconSize,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: Stack(
-        children: [
-          Positioned(right: 0, top: 0, child: _bar()),
-          Positioned(right: 0, top: gap, child: _bar()),
-          Positioned(right: 0, top: gap * 2, child: _bar()),
-        ],
-      ),
-    );
-  }
-
-  Widget _bar() {
-    return Container(
-      width: barWidth,
-      height: barHeight,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(3),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(boxSize / 2),
+      child: SizedBox(
+        width: boxSize,
+        height: boxSize,
+        child: Center(
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: iconSize,
+          ),
+        ),
       ),
     );
   }
