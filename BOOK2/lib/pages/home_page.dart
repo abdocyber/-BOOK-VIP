@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
       const _HomeItem('grid_1.png', 'تفاصيل\nالحساب', '/account'), //
 
       const _HomeItem('grid_6.png', 'طلب الودائع\nالإستثمارية', ''), //
-      const _HomeItem('grid_5.png', 'بنككPAY', ''), //
+      const _HomeItem('grid_5.png', 'بنككPAY', '/qr_scanner'), //
       const _HomeItem('grid_4.png', 'سحب\nبدون بطاقة', ''), //
 
       const _HomeItem('grid_9.png', 'إدارة البطاقات', ''), //

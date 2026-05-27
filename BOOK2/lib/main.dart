@@ -20,6 +20,7 @@ import 'pages/error_page.dart';
 import 'pages/transactions_page.dart';
 import 'pages/white_receipt_page.dart';
 import 'pages/notify_page.dart';
+import 'pages/qr_scanner_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,6 +111,7 @@ class BankakApp extends StatelessWidget {
         '/white': (_) => const WhiteReceiptPage(),
         '/offline': (_) => const OfflinePage(),
         '/app_disabled': (_) => const AppDisabledPage(),
+        '/qr_scanner': (_) => const QrScannerPage(),
       },
     );
   }
