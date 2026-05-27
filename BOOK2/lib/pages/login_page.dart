@@ -91,8 +91,10 @@ class _LoginPageState extends State<LoginPage> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F5F7),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
+        body: Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
             final appW = constraints.maxWidth.clamp(0.0, 430.0);
             final appH = constraints.maxHeight;
             final scale = appW / 360.0;
@@ -299,6 +301,38 @@ class _LoginPageState extends State<LoginPage> {
               ),
             );
           },
+            ),
+            if (loading)
+              Positioned.fill(
+                child: Container(
+                  color: const Color(0xFFb80006),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/img/bankak_logo_big.png',
+                        width: 180,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 40),
+                      const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'جاري تسجيل الدخول...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
