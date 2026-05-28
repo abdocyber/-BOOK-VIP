@@ -24,6 +24,7 @@ class _SendToPageState extends State<SendToPage> {
   BankAccount? receiver;
   bool loading = true;
   String to = '';
+  String receiverBranch = '';
 
   @override
   void didChangeDependencies() {
@@ -46,6 +47,12 @@ class _SendToPageState extends State<SendToPage> {
   Future<void> load() async {
     try {
       receiver = await FirebaseService.getAccount(to);
+
+      receiverBranch = await _getReceiverBranchFromFirebase(
+        referenceOrAccount: to,
+        accountNo: receiver?.accountNo,
+        referenceNo: receiver?.referenceNo,
+      );
     } catch (e) {
       debugPrint('SENDTO LOAD ERROR: $e');
     }
@@ -53,6 +60,83 @@ class _SendToPageState extends State<SendToPage> {
     if (mounted) {
       setState(() => loading = false);
     }
+  }
+
+  String _branchFromData(Map<String, dynamic> data) {
+    final keys = <String>[
+      'branch',
+      'branchName',
+      'bankBranch',
+      'accountBranch',
+      'branch_name',
+      'bank_branch',
+      'فرع',
+      'الفرع',
+    ];
+
+    for (final key in keys) {
+      final value = data[key];
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty && text != 'null') return text;
+    }
+
+    return '';
+  }
+
+  Future<String> _getReceiverBranchFromFirebase({
+    required String referenceOrAccount,
+    String? accountNo,
+    String? referenceNo,
+  }) async {
+    final accounts = FirebaseFirestore.instance.collection('accounts');
+
+    final values = <String>{
+      referenceOrAccount.trim(),
+      referenceOrAccount.replaceAll(RegExp(r'[^0-9]'), ''),
+      accountNo?.trim() ?? '',
+      accountNo?.replaceAll(RegExp(r'[^0-9]'), '') ?? '',
+      referenceNo?.trim() ?? '',
+      referenceNo?.replaceAll(RegExp(r'[^0-9]'), '') ?? '',
+    }..removeWhere((value) => value.isEmpty || value == 'null');
+
+    try {
+      for (final value in values) {
+        final doc = await accounts.doc(value).get();
+        final data = doc.data();
+        if (doc.exists && data != null) {
+          final branch = _branchFromData(data);
+          if (branch.isNotEmpty) return branch;
+        }
+      }
+
+      for (final value in values) {
+        final byReference = await accounts
+            .where('referenceNo', isEqualTo: value)
+            .limit(1)
+            .get();
+
+        if (byReference.docs.isNotEmpty) {
+          final branch = _branchFromData(byReference.docs.first.data());
+          if (branch.isNotEmpty) return branch;
+        }
+      }
+
+      for (final value in values) {
+        final byAccount = await accounts
+            .where('accountNo', isEqualTo: value)
+            .limit(1)
+            .get();
+
+        if (byAccount.docs.isNotEmpty) {
+          final branch = _branchFromData(byAccount.docs.first.data());
+          if (branch.isNotEmpty) return branch;
+        }
+      }
+    } catch (e) {
+      debugPrint('SENDTO BRANCH LOAD ERROR: $e');
+    }
+
+    return '';
   }
 
   // ====== توليد رقم العملية بتنسيق 2001978xxxx ======
@@ -546,7 +630,7 @@ class _SendToPageState extends State<SendToPage> {
                                   'نوع الحساب',
                                   receiver?.accountType ?? 'حساب توفير',
                                 ),
-                                _info('الفرع', receiver?.branch ?? 'الخرطوم'),
+                                _info('الفرع', receiverBranch),
                               ],
                             ),
                           ),
