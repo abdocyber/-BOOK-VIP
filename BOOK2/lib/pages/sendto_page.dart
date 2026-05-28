@@ -546,7 +546,7 @@ class _SendToPageState extends State<SendToPage> {
                                   'نوع الحساب',
                                   receiver?.accountType ?? 'حساب توفير',
                                 ),
-                                _info('الفرع', 'الباقير'),
+                                _info('الفرع', receiver?.branch ?? 'الخرطوم'),
                               ],
                             ),
                           ),
