@@ -5,6 +5,7 @@ class BankAccount {
   final String fullName;
   final String password;
   final String accountType;
+  final String branch;
   final double balance;
   final String status;
 
@@ -15,6 +16,7 @@ class BankAccount {
     required this.fullName,
     required this.password,
     this.accountType = 'حساب توفير',
+    this.branch = 'الخرطوم',
     this.balance = 0,
     this.status = 'active',
   });
@@ -36,6 +38,7 @@ class BankAccount {
     fullName: '${m['fullName'] ?? m['accountName'] ?? m['name'] ?? m['الاسم'] ?? ''}',
     password: '${m['password'] ?? m['كلمة المرور'] ?? ''}',
     accountType: '${m['accountType'] ?? m['نوع الحساب'] ?? 'حساب توفير'}',
+    branch: '${m['branch'] ?? m['الفرع'] ?? 'الخرطوم'}',
     balance: _toDouble(m['balance'] ?? m['الرصيد'] ?? 0),
     status: '${m['status'] ?? m['الحالة'] ?? 'active'}',
   );
@@ -48,6 +51,7 @@ class BankAccount {
     'fullName': fullName,
     'password': password,
     'accountType': accountType,
+    'branch': branch,
     'balance': balance,
     'status': status,
   };
