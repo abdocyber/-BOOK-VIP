@@ -57,16 +57,11 @@ jobs:
         run: flutter pub run flutter_launcher_icons
       # -------------------------------------------
 
-      - name: Build APK
-        run: flutter build apk --release
-        
-      # ... (باقي الأكواد)
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi --no-tree-shake-icons
 
-      - name: Build release APK
-        run: flutter build apk --release --no-tree-shake-icons
-
-      - name: Upload APK artifact
+      - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
-          path: BOOK2/build/app/outputs/flutter-apk/app-release.apk
+          name: release-apks
+          path: BOOK2/build/app/outputs/flutter-apk/*.apk
