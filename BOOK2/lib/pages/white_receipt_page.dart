@@ -78,47 +78,39 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
         right: 0,
         child: Center(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xff2b2b2b),
-              borderRadius: BorderRadius.circular(24),
+              color: const Color(0xff2b2b2b).withOpacity(0.9),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Image.asset(
+                  'assets/img/notification_icon.png',
+                  width: 22,
+                  height: 22,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.notifications,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 const Text(
                   'قريباً...',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 15,
                     fontFamily: 'Rubik',
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: Image.asset(
-                    'assets/img/white_logo_n.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.account_balance,
-                      color: Color(0xffd33234),
-                      size: 20,
-                    ),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -184,13 +176,7 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
   }
 
   void _showSoon() {
-    setState(() => showToast = true);
-    Future.delayed(const Duration(milliseconds: 1400), () {
-      if (mounted) setState(() => showToast = false);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('هذه الميزة قريباً!'))
-    );
+    _showPrintSoon();
   }
 
   @override
