@@ -424,7 +424,7 @@ class _SuccessPageState extends State<SuccessPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Image.asset(
-                                'assets/img/notification_icon.png',
+                                'assets/img/appicon.png',
                                 width: 22,
                                 height: 22,
                                 errorBuilder: (_, __, ___) => const Icon(
