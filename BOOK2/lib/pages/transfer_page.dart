@@ -224,7 +224,7 @@ class _TransferLandingScreenState extends State<TransferLandingScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xffc91c22), // خلفية حمراء لتجنب الوميض الأبيض
         body: SizedBox.expand(
           child: Image.asset(
             frame,
@@ -237,14 +237,13 @@ class _TransferLandingScreenState extends State<TransferLandingScreen> {
             errorBuilder: (context, error, stackTrace) {
               debugPrint('TRANSFER LANDING IMAGE ERROR: $frame => $error');
               return Center(
-                child: Text(
-                  'تعذر تحميل الصورة: $frame',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFE31E24),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset('assets/img/bankak_logo_big.png', width: 140),
+                    const SizedBox(height: 20),
+                    const CircularProgressIndicator(color: Colors.white),
+                  ],
                 ),
               );
             },

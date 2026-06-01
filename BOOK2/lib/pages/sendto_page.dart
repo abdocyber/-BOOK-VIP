@@ -591,9 +591,24 @@ class _SendToPageState extends State<SendToPage> {
                   ),
                 ),
                 if (loading)
-                  const Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.red),
+                  Expanded(
+                    child: Container(
+                      color: const Color(0xfff2f2f2),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/img/bankak_logo_big.png',
+                              width: 160,
+                              color: const Color(0xffc91c22).withOpacity(0.1),
+                              colorBlendMode: BlendMode.srcIn,
+                            ),
+                            const SizedBox(height: 24),
+                            const CircularProgressIndicator(color: Color(0xffc91c22)),
+                          ],
+                        ),
+                      ),
                     ),
                   )
                 else
@@ -920,7 +935,7 @@ class _ConfirmLandingScreenState extends State<ConfirmLandingScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xffc91c22), // تغيير الخلفية لتجنب الوميض الأبيض
         body: SizedBox.expand(
           child: Image.asset(
             frame,

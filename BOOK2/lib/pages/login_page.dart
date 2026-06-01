@@ -394,26 +394,22 @@ class _LoginLandingScreenState extends State<LoginLandingScreen> {
 
   // تم وضع الاسمين المحتملين للصور حتى لا تظهر شاشة بيضاء إذا كان اسم الملفات
   // في assets مكتوب logining بدل loggingin.
-  static const List<List<String>> _frames = [
-    ['assets/img/loggingin1.png', 'assets/img/logining1.png'],
-    ['assets/img/loggingin2.png', 'assets/img/logining2.png'],
-    ['assets/img/loggingin3.png', 'assets/img/logining3.png'],
-    ['assets/img/loggingin4.png', 'assets/img/logining4.png'],
-    ['assets/img/loggingin5.png', 'assets/img/logining5.png'],
-    ['assets/img/loggingin6.png', 'assets/img/logining6.png'],
-    ['assets/img/loggingin7.png', 'assets/img/logining7.png'],
-    ['assets/img/loggingin8.png', 'assets/img/logining8.png'],
+  static const List<String> _frames = [
+    'assets/img/loggingin1.png',
+    'assets/img/loggingin2.png',
+    'assets/img/loggingin3.png',
+    'assets/img/loggingin4.png',
+    'assets/img/loggingin5.png',
+    'assets/img/loggingin6.png',
+    'assets/img/loggingin7.png',
+    'assets/img/loggingin8.png',
   ];
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // تحميل الصور مسبقاً بدون إجبار التطبيق على التوقف إذا كان أحد المسارات غير موجود.
-    for (final frameGroup in _frames) {
-      for (final frame in frameGroup) {
-        precacheImage(AssetImage(frame), context).catchError((_) {});
-      }
+    for (final frame in _frames) {
+      precacheImage(AssetImage(frame), context).catchError((_) {});
     }
   }
 
@@ -451,53 +447,27 @@ class _LoginLandingScreenState extends State<LoginLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final frames = _frames[_index];
+    final frame = _frames[_index];
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFE31E24), // خلفية حمراء بدلاً من البيضاء لتجنب الوميض
         body: SizedBox.expand(
-          child: _LandingFrameImage(
-            frames: frames,
+          child: Image.asset(
+            frame,
+            key: ValueKey<String>(frame),
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            filterQuality: FilterQuality.high,
+            errorBuilder: (context, error, stackTrace) {
+              return const _LandingFallback();
+            },
           ),
         ),
       ),
-    );
-  }
-}
-
-class _LandingFrameImage extends StatelessWidget {
-  final List<String> frames;
-  final int index;
-
-  const _LandingFrameImage({
-    required this.frames,
-    this.index = 0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (index >= frames.length) {
-      return const _LandingFallback();
-    }
-
-    final frame = frames[index];
-
-    return Image.asset(
-      frame,
-      key: ValueKey<String>(frame),
-      width: double.infinity,
-      height: double.infinity,
-      fit: BoxFit.cover,
-      gaplessPlayback: true,
-      filterQuality: FilterQuality.high,
-      errorBuilder: (context, error, stackTrace) {
-        return _LandingFrameImage(
-          frames: frames,
-          index: index + 1,
-        );
-      },
     );
   }
 }
