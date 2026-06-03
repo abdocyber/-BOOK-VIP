@@ -834,134 +834,30 @@ class _SendToPageState extends State<SendToPage> {
   }
 
   Widget _redButton(String text, VoidCallback tap) {
+    final isConfirmButton = text == 'تأكيد';
     return InkWell(
-      onTap: tap,
+      onTap: loading ? null : tap,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Image.asset(
-            'assets/img/button.png',
+            (loading && isConfirmButton) ? 'assets/img/loading.png' : 'assets/img/button.png',
             width: 120,
             height: 55,
             fit: BoxFit.fill,
           ),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
+          if (!(loading && isConfirmButton))
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 }
-class ConfirmLandingScreen extends StatefulWidget {
-  final String nextRoute;
-  final Object? nextArguments;
 
-  const ConfirmLandingScreen({
-    super.key,
-    required this.nextRoute,
-    this.nextArguments,
-  });
-
-  @override
-  State<ConfirmLandingScreen> createState() => _ConfirmLandingScreenState();
-}
-
-class _ConfirmLandingScreenState extends State<ConfirmLandingScreen> {
-  int _index = 0;
-  Timer? _frameTimer;
-  Timer? _goNextTimer;
-
-  // أسماء صور التحميل الصحيحة داخل assets/img ويتم عرضها بهذا الترتيب.
-  static const List<String> _frames = [
-    'assets/img/loading.png',
-    'assets/img/loading1.png',
-    'assets/img/loading2.png',
-    'assets/img/loading3.png',
-    'assets/img/loading4.png',
-    'assets/img/loading5.png',
-    'assets/img/loading6.png',
-    'assets/img/loading7.png',
-  ];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // تحميل الصور مسبقاً حتى لا تظهر صفحة بيضاء أثناء تبديل الفريمات.
-    for (final frame in _frames) {
-      precacheImage(AssetImage(frame), context);
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _frameTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
-      if (!mounted) return;
-      setState(() {
-        _index = (_index + 1) % _frames.length;
-      });
-    });
-
-    _goNextTimer = Timer(const Duration(milliseconds: 1600), () {
-      if (!mounted) return;
-
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        widget.nextRoute,
-        (route) => false,
-        arguments: widget.nextArguments,
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _frameTimer?.cancel();
-    _goNextTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final frame = _frames[_index];
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xffc91c22), // تغيير الخلفية لتجنب الوميض الأبيض
-        body: SizedBox.expand(
-          child: Image.asset(
-            frame,
-            key: ValueKey<String>(frame),
-            width: double.infinity,
-            height: double.infinity,
-            fit: BoxFit.fill,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.high,
-            errorBuilder: (context, error, stackTrace) {
-              debugPrint('CONFIRM LANDING IMAGE ERROR: $frame => $error');
-              return Center(
-                child: Text(
-                  'تعذر تحميل الصورة: $frame',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFE31E24),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}

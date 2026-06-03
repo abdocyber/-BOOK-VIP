@@ -306,7 +306,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                   padding: const EdgeInsets.only(top: 40),
                                   child: Center(
                                     child: InkWell(
-                                      onTap: () {
+                                      onTap: isProcessing ? null : () {
                                         Navigator.pushReplacementNamed(context, '/transfer');
                                       },
                                       borderRadius: BorderRadius.circular(9),
@@ -317,20 +317,21 @@ class _SuccessPageState extends State<SuccessPage> {
                                           alignment: Alignment.center,
                                           children: [
                                             Image.asset(
-                                              'assets/img/sucessbutton.png',
+                                              isProcessing ? 'assets/img/loading.png' : 'assets/img/sucessbutton.png',
                                               width: okButtonWidth,
                                               height: okButtonHeight,
                                               fit: BoxFit.fill,
                                             ),
-                                            const Text(
-                                              'موافق',
-                                              style: TextStyle(
-                                                color: Color(0xffeef7ee),
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                fontFamily: 'Rubik',
+                                            if (!isProcessing)
+                                              const Text(
+                                                'موافق',
+                                                style: TextStyle(
+                                                  color: Color(0xffeef7ee),
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontFamily: 'Rubik',
+                                                ),
                                               ),
-                                            ),
                                           ],
                                         ),
                                       ),

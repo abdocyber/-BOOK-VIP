@@ -51,12 +51,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         await SessionService.save(acc);
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const LoginLandingScreen(),
-            ),
-          );
+          Navigator.pushReplacementNamed(context, '/home');
         }
       }
     } catch (_) {
@@ -212,7 +207,7 @@ class _LoginPageState extends State<LoginPage> {
                                 height: s(55),
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
-                                    image: AssetImage(loading ? 'assets/img/logining.png' : 'assets/img/button.png'),
+                                    image: AssetImage(loading ? 'assets/img/loggingin1.png' : 'assets/img/button.png'),
                                     fit: BoxFit.fill,
                                   ),
                                   borderRadius: BorderRadius.circular(10),
@@ -380,145 +375,4 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class LoginLandingScreen extends StatefulWidget {
-  const LoginLandingScreen({super.key});
 
-  @override
-  State<LoginLandingScreen> createState() => _LoginLandingScreenState();
-}
-
-class _LoginLandingScreenState extends State<LoginLandingScreen> {
-  int _index = 0;
-  Timer? _frameTimer;
-  Timer? _goHomeTimer;
-
-  // تم وضع الاسمين المحتملين للصور حتى لا تظهر شاشة بيضاء إذا كان اسم الملفات
-  // في assets مكتوب logining بدل loggingin.
-  static const List<String> _frames = [
-    'assets/img/loggingin1.png',
-    'assets/img/loggingin2.png',
-    'assets/img/loggingin3.png',
-    'assets/img/loggingin4.png',
-    'assets/img/loggingin5.png',
-    'assets/img/loggingin6.png',
-    'assets/img/loggingin7.png',
-    'assets/img/loggingin8.png',
-  ];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    for (final frame in _frames) {
-      precacheImage(AssetImage(frame), context).catchError((_) {});
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.white,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ));
-
-    _frameTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
-      if (!mounted) return;
-      setState(() {
-        _index = (_index + 1) % _frames.length;
-      });
-    });
-
-    _goHomeTimer = Timer(const Duration(milliseconds: 1700), () {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
-    });
-  }
-
-  @override
-  void dispose() {
-    _frameTimer?.cancel();
-    _goHomeTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final frame = _frames[_index];
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFE31E24), // خلفية حمراء بدلاً من البيضاء لتجنب الوميض
-        body: SizedBox.expand(
-          child: Image.asset(
-            frame,
-            key: ValueKey<String>(frame),
-            width: double.infinity,
-            height: double.infinity,
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.high,
-            errorBuilder: (context, error, stackTrace) {
-              return const _LandingFallback();
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LandingFallback extends StatelessWidget {
-  const _LandingFallback();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: const Color(0xFFE31E24),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/img/bankak_logo_big.png',
-              width: 185,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Text(
-                'بنكك',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 34),
-            const SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 3,
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'جاري تسجيل الدخول...',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

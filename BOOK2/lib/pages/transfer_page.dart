@@ -93,14 +93,7 @@ class TransferPage extends StatelessWidget {
                     child: InkWell(
                       onTap: o[2].isEmpty
                           ? null
-                          : () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => TransferLandingScreen(nextRoute: o[2]),
-                                ),
-                              );
-                            },
+                          : () => Navigator.pushNamed(context, o[2]),
                       child: Container(
                         height: 67,
                         decoration: BoxDecoration(
@@ -154,102 +147,4 @@ class TransferPage extends StatelessWidget {
   }
 }
 
-class TransferLandingScreen extends StatefulWidget {
-  final String nextRoute;
 
-  const TransferLandingScreen({
-    super.key,
-    required this.nextRoute,
-  });
-
-  @override
-  State<TransferLandingScreen> createState() => _TransferLandingScreenState();
-}
-
-class _TransferLandingScreenState extends State<TransferLandingScreen> {
-  int _index = 0;
-  Timer? _frameTimer;
-  Timer? _goNextTimer;
-
-  // أسماء صور التحميل الصحيحة داخل assets/img ويتم عرضها بهذا الترتيب.
-  static const List<String> _frames = [
-    'assets/img/loading.png',
-    'assets/img/loading1.png',
-    'assets/img/loading2.png',
-    'assets/img/loading3.png',
-    'assets/img/loading4.png',
-    'assets/img/loading5.png',
-    'assets/img/loading6.png',
-    'assets/img/loading7.png',
-  ];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // تحميل الصور مسبقاً حتى لا تظهر صفحة بيضاء أثناء تبديل الفريمات.
-    for (final frame in _frames) {
-      precacheImage(AssetImage(frame), context);
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _frameTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
-      if (!mounted) return;
-      setState(() {
-        _index = (_index + 1) % _frames.length;
-      });
-    });
-
-    _goNextTimer = Timer(const Duration(milliseconds: 1600), () {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, widget.nextRoute);
-    });
-  }
-
-  @override
-  void dispose() {
-    _frameTimer?.cancel();
-    _goNextTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final frame = _frames[_index];
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xffc91c22), // خلفية حمراء لتجنب الوميض الأبيض
-        body: SizedBox.expand(
-          child: Image.asset(
-            frame,
-            key: ValueKey<String>(frame),
-            width: double.infinity,
-            height: double.infinity,
-            fit: BoxFit.fill,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.high,
-            errorBuilder: (context, error, stackTrace) {
-              debugPrint('TRANSFER LANDING IMAGE ERROR: $frame => $error');
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset('assets/img/bankak_logo_big.png', width: 140),
-                    const SizedBox(height: 20),
-                    const CircularProgressIndicator(color: Colors.white),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
