@@ -576,7 +576,7 @@ class _SendToPageState extends State<SendToPage> {
                             'تحويل لحسابات بنك الخرطوم',
                             style: TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ),
@@ -614,7 +614,7 @@ class _SendToPageState extends State<SendToPage> {
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
@@ -759,7 +759,7 @@ class _SendToPageState extends State<SendToPage> {
             style: const TextStyle(
               color: Color(0xff666666),
               fontSize: 17,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ),
@@ -769,7 +769,7 @@ class _SendToPageState extends State<SendToPage> {
           style: TextStyle(
             fontSize: 18,
             color: Color(0xff666666),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w400,
           ),
         ),
         Expanded(
@@ -779,7 +779,7 @@ class _SendToPageState extends State<SendToPage> {
             style: const TextStyle(
               color: Color(0xff666666),
               fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ),
@@ -832,7 +832,7 @@ class _SendToPageState extends State<SendToPage> {
                           initial ?? '',
                           style: const TextStyle(
                             fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w400,
                             color: Color(0xff555555),
                           ),
                         ),
@@ -884,7 +884,7 @@ class _SendToPageState extends State<SendToPage> {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w400,
               ),
             ),
         ],
