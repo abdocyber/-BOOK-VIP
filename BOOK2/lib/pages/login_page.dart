@@ -17,12 +17,34 @@ class _LoginPageState extends State<LoginPage> {
   final pass = TextEditingController();
   bool loading = false;
   bool _obscurePassword = true;
+  int _loadingIndex = 1;
+  Timer? _loadingTimer;
 
   @override
   void dispose() {
     id.dispose();
     pass.dispose();
+    _loadingTimer?.cancel();
     super.dispose();
+  }
+
+  void _startLoadingAnimation() {
+    _loadingIndex = 1;
+    _loadingTimer?.cancel();
+    _loadingTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _loadingIndex = (_loadingIndex % 7) + 1;
+      });
+    });
+  }
+
+  void _stopLoadingAnimation() {
+    _loadingTimer?.cancel();
+    _loadingTimer = null;
   }
 
   Future<void> login() async {
@@ -40,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
 
     FocusScope.of(context).unfocus();
     setState(() => loading = true);
+    _startLoadingAnimation();
 
     try {
       final acc = await FirebaseService.login(account, password);
@@ -57,7 +80,10 @@ class _LoginPageState extends State<LoginPage> {
     } catch (_) {
       if (mounted) toast('تعذر الاتصال بالخادم، ابقَ في صفحة تسجيل الدخول');
     } finally {
-      if (mounted) setState(() => loading = false);
+      if (mounted) {
+        setState(() => loading = false);
+        _stopLoadingAnimation();
+      }
     }
   }
 
@@ -207,7 +233,9 @@ class _LoginPageState extends State<LoginPage> {
                                 height: s(55),
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
-                                    image: AssetImage(loading ? 'assets/img/loggingin1.png' : 'assets/img/button.png'),
+                                    image: AssetImage(loading 
+                                        ? 'assets/img/loggingin$_loadingIndex.png' 
+                                        : 'assets/img/button.png'),
                                     fit: BoxFit.fill,
                                   ),
                                   borderRadius: BorderRadius.circular(10),

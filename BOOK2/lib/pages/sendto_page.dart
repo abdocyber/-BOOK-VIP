@@ -23,6 +23,9 @@ class _SendToPageState extends State<SendToPage> {
 
   BankAccount? receiver;
   bool loading = true;
+  bool isSubmitting = false;
+  int _loadingIndex = 1;
+  Timer? _loadingTimer;
   String to = '';
   String receiverBranch = '';
 
@@ -41,7 +44,27 @@ class _SendToPageState extends State<SendToPage> {
     amount.dispose();
     note.dispose();
     phone.dispose();
+    _loadingTimer?.cancel();
     super.dispose();
+  }
+
+  void _startLoadingAnimation() {
+    _loadingIndex = 1;
+    _loadingTimer?.cancel();
+    _loadingTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _loadingIndex = (_loadingIndex % 7) + 1;
+      });
+    });
+  }
+
+  void _stopLoadingAnimation() {
+    _loadingTimer?.cancel();
+    _loadingTimer = null;
   }
 
   Future<void> load() async {
@@ -312,6 +335,8 @@ class _SendToPageState extends State<SendToPage> {
   }
 
   Future<void> submit() async {
+    if (isSubmitting) return;
+
     final rawAmount = amount.text.trim().replaceAll(',', '');
     final a = double.tryParse(rawAmount) ?? 0;
 
@@ -319,6 +344,9 @@ class _SendToPageState extends State<SendToPage> {
       toast('يرجى إدخال المبلغ');
       return;
     }
+
+    setState(() => isSubmitting = true);
+    _startLoadingAnimation();
 
     final current = SessionService.current;
 
@@ -415,39 +443,39 @@ class _SendToPageState extends State<SendToPage> {
             () => r.date,
           ]) ?? DateTime.now().toIso8601String()}';
 
-      Navigator.of(context).pushAndRemoveUntil(
-  MaterialPageRoute(
-    builder: (_) => ConfirmLandingScreen(
-      nextRoute: '/success',
-      nextArguments: {
-        'operationNumber': operationNumber,
-        'id': operationNumber,
-        'transactionId': operationNumber,
-        'createdAt': createdAt,
-        'date': createdAt,
-        'amount': a,
-        'from': fullFromAccount,
-        'accountFrom': fullFromAccount,
-        'fromAccount': fullFromAccount,
-        'to': fullToAccount,
-        'accountTo': fullToAccount,
-        'toAccount': fullToAccount,
-        'receiverName': fullReceiverName,
-        'accountName': fullReceiverName,
-        'phone': phoneText,
-        'mobile': phoneText,
-        'note': noteText,
-        'comment': noteText,
-        'status': 'success',
-        'operationType': 'تحويل إلى حساب آخر',
-        'title': 'تحويل إلى حساب آخر',
-      },
-    ),
-  ),
-  (route) => false,
-);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/success',
+        (route) => false,
+        arguments: {
+          'operationNumber': operationNumber,
+          'id': operationNumber,
+          'transactionId': operationNumber,
+          'createdAt': createdAt,
+          'date': createdAt,
+          'amount': a,
+          'from': fullFromAccount,
+          'accountFrom': fullFromAccount,
+          'fromAccount': fullFromAccount,
+          'to': fullToAccount,
+          'accountTo': fullToAccount,
+          'toAccount': fullToAccount,
+          'receiverName': fullReceiverName,
+          'accountName': fullReceiverName,
+          'phone': phoneText,
+          'mobile': phoneText,
+          'note': noteText,
+          'comment': noteText,
+          'status': 'success',
+          'operationType': 'تحويل إلى حساب آخر',
+          'title': 'تحويل إلى حساب آخر',
+        },
+      );
       return;
     } catch (e) {
+      if (mounted) {
+        setState(() => isSubmitting = false);
+        _stopLoadingAnimation();
+      }
       if (!mounted) return;
 
       final err = e.toString();
@@ -835,18 +863,22 @@ class _SendToPageState extends State<SendToPage> {
 
   Widget _redButton(String text, VoidCallback tap) {
     final isConfirmButton = text == 'تأكيد';
+    final isAnimating = isSubmitting && isConfirmButton;
+    
     return InkWell(
-      onTap: loading ? null : tap,
+      onTap: (loading || isSubmitting) ? null : tap,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Image.asset(
-            (loading && isConfirmButton) ? 'assets/img/loading.png' : 'assets/img/button.png',
+            isAnimating 
+                ? 'assets/img/loading$_loadingIndex.png' 
+                : 'assets/img/button.png',
             width: 120,
             height: 55,
             fit: BoxFit.fill,
           ),
-          if (!(loading && isConfirmButton))
+          if (!isAnimating)
             Text(
               text,
               style: const TextStyle(
