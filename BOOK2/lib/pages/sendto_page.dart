@@ -867,27 +867,31 @@ class _SendToPageState extends State<SendToPage> {
     
     return InkWell(
       onTap: (loading || isSubmitting) ? null : tap,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset(
-            isAnimating 
-                ? 'assets/img/loading$_loadingIndex.png' 
-                : 'assets/img/button.png',
-            width: 120,
-            height: 55,
-            fit: BoxFit.fill,
-          ),
-          if (!isAnimating)
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-              ),
+      child: SizedBox(
+        width: 120,
+        height: 55,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              isAnimating 
+                  ? 'assets/img/loading$_loadingIndex.png' 
+                  : 'assets/img/button.png',
+              width: 120,
+              height: 55,
+              fit: BoxFit.fill,
             ),
-        ],
+            if (!isAnimating)
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

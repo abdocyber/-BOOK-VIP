@@ -93,17 +93,6 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset(
-                  'assets/img/notification_icon.png',
-                  width: 22,
-                  height: 22,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
                 const Text(
                   'قريباً...',
                   style: TextStyle(
@@ -111,6 +100,17 @@ class _WhiteReceiptPageState extends State<WhiteReceiptPage> {
                     fontSize: 15,
                     fontFamily: 'Rubik',
                     fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Image.asset(
+                  'assets/img/app_icon.png',
+                  width: 22,
+                  height: 22,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.info_outline,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
               ],

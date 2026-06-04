@@ -228,25 +228,30 @@ class _LoginPageState extends State<LoginPage> {
                             // زر تسجيل الدخول
                             GestureDetector(
                               onTap: loading ? null : login,
-                              child: Container(
+                              child: SizedBox(
                                 width: double.infinity,
                                 height: s(55),
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage(loading 
-                                        ? 'assets/img/loggingin$_loadingIndex.png' 
-                                        : 'assets/img/button.png'),
-                                    fit: BoxFit.fill,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: loading
-                                      ? const SizedBox.shrink()
-                                      : const Text(
-                                          'تسجيل الدخول',
-                                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Image.asset(
+                                      loading 
+                                          ? 'assets/img/loggingin$_loadingIndex.png' 
+                                          : 'assets/img/button.png',
+                                      width: double.infinity,
+                                      height: s(55),
+                                      fit: BoxFit.fill,
+                                    ),
+                                    if (!loading)
+                                      const Text(
+                                        'تسجيل الدخول',
+                                        style: TextStyle(
+                                          color: Colors.white, 
+                                          fontSize: 18, 
+                                          fontWeight: FontWeight.bold
                                         ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),

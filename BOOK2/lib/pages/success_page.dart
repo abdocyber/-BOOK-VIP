@@ -317,7 +317,7 @@ class _SuccessPageState extends State<SuccessPage> {
                                           alignment: Alignment.center,
                                           children: [
                                             Image.asset(
-                                              isProcessing ? 'assets/img/loading.png' : 'assets/img/sucessbutton.png',
+                                              isProcessing ? 'assets/img/loading1.png' : 'assets/img/sucessbutton.png',
                                               width: okButtonWidth,
                                               height: okButtonHeight,
                                               fit: BoxFit.fill,
