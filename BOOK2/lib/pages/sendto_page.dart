@@ -1,4 +1,4 @@
-import '../utils/nav_helper.dart';
+import '../nav_helper.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
