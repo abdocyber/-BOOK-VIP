@@ -1,4 +1,4 @@
-import '../nav_helper.dart';
+import 'package:bankak_flutter_final/nav_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
