@@ -1,4 +1,4 @@
-import '../nav_helper.dart';
+import 'package:bankak_flutter_final/nav_helper.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
